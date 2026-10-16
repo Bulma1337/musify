@@ -1,11 +1,5 @@
 import type { LyricLine } from "@/api/provider";
-import {
-  activeLineIndex,
-  displayStartMs,
-  getLyricsOffset,
-  PlaybackClock,
-  setLyricsOffset,
-} from "./timing";
+import { activeLineIndex, displayStartMs, getLyricsOffset, PlaybackClock, setLyricsOffset } from "./timing";
 
 const lines: LyricLine[] = [1000, 2000, 2000, 5000].map((startMs, i) => ({ startMs, text: `l${i}` }));
 

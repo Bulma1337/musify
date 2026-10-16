@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { Minus, MicVocal, Plus, RotateCcw, X } from "lucide-react";
 import type { LyricLine, Lyrics, Track } from "@/api/provider";
@@ -24,7 +33,8 @@ const PLAIN_FONT_SIZE = "clamp(1.125rem, 0.85rem + 1.8cqw, 1.75rem)";
 
 /** Soft top and bottom edge while scrolling; the column itself keeps its full width. */
 const FADE_MASK: CSSProperties = {
-  maskImage: "linear-gradient(to bottom, transparent 0, black 1rem, black calc(100% - 1.5rem), transparent 100%)",
+  maskImage:
+    "linear-gradient(to bottom, transparent 0, black 1rem, black calc(100% - 1.5rem), transparent 100%)",
   WebkitMaskImage:
     "linear-gradient(to bottom, transparent 0, black 1rem, black calc(100% - 1.5rem), transparent 100%)",
 };
@@ -33,7 +43,9 @@ const darken = (rgb: Rgb, factor: number) =>
   `rgb(${Math.round(rgb.r * factor)} ${Math.round(rgb.g * factor)} ${Math.round(rgb.b * factor)})`;
 
 function prefersReducedMotion(): boolean {
-  return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return (
+    typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 /** Space kept free above and below a line that is brought into view. */
@@ -260,12 +272,7 @@ function LyricsContent({ track }: { track: Track }) {
       >
         <div className="relative mx-auto box-border w-full max-w-[52rem] px-8 pt-6 pb-[70vh]">
           {synced ? (
-            <SyncedLines
-              lyrics={lyrics}
-              trackId={track.id}
-              scrollerRef={scrollerRef}
-              paused={paused}
-            />
+            <SyncedLines lyrics={lyrics} trackId={track.id} scrollerRef={scrollerRef} paused={paused} />
           ) : (
             <PlainLines lyrics={lyrics} />
           )}
@@ -277,7 +284,9 @@ function LyricsContent({ track }: { track: Track }) {
   return (
     <div
       className="absolute inset-0 flex flex-col overflow-hidden"
-      style={{ backgroundImage: `linear-gradient(180deg, ${darken(rgb, 0.62)} 0%, ${darken(rgb, 0.36)} 100%)` }}
+      style={{
+        backgroundImage: `linear-gradient(180deg, ${darken(rgb, 0.62)} 0%, ${darken(rgb, 0.36)} 100%)`,
+      }}
     >
       <header className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
         <div className="min-w-48 flex-1">

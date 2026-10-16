@@ -41,7 +41,9 @@ export function LyricsPreviewCard() {
   return (
     <section
       className="overflow-hidden rounded-lg"
-      style={{ backgroundImage: `linear-gradient(160deg, ${darken(rgb, 0.8)} 0%, ${darken(rgb, 0.45)} 100%)` }}
+      style={{
+        backgroundImage: `linear-gradient(160deg, ${darken(rgb, 0.8)} 0%, ${darken(rgb, 0.45)} 100%)`,
+      }}
     >
       <Link
         to={LYRICS_PATH}

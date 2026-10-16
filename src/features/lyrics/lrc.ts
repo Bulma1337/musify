@@ -89,7 +89,11 @@ function parseWords(text: string, lineStartMs: number): { words: LyricWord[]; pl
 
   const last = words[words.length - 1];
   if (last) last.text = last.text.replace(/s+$/, "");
-  const plain = words.map((w) => w.text).join("").replace(/s+/g, " ").trim();
+  const plain = words
+    .map((w) => w.text)
+    .join("")
+    .replace(/s+/g, " ")
+    .trim();
   return { words, plain };
 }
 

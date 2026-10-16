@@ -54,7 +54,10 @@ const memory = new Map<string, number>();
 const listeners = new Set<() => void>();
 
 function clampOffset(ms: number): number {
-  return Math.max(-OFFSET_LIMIT_MS, Math.min(OFFSET_LIMIT_MS, Math.round(ms / OFFSET_STEP_MS) * OFFSET_STEP_MS));
+  return Math.max(
+    -OFFSET_LIMIT_MS,
+    Math.min(OFFSET_LIMIT_MS, Math.round(ms / OFFSET_STEP_MS) * OFFSET_STEP_MS),
+  );
 }
 
 /** User offset for a track in ms; positive = lyrics appear later. */
