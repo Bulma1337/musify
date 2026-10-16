@@ -35,3 +35,7 @@ test-media/
 
 # TypeScript build info
 *.tsbuildinfo
+
+# Git worktrees and local dev output (screenshots, caches) inside the project
+.worktrees/
+.dev/

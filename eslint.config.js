@@ -6,7 +6,7 @@ import { reactRefresh } from "eslint-plugin-react-refresh";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores(["dist", "src-tauri", "node_modules"]),
+  globalIgnores(["dist", "src-tauri", "node_modules", ".worktrees", ".dev", "devservers"]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
