@@ -18,7 +18,10 @@ export interface ServerLibraryPrefs {
   folders: LibraryFolder[];
 }
 
-export const EMPTY_PREFS: ServerLibraryPrefs = Object.freeze({ pinned: [], folders: [] }) as ServerLibraryPrefs;
+export const EMPTY_PREFS: ServerLibraryPrefs = Object.freeze({
+  pinned: [],
+  folders: [],
+}) as ServerLibraryPrefs;
 
 interface LibraryState {
   /** Preferences per server id, so switching servers never mixes entries up. */
@@ -52,7 +55,9 @@ export const useLibrary = create<LibraryState>()(
   persist(
     (set) => {
       const update = (serverId: string, change: (prefs: ServerLibraryPrefs) => ServerLibraryPrefs) =>
-        set((s) => ({ byServer: { ...s.byServer, [serverId]: change(s.byServer[serverId] ?? EMPTY_PREFS) } }));
+        set((s) => ({
+          byServer: { ...s.byServer, [serverId]: change(s.byServer[serverId] ?? EMPTY_PREFS) },
+        }));
       const editFolder = (serverId: string, folderId: string, change: (f: LibraryFolder) => LibraryFolder) =>
         update(serverId, (p) => ({
           ...p,
@@ -98,7 +103,9 @@ export const useLibrary = create<LibraryState>()(
               ...p,
               folders: p.folders.map((f) => {
                 const without = f.entryKeys.filter((k) => k !== key);
-                return f.id === folderId ? { ...f, entryKeys: [...without, key] } : { ...f, entryKeys: without };
+                return f.id === folderId
+                  ? { ...f, entryKeys: [...without, key] }
+                  : { ...f, entryKeys: without };
               }),
             };
           });
