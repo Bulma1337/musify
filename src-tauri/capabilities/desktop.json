@@ -1,0 +1,15 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "desktop",
+  "description": "Desktop-only plugins",
+  "platforms": ["windows", "macOS", "linux"],
+  "windows": ["main", "mini"],
+  "permissions": [
+    "updater:default",
+    "autostart:default",
+    "window-state:default",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
+    "global-shortcut:allow-is-registered"
+  ]
+}

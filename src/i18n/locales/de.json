@@ -1,0 +1,24 @@
+{
+  "app": {
+    "name": "Navify",
+    "tagline": "Deine Musik. Dein Server."
+  },
+  "window": {
+    "minimize": "Minimieren",
+    "maximize": "Maximieren",
+    "restore": "Wiederherstellen",
+    "close": "Schließen"
+  },
+  "nav": {
+    "back": "Zurück",
+    "forward": "Vor",
+    "home": "Startseite",
+    "searchPlaceholder": "Was möchtest du wiedergeben?"
+  },
+  "library": {
+    "title": "Bibliothek"
+  },
+  "nowPlaying": {
+    "nothing": "Gerade läuft nichts"
+  }
+}

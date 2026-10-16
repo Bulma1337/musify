@@ -1,0 +1,37 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependencies and build output
+node_modules
+dist
+dist-ssr
+*.local
+coverage
+
+# Rust / Tauri
+src-tauri/target
+src-tauri/gen/schemas
+
+# Secrets – the updater signing key must never be committed
+*.key
+*.key.pub
+*.password
+.env
+.env.*
+
+# Local test servers and generated media
+devservers/
+test-media/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.sw?
+
+# TypeScript build info
+*.tsbuildinfo
