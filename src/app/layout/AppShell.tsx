@@ -4,6 +4,7 @@ import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { Spinner } from "@/components/ui/Spinner";
 import { Toaster } from "@/components/ui/Toaster";
 import { inTauri } from "@/lib/platform";
+import { startEngineBridge } from "@/player/bridge";
 import { LIBRARY_COLLAPSED_WIDTH, useLayout } from "./layoutStore";
 import { LibrarySidebar } from "./LibrarySidebar";
 import { PlayerBar } from "./PlayerBar";
@@ -90,6 +91,7 @@ export function AppShell() {
     useLayout();
   useZoom();
   useGlobalShortcuts();
+  useEffect(() => startEngineBridge(), []);
 
   return (
     <div className="flex h-full flex-col">

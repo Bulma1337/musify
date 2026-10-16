@@ -75,7 +75,9 @@
     "queue": "Warteschlange",
     "devices": "Ausgabegerät wählen",
     "miniplayer": "Miniplayer öffnen",
-    "fullscreen": "Vollbild"
+    "fullscreen": "Vollbild",
+    "playbackError": "Wiedergabefehler: {{message}}",
+    "deviceLost": "Das Ausgabegerät wurde getrennt. Die Wiedergabe läuft über das Standardgerät weiter."
   },
   "track": {
     "title": "Titel",
