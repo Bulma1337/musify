@@ -1,4 +1,5 @@
 import type { DragEvent } from "react";
+import type { Track } from "@/api/provider";
 
 /**
  * Drag-and-drop contract between track lists, the queue and the library sidebar. Uses native HTML5
@@ -17,9 +18,17 @@ export interface DraggedTracks {
 
 /** Payload of the drag in progress (dataTransfer content is unreadable during dragover). */
 let current: DraggedTracks | null = null;
+/** The dragged Track objects (kept in memory only; drop targets like the queue need full tracks). */
+let currentTracks: Track[] = [];
 
-export function startTrackDrag(event: DragEvent, payload: DraggedTracks, label: string): void {
+export function startTrackDrag(
+  event: DragEvent,
+  payload: DraggedTracks,
+  label: string,
+  tracks: Track[] = [],
+): void {
   current = payload;
+  currentTracks = tracks;
   event.dataTransfer.effectAllowed = "copyMove";
   event.dataTransfer.setData(TRACKS_MIME, JSON.stringify(payload));
   event.dataTransfer.setData("text/plain", label);
@@ -37,6 +46,12 @@ export function startTrackDrag(event: DragEvent, payload: DraggedTracks, label: 
 
 export function endTrackDrag(): void {
   current = null;
+  currentTracks = [];
+}
+
+/** Full Track objects of the drag in progress (empty if the source did not provide them). */
+export function currentDraggedTracks(): Track[] {
+  return currentTracks;
 }
 
 /** The drag in progress, if it carries tracks. */

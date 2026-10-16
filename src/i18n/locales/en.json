@@ -90,7 +90,9 @@
     "added": "Date added",
     "duration": "Duration",
     "explicit": "Explicit content",
-    "disc": "Disc {{n}}"
+    "disc": "Disc {{n}}",
+    "dragCount_one": "{{count}} track",
+    "dragCount_other": "{{count}} tracks"
   },
   "menu": {
     "addToQueue": "Add to queue",
@@ -133,7 +135,12 @@
     "nextInQueue": "Queued by you",
     "nextFrom": "Up next from: {{name}}",
     "empty": "Add songs to fill your queue.",
-    "historyEmpty": "You haven't played anything in this session yet."
+    "historyEmpty": "You haven't played anything in this session yet.",
+    "remove": "Remove from queue",
+    "clear": "Clear",
+    "more_one": "and {{count}} more track",
+    "more_other": "and {{count}} more tracks",
+    "dropHint": "Drag tracks here to play them next."
   },
   "devices": {
     "title": "Output",

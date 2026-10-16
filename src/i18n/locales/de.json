@@ -90,7 +90,9 @@
     "added": "Hinzugefügt am",
     "duration": "Dauer",
     "explicit": "Explizite Inhalte",
-    "disc": "CD {{n}}"
+    "disc": "CD {{n}}",
+    "dragCount_one": "{{count}} Titel",
+    "dragCount_other": "{{count}} Titel"
   },
   "menu": {
     "addToQueue": "Zur Warteschlange hinzufügen",
@@ -133,7 +135,12 @@
     "nextInQueue": "Von dir eingereiht",
     "nextFrom": "Als Nächstes aus: {{name}}",
     "empty": "Füge Songs hinzu, um deine Warteschlange zu füllen.",
-    "historyEmpty": "Du hast in dieser Sitzung noch nichts gehört."
+    "historyEmpty": "Du hast in dieser Sitzung noch nichts gehört.",
+    "remove": "Aus der Warteschlange entfernen",
+    "clear": "Leeren",
+    "more_one": "und {{count}} weiterer Titel",
+    "more_other": "und {{count}} weitere Titel",
+    "dropHint": "Ziehe Titel hierher, um sie als Nächstes zu hören."
   },
   "devices": {
     "title": "Ausgabe",
