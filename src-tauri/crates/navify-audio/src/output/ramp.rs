@@ -13,6 +13,8 @@ pub const RAMP_MS: f64 = 5.0;
 pub struct Control {
     paused: AtomicBool,
     xruns: AtomicU64,
+    /// Set by `request_flush`; the callback discards everything queued in the ring once.
+    flush: AtomicBool,
 }
 
 impl Control {
@@ -34,6 +36,16 @@ impl Control {
 
     pub fn add_xrun(&self) {
         self.xruns.fetch_add(1, Ordering::Relaxed);
+    }
+
+    /// Asks the callback to drop all audio currently queued (e.g. after seeking while paused).
+    pub fn request_flush(&self) {
+        self.flush.store(true, Ordering::SeqCst);
+    }
+
+    /// Returns and clears a pending flush request (callback side).
+    pub fn take_flush(&self) -> bool {
+        self.flush.swap(false, Ordering::SeqCst)
     }
 }
 

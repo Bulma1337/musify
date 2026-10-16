@@ -30,7 +30,7 @@ pub mod convert;
 mod cpal_out;
 mod devices;
 #[cfg(windows)]
-mod mmcss;
+pub(crate) mod mmcss;
 pub mod null;
 pub mod ramp;
 pub mod render;
@@ -76,6 +76,8 @@ pub trait OutputStream: Send {
     fn pause(&mut self);
     /// Total underruns since the stream was opened.
     fn xruns(&self) -> u64;
+    /// Drops all audio queued in the ring (used when seeking while paused). Lock-free.
+    fn flush(&mut self);
 }
 
 /// Lists output devices (default first). Never panics; empty if there is no device.

@@ -78,6 +78,14 @@ impl Renderer {
     pub fn render_with(&mut self, ring: &mut Consumer<f32>, out: &mut [f32], mode: FillMode) -> usize {
         let ch = self.channels;
         let total = out.len() / ch;
+        if self.control.take_flush() {
+            let queued = ring.slots();
+            if queued > 0
+                && let Ok(chunk) = ring.read_chunk(queued)
+            {
+                chunk.commit_all();
+            }
+        }
         // Read the ring fill level before the pause flag: a writer that sets `paused` and then pushes
         // data is then guaranteed to be seen as paused together with that data.
         let available = ring.slots() / ENGINE_CHANNELS;

@@ -145,4 +145,8 @@ impl OutputStream for NullOutput {
     fn xruns(&self) -> u64 {
         self.control.xruns()
     }
+
+    fn flush(&mut self) {
+        self.control.request_flush();
+    }
 }

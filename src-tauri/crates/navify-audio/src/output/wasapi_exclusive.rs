@@ -392,4 +392,8 @@ impl OutputStream for ExclusiveOutput {
     fn xruns(&self) -> u64 {
         self.control.xruns()
     }
+
+    fn flush(&mut self) {
+        self.control.request_flush();
+    }
 }
