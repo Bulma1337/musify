@@ -5,6 +5,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { Toaster } from "@/components/ui/Toaster";
 import { inTauri } from "@/lib/platform";
 import { startEngineBridge } from "@/player/bridge";
+import { startEngineSettingsSync } from "@/settings/engineSync";
 import { LIBRARY_COLLAPSED_WIDTH, useLayout } from "./layoutStore";
 import { LibrarySidebar } from "./LibrarySidebar";
 import { PlayerBar } from "./PlayerBar";
@@ -92,6 +93,7 @@ export function AppShell() {
   useZoom();
   useGlobalShortcuts();
   useEffect(() => startEngineBridge(), []);
+  useEffect(() => startEngineSettingsSync(), []);
 
   return (
     <div className="flex h-full flex-col">

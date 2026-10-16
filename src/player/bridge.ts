@@ -3,6 +3,7 @@ import type { Track } from "@/api/provider";
 import { useSession } from "@/api/session";
 import { toastError } from "@/components/ui/toast";
 import i18n from "@/i18n";
+import { currentStreamQuality } from "@/settings/store";
 import { audioEngine } from "./engine";
 import type { EngineEvent, OutputFormat, SourceFormat, TrackSource } from "./engineTypes";
 import { peekNext, usePlayer, type PlayerState, type QueueItem } from "./store";
@@ -26,7 +27,7 @@ const baseKey = (id: string) => id.split("#")[0] ?? id;
 function toSource(id: string, track: Track, state: PlayerState): TrackSource | null {
   const provider = useSession.getState().provider;
   if (!provider) return null;
-  const stream = provider.getStreamSource(track);
+  const stream = provider.getStreamSource(track, currentStreamQuality());
   const rg = track.replayGain;
   return {
     id,
@@ -64,6 +65,7 @@ export function startEngineBridge(): () => void {
   let applying = false;
   let repeatCounter = 0;
   let nextId: string | null = null;
+  let lastProgressReport = 0;
   /** Tracks that started recently, by engine id (for scrobbling when they end). */
   const started = new Map<string, Track>();
 
@@ -135,6 +137,16 @@ export function startEngineBridge(): () => void {
       case "position":
         if (baseKey(event.id) === state.current?.key) {
           apply(() => usePlayer.getState().setProgress(event.positionMs, event.durationMs ?? undefined));
+          // Periodic progress (Jellyfin shows it in its session list; Subsonic ignores it).
+          if (event.positionMs - lastProgressReport >= 10_000 || event.positionMs < lastProgressReport) {
+            lastProgressReport = event.positionMs;
+            reportPlayback({
+              type: "progress",
+              trackId: state.current.track.id,
+              positionMs: event.positionMs,
+              paused: !state.isPlaying,
+            });
+          }
         }
         break;
       case "stateChanged":
@@ -153,6 +165,7 @@ export function startEngineBridge(): () => void {
       case "trackEnded": {
         const track = started.get(event.id);
         started.delete(event.id);
+        if (track) reportPlayback({ type: "stop", trackId: track.id, positionMs: event.playedMs });
         if (track && shouldScrobble(event.playedMs, track.durationMs)) {
           reportPlayback({ type: "scrobble", trackId: track.id, playedAt: new Date() });
         }
