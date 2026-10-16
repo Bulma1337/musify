@@ -320,19 +320,13 @@ pub struct DeviceInfo {
     pub supports_exclusive: bool,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputConfig {
     /// `None` = follow the system default device.
     pub device_id: Option<String>,
     /// Request exclusive mode. Only used while the DSP is bypassed and volume is 100 %.
     pub exclusive: bool,
-}
-
-impl Default for OutputConfig {
-    fn default() -> Self {
-        Self { device_id: None, exclusive: false }
-    }
 }
 
 /// What actually reaches the device right now.
