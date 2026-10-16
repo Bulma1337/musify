@@ -1,11 +1,11 @@
 // Full-resolution screenshots of the browser preview (`npm run dev`), logged in to the local test
 // Navidrome from `devservers/test-servers.json`. Uses headless Microsoft Edge via the DevTools protocol.
 //
-// Usage: node scripts/screenshots.mjs [--size=1440x900] <route> [<route> …]
+// Usage: node scripts/screenshots.mjs [--size=1440x900] [--app=http://localhost:1420/] <route> [<route> …]
 //   route: "/", "/album/<id>", "/search?q=x" — append "@js=<expression>" to run JS before the shot.
 // Output: .dev/shots/<route>.png
 import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -16,8 +16,13 @@ const routes = args.filter((a) => !a.startsWith("--"));
 const outDir = join(root, ".dev", "shots");
 const EDGE = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
 const PORT = 9333;
-const APP = "http://localhost:1420/";
-const cfg = JSON.parse(readFileSync(join(root, "devservers", "test-servers.json"), "utf8")).navidrome;
+const appArg = args.find((a) => a.startsWith("--app="));
+const APP = appArg ? appArg.slice(6) : "http://localhost:1420/";
+// A git worktree (.worktrees/<name>) has no devservers/ of its own: use the main checkout's.
+const serversFile = [join(root, "devservers"), join(root, "..", "..", "devservers")]
+  .map((dir) => join(dir, "test-servers.json"))
+  .find((file) => existsSync(file));
+const cfg = JSON.parse(readFileSync(serversFile, "utf8")).navidrome;
 mkdirSync(outDir, { recursive: true });
 
 const edge = spawn(EDGE, [
