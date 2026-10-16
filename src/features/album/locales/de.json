@@ -18,7 +18,7 @@
     "goToArtist": "Zur Künstlerseite",
     "addedToQueue": "Zur Warteschlange hinzugefügt",
     "playingNext": "Wird als Nächstes gespielt",
-    "released": "Erschienen am {{date}}",
+    "released": "Erschienen: {{date}}",
     "moreFrom": "Mehr von {{artist}}",
     "notFound": "Dieses Album wurde nicht gefunden.",
     "empty": "Dieses Album enthält keine Titel."

@@ -205,7 +205,7 @@ function Discography({ albums }: { albums: Album[] }) {
             onClick={() => setFilter(f.id)}
             className={cn(
               "h-8 rounded-full px-4 text-sm font-medium transition-colors",
-              filter === f.id ? "bg-text text-[var(--color-base)]" : "bg-highlight text-text hover:bg-press",
+              filter === f.id ? "bg-text text-backdrop" : "bg-highlight text-text hover:bg-press",
             )}
           >
             {f.label}
