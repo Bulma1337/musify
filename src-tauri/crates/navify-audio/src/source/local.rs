@@ -20,7 +20,11 @@ impl FileSource {
     pub(crate) fn open(path: &Path) -> io::Result<Self> {
         let file = File::open(path)?;
         let len = file.metadata()?.len();
-        Ok(Self { reader: BufReader::with_capacity(BUF_SIZE, file), len, _guard: None })
+        Ok(Self {
+            reader: BufReader::with_capacity(BUF_SIZE, file),
+            len,
+            _guard: None,
+        })
     }
 
     pub(crate) fn with_guard(mut self, guard: Box<dyn Send + Sync>) -> Self {

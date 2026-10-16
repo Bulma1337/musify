@@ -40,25 +40,48 @@ pub(crate) enum MixerMsg {
     Play(MixSlot),
     SetNext(Option<MixSlot>),
     /// Worker opened the track: absolute frame of the first ring sample and the total length.
-    Ready { id: u64, start_frame: u64, total_frames: Option<u64> },
+    Ready {
+        id: u64,
+        start_frame: u64,
+        total_frames: Option<u64>,
+    },
     /// Worker pushed everything; `end_frame` is the absolute frame after the last sample.
-    Finished { id: u64, end_frame: u64 },
-    SetGain { id: u64, gain: f64 },
+    Finished {
+        id: u64,
+        end_frame: u64,
+    },
+    SetGain {
+        id: u64,
+        gain: f64,
+    },
     /// Jump to the preloaded next track now (manual transition).
     SkipToNext,
     Stop,
     Dsp(Box<DspConfig>),
     Volume(f64),
-    Crossfade { frames: u64, skip_same_album: bool },
+    Crossfade {
+        frames: u64,
+        skip_same_album: bool,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum MixerEvent {
-    Started { id: u64, transition: Transition },
+    Started {
+        id: u64,
+        transition: Transition,
+    },
     /// Absolute frame (within the track) that is audible right now.
-    Position { id: u64, frame: u64 },
+    Position {
+        id: u64,
+        frame: u64,
+    },
     /// `played_frames` = frames of this slot that were actually mixed.
-    Ended { id: u64, played_frames: u64, completed: bool },
+    Ended {
+        id: u64,
+        played_frames: u64,
+        completed: bool,
+    },
     Buffering(bool),
     /// The current track ended with nothing queued.
     Idle,
@@ -72,18 +95,26 @@ pub(crate) struct Meters {
 
 impl Meters {
     pub fn new() -> Arc<Self> {
-        Arc::new(Self { peak_bits: AtomicU32::new(0), tap_enabled: AtomicBool::new(false) })
+        Arc::new(Self {
+            peak_bits: AtomicU32::new(0),
+            tap_enabled: AtomicBool::new(false),
+        })
     }
 
     fn record_peak(&self, linear: f32) {
         // Non-negative floats order like their bit patterns.
-        self.peak_bits.fetch_max(linear.max(0.0).to_bits(), Ordering::Relaxed);
+        self.peak_bits
+            .fetch_max(linear.max(0.0).to_bits(), Ordering::Relaxed);
     }
 
     /// Takes the peak since the last call, in dBFS.
     pub fn take_peak_db(&self) -> f32 {
         let linear = f32::from_bits(self.peak_bits.swap(0, Ordering::Relaxed));
-        if linear > 0.0 { 20.0 * linear.log10() } else { -120.0 }
+        if linear > 0.0 {
+            20.0 * linear.log10()
+        } else {
+            -120.0
+        }
     }
 }
 
@@ -131,7 +162,9 @@ impl Slot {
     /// Finished and fully drained.
     fn is_exhausted(&self) -> bool {
         match (self.end_frame, self.start_frame) {
-            (Some(end), Some(start)) => start + self.consumed >= end && self.available_frames() == 0,
+            (Some(end), Some(start)) => {
+                start + self.consumed >= end && self.available_frames() == 0
+            }
             _ => false,
         }
     }
@@ -148,18 +181,30 @@ impl Slot {
 
     /// Reads up to `frames` frames and adds them to `out` (interleaved stereo) scaled by `extra`.
     /// Returns frames read. Applies gain smoothing and the manual-fade envelope.
-    fn mix_into(&mut self, out: &mut [f64], frames: usize, extra: impl Fn(usize) -> f64, gain_step: f64) -> usize {
+    fn mix_into(
+        &mut self,
+        out: &mut [f64],
+        frames: usize,
+        extra: impl Fn(usize) -> f64,
+        gain_step: f64,
+    ) -> usize {
         let n = frames.min(self.available_frames());
         if n == 0 {
             return 0;
         }
-        let Ok(chunk) = self.ring.read_chunk(n * ENGINE_CHANNELS) else { return 0 };
+        let Ok(chunk) = self.ring.read_chunk(n * ENGINE_CHANNELS) else {
+            return 0;
+        };
         let (a, b) = chunk.as_slices();
         let mut samples = a.iter().chain(b.iter());
         for i in 0..n {
             if self.gain != self.gain_target {
                 let delta = self.gain_target - self.gain;
-                self.gain = if delta.abs() <= gain_step { self.gain_target } else { self.gain + gain_step * delta.signum() };
+                self.gain = if delta.abs() <= gain_step {
+                    self.gain_target
+                } else {
+                    self.gain + gain_step * delta.signum()
+                };
             }
             if self.env_step != 0.0 {
                 self.env = (self.env + self.env_step).clamp(0.0, 1.0);
@@ -185,7 +230,6 @@ struct Crossfade {
 }
 
 pub(crate) struct Mixer {
-    sample_rate: u32,
     chain: DspChain,
     out: Producer<f32>,
     out_capacity_frames: usize,
@@ -225,9 +269,9 @@ impl Mixer {
     ) -> Self {
         let rate = f64::from(sample_rate);
         let out_capacity_frames = out.buffer().capacity() / ENGINE_CHANNELS;
-        let target_fill_frames = ((rate * target_fill_ms / 1000.0) as usize).clamp(BLOCK_FRAMES, out_capacity_frames);
+        let target_fill_frames =
+            ((rate * target_fill_ms / 1000.0) as usize).clamp(BLOCK_FRAMES, out_capacity_frames);
         Self {
-            sample_rate,
             chain,
             out,
             out_capacity_frames,
@@ -250,10 +294,6 @@ impl Mixer {
             frames_since_position: 0,
             position_interval: (rate * POSITION_INTERVAL_MS / 1000.0) as u64,
         }
-    }
-
-    pub fn sample_rate(&self) -> u32 {
-        self.sample_rate
     }
 
     /// Runs until `stop` is set or the message channel disconnects.
@@ -290,13 +330,24 @@ impl Mixer {
     }
 
     fn slot_mut(&mut self, id: u64) -> Option<&mut Slot> {
-        [self.current.as_mut(), self.next.as_mut(), self.outgoing.as_mut()].into_iter().flatten().find(|s| s.id == id)
+        [
+            self.current.as_mut(),
+            self.next.as_mut(),
+            self.outgoing.as_mut(),
+        ]
+        .into_iter()
+        .flatten()
+        .find(|s| s.id == id)
     }
 
     fn fade_out_current(&mut self) {
         self.crossfade = None;
         if let Some(mut cur) = self.current.take() {
-            self.emit(MixerEvent::Ended { id: cur.id, played_frames: cur.consumed, completed: false });
+            self.emit(MixerEvent::Ended {
+                id: cur.id,
+                played_frames: cur.consumed,
+                completed: false,
+            });
             cur.env_step = -self.switch_step;
             self.outgoing = Some(cur);
         }
@@ -313,7 +364,11 @@ impl Mixer {
                 self.crossfade = None;
                 self.next = slot.map(|s| Slot::new(s, Transition::Gapless, self.switch_step));
             }
-            MixerMsg::Ready { id, start_frame, total_frames } => {
+            MixerMsg::Ready {
+                id,
+                start_frame,
+                total_frames,
+            } => {
                 if let Some(s) = self.slot_mut(id) {
                     s.start_frame = Some(start_frame);
                     s.total_frames = total_frames;
@@ -346,7 +401,10 @@ impl Mixer {
             }
             MixerMsg::Dsp(config) => self.chain.set_config(&config),
             MixerMsg::Volume(gain) => self.chain.set_volume(gain),
-            MixerMsg::Crossfade { frames, skip_same_album } => {
+            MixerMsg::Crossfade {
+                frames,
+                skip_same_album,
+            } => {
                 self.crossfade_frames = frames;
                 self.skip_same_album = skip_same_album;
             }
@@ -354,7 +412,9 @@ impl Mixer {
     }
 
     fn crossfade_allowed(&self) -> bool {
-        let (Some(cur), Some(next)) = (&self.current, &self.next) else { return false };
+        let (Some(cur), Some(next)) = (&self.current, &self.next) else {
+            return false;
+        };
         if self.crossfade_frames == 0 || next.start_frame.is_none() {
             return false;
         }
@@ -377,7 +437,9 @@ impl Mixer {
 
         let mut pos = 0;
         while pos < frames {
-            let Some(cur) = self.current.as_ref() else { break };
+            let Some(cur) = self.current.as_ref() else {
+                break;
+            };
             let cur_id = cur.id;
 
             // Start a crossfade when the current track is within the crossfade length of its end.
@@ -386,12 +448,18 @@ impl Mixer {
                 && let Some(remaining) = cur.remaining_frames()
                 && remaining <= self.crossfade_frames
             {
-                self.crossfade = Some(Crossfade { len: remaining.max(1), done: 0 });
+                self.crossfade = Some(Crossfade {
+                    len: remaining.max(1),
+                    done: 0,
+                });
                 let next = self.next.as_mut().expect("crossfade_allowed checked next");
                 next.transition = Transition::Crossfade;
                 next.started = true;
                 let next_id = next.id;
-                self.emit(MixerEvent::Started { id: next_id, transition: Transition::Crossfade });
+                self.emit(MixerEvent::Started {
+                    id: next_id,
+                    transition: Transition::Crossfade,
+                });
             }
 
             let want = frames - pos;
@@ -401,13 +469,24 @@ impl Mixer {
                 let gain_step = self.gain_step;
                 let slice = &mut block[pos * 2..(pos + n) * 2];
                 let cur = self.current.as_mut().expect("current present");
-                let got_cur = cur.mix_into(slice, n, |i| ((done + i as f64) / len * FRAC_PI_2).cos(), gain_step);
+                let got_cur = cur.mix_into(
+                    slice,
+                    n,
+                    |i| ((done + i as f64) / len * FRAC_PI_2).cos(),
+                    gain_step,
+                );
                 let next = self.next.as_mut().expect("next present during crossfade");
-                next.mix_into(slice, n, |i| ((done + i as f64) / len * FRAC_PI_2).sin(), gain_step);
+                next.mix_into(
+                    slice,
+                    n,
+                    |i| ((done + i as f64) / len * FRAC_PI_2).sin(),
+                    gain_step,
+                );
                 let fade = self.crossfade.as_mut().expect("fade present");
                 fade.done += n as u64;
                 pos += n;
-                let finished = fade.done >= fade.len || (got_cur < n && self.current.as_ref().is_some_and(Slot::is_exhausted));
+                let finished = fade.done >= fade.len
+                    || (got_cur < n && self.current.as_ref().is_some_and(Slot::is_exhausted));
                 if finished {
                     self.finish_current(true);
                     self.promote_next(None);
@@ -422,7 +501,10 @@ impl Mixer {
             if got > 0 && !cur.started {
                 cur.started = true;
                 let transition = cur.transition;
-                self.emit(MixerEvent::Started { id: cur_id, transition });
+                self.emit(MixerEvent::Started {
+                    id: cur_id,
+                    transition,
+                });
             }
             pos += got;
             if got > 0 && self.buffering {
@@ -441,7 +523,12 @@ impl Mixer {
                         self.idle_reported = true;
                         self.emit(MixerEvent::Idle);
                     }
-                } else if self.current.as_ref().is_some_and(|c| c.started || c.start_frame.is_some()) && !self.buffering {
+                } else if self
+                    .current
+                    .as_ref()
+                    .is_some_and(|c| c.started || c.start_frame.is_some())
+                    && !self.buffering
+                {
                     self.buffering = true;
                     self.emit(MixerEvent::Buffering(true));
                 }
@@ -450,7 +537,8 @@ impl Mixer {
         }
 
         self.chain.process(&mut block);
-        self.meters.record_peak(10f32.powf(self.chain.take_peak_db() / 20.0));
+        self.meters
+            .record_peak(10f32.powf(self.chain.take_peak_db() / 20.0));
         self.write_output(&block);
         self.block = block;
         self.report_position(frames as u64);
@@ -458,7 +546,11 @@ impl Mixer {
 
     fn finish_current(&mut self, completed: bool) {
         if let Some(cur) = self.current.take() {
-            self.emit(MixerEvent::Ended { id: cur.id, played_frames: cur.consumed, completed });
+            self.emit(MixerEvent::Ended {
+                id: cur.id,
+                played_frames: cur.consumed,
+                completed,
+            });
         }
     }
 
@@ -473,7 +565,10 @@ impl Mixer {
                 // Already announced (crossfade start).
             } else if next.consumed > 0 || next.available_frames() > 0 {
                 next.started = true;
-                self.emit(MixerEvent::Started { id: next.id, transition: next.transition });
+                self.emit(MixerEvent::Started {
+                    id: next.id,
+                    transition: next.transition,
+                });
             }
             self.current = Some(next);
             self.idle_reported = false;
@@ -494,7 +589,11 @@ impl Mixer {
             let frames = block.len() / ENGINE_CHANNELS;
             if let Ok(mut chunk) = self.tap.write_chunk_uninit(frames.min(self.tap.slots())) {
                 let (a, b) = chunk.as_mut_slices();
-                for (dst, pair) in a.iter_mut().chain(b.iter_mut()).zip(block.chunks_exact(2)) {
+                for (dst, pair) in a
+                    .iter_mut()
+                    .chain(b.iter_mut())
+                    .zip(block.as_chunks::<2>().0)
+                {
                     dst.write(((pair[0] + pair[1]) * 0.5) as f32);
                 }
                 // SAFETY: the zip covers min(chunk, frames) = chunk length slots.
@@ -509,7 +608,9 @@ impl Mixer {
             return;
         }
         self.frames_since_position = 0;
-        let Some(cur) = self.current.as_ref() else { return };
+        let Some(cur) = self.current.as_ref() else {
+            return;
+        };
         if !cur.started {
             return;
         }

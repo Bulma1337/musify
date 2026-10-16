@@ -46,15 +46,25 @@ pub(crate) fn encoding_for(format: SampleFormat) -> Option<SampleEncoding> {
 }
 
 /// Picks rate/channels from the device default and the best sample format at that configuration.
-fn choose_config(device: &cpal::Device) -> Result<(StreamConfig, SampleFormat, SampleEncoding), OutputError> {
+fn choose_config(
+    device: &cpal::Device,
+) -> Result<(StreamConfig, SampleFormat, SampleEncoding), OutputError> {
     let default = device.default_output_config().map_err(map_open_error)?;
     let rate = default.sample_rate();
     let channels = default.channels();
-    let config = StreamConfig { channels, sample_rate: rate, buffer_size: BufferSize::Default };
+    let config = StreamConfig {
+        channels,
+        sample_rate: rate,
+        buffer_size: BufferSize::Default,
+    };
 
     let supported: Vec<SampleFormat> = device
         .supported_output_configs()
-        .map(|it| it.filter(|c| c.channels() == channels && c.contains_rate(rate)).map(|c| c.sample_format()).collect())
+        .map(|it| {
+            it.filter(|c| c.channels() == channels && c.contains_rate(rate))
+                .map(|c| c.sample_format())
+                .collect()
+        })
         .unwrap_or_default();
 
     let preference = [
@@ -66,15 +76,22 @@ fn choose_config(device: &cpal::Device) -> Result<(StreamConfig, SampleFormat, S
         SampleFormat::U16,
         SampleFormat::U8,
     ];
-    let format = if default.sample_format() == SampleFormat::F32 || supported.contains(&SampleFormat::F32) {
-        SampleFormat::F32
-    } else if encoding_for(default.sample_format()).is_some() {
-        default.sample_format()
-    } else {
-        preference.into_iter().find(|f| supported.contains(f)).ok_or_else(|| {
-            OutputError::Backend(format!("unsupported device sample format {:?}", default.sample_format()))
-        })?
-    };
+    let format =
+        if default.sample_format() == SampleFormat::F32 || supported.contains(&SampleFormat::F32) {
+            SampleFormat::F32
+        } else if encoding_for(default.sample_format()).is_some() {
+            default.sample_format()
+        } else {
+            preference
+                .into_iter()
+                .find(|f| supported.contains(f))
+                .ok_or_else(|| {
+                    OutputError::Backend(format!(
+                        "unsupported device sample format {:?}",
+                        default.sample_format()
+                    ))
+                })?
+        };
     let encoding = encoding_for(format).expect("format chosen from encodable set");
     Ok((config, format, encoding))
 }
@@ -149,7 +166,8 @@ impl CpalOutput {
             }
         };
 
-        let tracker = following_default.then(|| DefaultTracker::new(current_default_id(), events.clone()));
+        let tracker =
+            following_default.then(|| DefaultTracker::new(current_default_id(), events.clone()));
         let error_tracker = tracker.clone();
         let error_control = control.clone();
         let error_events = events.clone();
@@ -158,7 +176,9 @@ impl CpalOutput {
             if let Some(tracker) = &error_tracker
                 && matches!(
                     kind,
-                    ErrorKind::DeviceNotAvailable | ErrorKind::StreamInvalidated | ErrorKind::DeviceChanged
+                    ErrorKind::DeviceNotAvailable
+                        | ErrorKind::StreamInvalidated
+                        | ErrorKind::DeviceChanged
                 )
                 && (tracker.check() || kind == ErrorKind::DeviceChanged)
             {
@@ -195,7 +215,12 @@ impl CpalOutput {
             sample_format,
             format.device_name
         );
-        Ok(Self { _stream: stream, _watcher: watcher, control, format })
+        Ok(Self {
+            _stream: stream,
+            _watcher: watcher,
+            control,
+            format,
+        })
     }
 }
 
@@ -228,18 +253,33 @@ mod tests {
     #[test]
     fn error_kinds_map_to_events() {
         let ev = |k| classify_error(k, "msg".into());
-        assert_eq!(ev(ErrorKind::DeviceNotAvailable), ErrorAction::Event(OutputEvent::DeviceLost));
-        assert_eq!(ev(ErrorKind::DeviceChanged), ErrorAction::Event(OutputEvent::DefaultDeviceChanged));
-        assert_eq!(ev(ErrorKind::StreamInvalidated), ErrorAction::Event(OutputEvent::StreamInvalidated));
+        assert_eq!(
+            ev(ErrorKind::DeviceNotAvailable),
+            ErrorAction::Event(OutputEvent::DeviceLost)
+        );
+        assert_eq!(
+            ev(ErrorKind::DeviceChanged),
+            ErrorAction::Event(OutputEvent::DefaultDeviceChanged)
+        );
+        assert_eq!(
+            ev(ErrorKind::StreamInvalidated),
+            ErrorAction::Event(OutputEvent::StreamInvalidated)
+        );
         assert_eq!(ev(ErrorKind::Xrun), ErrorAction::Xrun);
         assert_eq!(ev(ErrorKind::RealtimeDenied), ErrorAction::Ignore);
-        assert_eq!(ev(ErrorKind::DeviceBusy), ErrorAction::Event(OutputEvent::Error("msg".into())));
+        assert_eq!(
+            ev(ErrorKind::DeviceBusy),
+            ErrorAction::Event(OutputEvent::Error("msg".into()))
+        );
     }
 
     #[test]
     fn sample_formats_map_to_encodings() {
         assert_eq!(encoding_for(SampleFormat::F32), Some(SampleEncoding::F32));
-        assert_eq!(encoding_for(SampleFormat::I24), Some(SampleEncoding::I24In32Low));
+        assert_eq!(
+            encoding_for(SampleFormat::I24),
+            Some(SampleEncoding::I24In32Low)
+        );
         assert_eq!(encoding_for(SampleFormat::U16), Some(SampleEncoding::U16));
         assert_eq!(encoding_for(SampleFormat::DsdU8), None);
     }

@@ -22,7 +22,8 @@ fn guarded<T>(f: impl FnOnce() -> Option<T>) -> Option<T> {
 }
 
 pub(crate) fn device_name(device: &cpal::Device) -> String {
-    guarded(|| device.description().ok().map(|d| d.name().to_string())).unwrap_or_else(|| "Unknown device".into())
+    guarded(|| device.description().ok().map(|d| d.name().to_string()))
+        .unwrap_or_else(|| "Unknown device".into())
 }
 
 pub(crate) fn device_id_string(device: &cpal::Device) -> Option<String> {
@@ -39,9 +40,12 @@ pub(crate) fn current_default_id() -> Option<String> {
 pub(crate) fn resolve_device(config: &OutputConfig) -> Result<(cpal::Device, bool), OutputError> {
     let host = cpal::default_host();
     match &config.device_id {
-        None => guarded(|| host.default_output_device()).map(|d| (d, true)).ok_or(OutputError::NoDevice),
+        None => guarded(|| host.default_output_device())
+            .map(|d| (d, true))
+            .ok_or(OutputError::NoDevice),
         Some(id) => {
-            let parsed = cpal::DeviceId::from_str(id).map_err(|_| OutputError::DeviceNotFound(id.clone()))?;
+            let parsed = cpal::DeviceId::from_str(id)
+                .map_err(|_| OutputError::DeviceNotFound(id.clone()))?;
             guarded(|| host.device_by_id(&parsed))
                 .filter(|d| d.supports_output())
                 .map(|d| (d, false))
@@ -60,7 +64,8 @@ pub(crate) fn wasapi_endpoint_id(id: &str) -> Option<String> {
 pub(crate) fn list_devices() -> Vec<DeviceInfo> {
     let host = cpal::default_host();
     let default_id = guarded(|| host.default_output_device()).and_then(|d| device_id_string(&d));
-    let Some(devices) = guarded(|| host.output_devices().ok().map(|it| it.collect::<Vec<_>>())) else {
+    let Some(devices) = guarded(|| host.output_devices().ok().map(|it| it.collect::<Vec<_>>()))
+    else {
         return Vec::new();
     };
 
@@ -70,7 +75,10 @@ pub(crate) fn list_devices() -> Vec<DeviceInfo> {
             let id = device_id_string(device)?;
             let default_config = guarded(|| device.default_output_config().ok());
             let max_channels = guarded(|| {
-                device.supported_output_configs().ok().map(|configs| configs.map(|c| c.channels()).max().unwrap_or(0))
+                device
+                    .supported_output_configs()
+                    .ok()
+                    .map(|configs| configs.map(|c| c.channels()).max().unwrap_or(0))
             })
             .unwrap_or(0)
             .max(default_config.as_ref().map_or(0, |c| c.channels()));
@@ -87,7 +95,10 @@ pub(crate) fn list_devices() -> Vec<DeviceInfo> {
 
     #[cfg(windows)]
     {
-        let endpoints: Vec<String> = out.iter().map(|d| wasapi_endpoint_id(&d.id).unwrap_or_default()).collect();
+        let endpoints: Vec<String> = out
+            .iter()
+            .map(|d| wasapi_endpoint_id(&d.id).unwrap_or_default())
+            .collect();
         let supported = super::wasapi_exclusive::probe_exclusive_support(endpoints);
         for (info, ok) in out.iter_mut().zip(supported) {
             info.supports_exclusive = ok;
@@ -117,7 +128,10 @@ pub(crate) struct DefaultTracker {
 
 impl DefaultTracker {
     pub fn new(initial: Option<String>, events: Sender<OutputEvent>) -> Arc<Self> {
-        Arc::new(Self { last: Mutex::new(initial), events })
+        Arc::new(Self {
+            last: Mutex::new(initial),
+            events,
+        })
     }
 
     /// Compares the current default with the last one seen; reports and returns `true` on change.
@@ -128,7 +142,11 @@ impl DefaultTracker {
         if *last == current {
             return false;
         }
-        let event = if current.is_none() { OutputEvent::DeviceLost } else { OutputEvent::DefaultDeviceChanged };
+        let event = if current.is_none() {
+            OutputEvent::DeviceLost
+        } else {
+            OutputEvent::DefaultDeviceChanged
+        };
         *last = current;
         drop(last);
         let _ = self.events.try_send(event);
@@ -153,7 +171,10 @@ impl DefaultWatcher {
                 }
             })
             .ok();
-        Self { stop: Some(stop_tx), thread }
+        Self {
+            stop: Some(stop_tx),
+            thread,
+        }
     }
 }
 

@@ -52,9 +52,15 @@ impl Pipeline {
         spectrum: Sender<SpectrumFrame>,
     ) -> Result<Self, OutputError> {
         let shared_rate = factory.sample_rate(settings.output)?;
-        let requested_rate = if settings.output.exclusive { settings.exclusive_rate.unwrap_or(shared_rate) } else { shared_rate };
+        let requested_rate = if settings.output.exclusive {
+            settings.exclusive_rate.unwrap_or(shared_rate)
+        } else {
+            shared_rate
+        };
 
-        let ring_samples = ((f64::from(requested_rate) * OUTPUT_RING_MS / 1000.0) as usize).max(4096) * ENGINE_CHANNELS;
+        let ring_samples = ((f64::from(requested_rate) * OUTPUT_RING_MS / 1000.0) as usize)
+            .max(4096)
+            * ENGINE_CHANNELS;
         let (out_tx, out_rx) = rtrb::RingBuffer::<f32>::new(ring_samples);
         let request = OutputRequest {
             exclusive_rate: settings.output.exclusive.then_some(requested_rate),
@@ -74,9 +80,21 @@ impl Pipeline {
         let meters = Meters::new();
         let stop = Arc::new(AtomicBool::new(false));
 
-        let mixer = Mixer::new(rate, chain, out_tx, tap_tx, meters.clone(), mixer_rx, mixer_events, OUTPUT_TARGET_FILL_MS);
+        let mixer = Mixer::new(
+            rate,
+            chain,
+            out_tx,
+            tap_tx,
+            meters.clone(),
+            mixer_rx,
+            mixer_events,
+            OUTPUT_TARGET_FILL_MS,
+        );
         let crossfade_frames = u64::from(settings.crossfade_frames_ms) * u64::from(rate) / 1000;
-        let _ = mixer_tx.send(MixerMsg::Crossfade { frames: crossfade_frames, skip_same_album: settings.skip_same_album });
+        let _ = mixer_tx.send(MixerMsg::Crossfade {
+            frames: crossfade_frames,
+            skip_same_album: settings.skip_same_album,
+        });
 
         let mut threads = Vec::new();
         {
@@ -99,7 +117,15 @@ impl Pipeline {
             );
         }
 
-        let mut pipeline = Self { rate, format, mixer: mixer_tx, meters, output, stop, threads };
+        let mut pipeline = Self {
+            rate,
+            format,
+            mixer: mixer_tx,
+            meters,
+            output,
+            stop,
+            threads,
+        };
         pipeline.output.play();
         Ok(pipeline)
     }

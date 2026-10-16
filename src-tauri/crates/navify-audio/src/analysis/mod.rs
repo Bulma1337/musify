@@ -97,7 +97,9 @@ impl SpectrumAnalyzer {
 
         let hi = MAX_FREQ_HZ.min(0.45 * fs).max(2.0 * MIN_FREQ_HZ);
         let ratio = (hi / MIN_FREQ_HZ).powf(1.0 / bands as f32);
-        let mut edges: Vec<f32> = (0..=bands).map(|i| MIN_FREQ_HZ * ratio.powi(i as i32)).collect();
+        let mut edges: Vec<f32> = (0..=bands)
+            .map(|i| MIN_FREQ_HZ * ratio.powi(i as i32))
+            .collect();
         edges[0] = MIN_FREQ_HZ;
         edges[bands] = hi;
 
@@ -114,7 +116,10 @@ impl SpectrumAnalyzer {
                 } else {
                     let centre = (lo_f * hi_f).sqrt() / bin_hz;
                     let lo = (centre.floor() as usize).min(nbins - 2);
-                    BandSource::Interp { lo, frac: (centre - lo as f32).clamp(0.0, 1.0) }
+                    BandSource::Interp {
+                        lo,
+                        frac: (centre - lo as f32).clamp(0.0, 1.0),
+                    }
                 }
             })
             .collect();
@@ -161,7 +166,11 @@ impl SpectrumAnalyzer {
     pub fn push(&mut self, mono: &[f32]) {
         self.since_frame = self.since_frame.saturating_add(mono.len() as u64);
         // Only the last FFT_SIZE samples can survive in the ring.
-        let tail = if mono.len() > FFT_SIZE { &mono[mono.len() - FFT_SIZE..] } else { mono };
+        let tail = if mono.len() > FFT_SIZE {
+            &mono[mono.len() - FFT_SIZE..]
+        } else {
+            mono
+        };
         if mono.len() > FFT_SIZE {
             // Keep the write position consistent with a sample-by-sample push.
             self.ring_pos = (self.ring_pos + (mono.len() - tail.len())) % FFT_SIZE;
@@ -182,7 +191,10 @@ impl SpectrumAnalyzer {
     /// Allocates one small `Vec<u8>` (clone of the internal buffer); see [`Self::frame_into`].
     pub fn frame(&mut self, peak_db: f32) -> SpectrumFrame {
         self.compute();
-        SpectrumFrame { bands: self.out.clone(), peak_db }
+        SpectrumFrame {
+            bands: self.out.clone(),
+            peak_db,
+        }
     }
 
     /// Allocation-free variant of [`Self::frame`]: writes the quantized bands into `out`
@@ -205,7 +217,11 @@ impl SpectrumAnalyzer {
             *dst = s * w;
         }
         // Buffers are sized for this plan, so this cannot fail.
-        let _ = self.fft.process_with_scratch(&mut self.time_buf, &mut self.spectrum, &mut self.fft_scratch);
+        let _ = self.fft.process_with_scratch(
+            &mut self.time_buf,
+            &mut self.spectrum,
+            &mut self.fft_scratch,
+        );
 
         let attack = 1.0 - (-dt / ATTACK_S).exp();
         let release = 1.0 - (-dt / RELEASE_S).exp();
@@ -214,7 +230,10 @@ impl SpectrumAnalyzer {
         for (i, src) in self.sources.iter().enumerate() {
             let power = match *src {
                 BandSource::Bins { start, end } => {
-                    spec[start..end].iter().map(|c| (c.re as f64).powi(2) + (c.im as f64).powi(2)).sum::<f64>()
+                    spec[start..end]
+                        .iter()
+                        .map(|c| (c.re as f64).powi(2) + (c.im as f64).powi(2))
+                        .sum::<f64>()
                         * self.power_norm
                 }
                 BandSource::Interp { lo, frac } => {
@@ -224,7 +243,11 @@ impl SpectrumAnalyzer {
                     m * m * self.power_norm
                 }
             };
-            let db = if power.is_finite() { (10.0 * power.max(POWER_FLOOR).log10()) as f32 } else { 0.0 };
+            let db = if power.is_finite() {
+                (10.0 * power.max(POWER_FLOOR).log10()) as f32
+            } else {
+                0.0
+            };
             let db = db.clamp(DB_FLOOR, 0.0);
 
             let s = &mut self.smoothed_db[i];
@@ -258,7 +281,9 @@ impl SpectrumAnalyzer {
 
 #[inline]
 fn quantize(db: f32) -> u8 {
-    (((db - DB_FLOOR) / -DB_FLOOR) * 255.0).round().clamp(0.0, 255.0) as u8
+    (((db - DB_FLOOR) / -DB_FLOOR) * 255.0)
+        .round()
+        .clamp(0.0, 255.0) as u8
 }
 
 #[cfg(test)]
@@ -267,7 +292,9 @@ mod tests {
 
     fn sine(fs: f32, f: f32, n: usize, start: usize) -> Vec<f32> {
         (0..n)
-            .map(|i| (std::f64::consts::TAU * f as f64 * (start + i) as f64 / fs as f64).sin() as f32)
+            .map(|i| {
+                (std::f64::consts::TAU * f as f64 * (start + i) as f64 / fs as f64).sin() as f32
+            })
             .collect()
     }
 
@@ -275,14 +302,19 @@ mod tests {
         let mut s = seed;
         (0..n)
             .map(|_| {
-                s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+                s = s
+                    .wrapping_mul(6364136223846793005)
+                    .wrapping_add(1442695040888963407);
                 ((s >> 33) as f32 / (1u64 << 31) as f32) * 2.0 - 1.0
             })
             .collect()
     }
 
     fn band_of(a: &SpectrumAnalyzer, f: f32) -> usize {
-        a.band_edges().windows(2).position(|w| f >= w[0] && f < w[1]).unwrap()
+        a.band_edges()
+            .windows(2)
+            .position(|w| f >= w[0] && f < w[1])
+            .unwrap()
     }
 
     fn run_sine(bands: usize) -> (SpectrumAnalyzer, SpectrumFrame) {
@@ -301,7 +333,13 @@ mod tests {
         for bands in [32, 64, 128] {
             let (a, f) = run_sine(bands);
             let b = band_of(&a, 1000.0);
-            let max = f.bands.iter().enumerate().max_by_key(|(_, v)| **v).unwrap().0;
+            let max = f
+                .bands
+                .iter()
+                .enumerate()
+                .max_by_key(|(_, v)| **v)
+                .unwrap()
+                .0;
             assert!(max.abs_diff(b) <= 1, "bands={bands} max={max} expected={b}");
             assert!(f.bands[max] >= 250, "bands={bands} level {}", f.bands[max]);
             assert_eq!(f.peak_db, -3.0);
@@ -309,7 +347,10 @@ mod tests {
             let peak = f.bands[max] as i32;
             for (i, &v) in f.bands.iter().enumerate() {
                 if i.abs_diff(max) >= 2 {
-                    assert!(peak - v as i32 >= 113, "bands={bands} band {i} = {v}, peak {peak}");
+                    assert!(
+                        peak - v as i32 >= 113,
+                        "bands={bands} band {i} = {v}, peak {peak}"
+                    );
                 }
             }
         }
@@ -337,7 +378,10 @@ mod tests {
         assert!(f.bands.iter().all(|&v| v > 0));
         // No weighting: true power per band rises ~3 dB/oct (~30 dB across 10 octaves); keep a
         // generous bound on the dB spread (90 dB = 255 steps).
-        let (mn, mx) = (*f.bands.iter().min().unwrap(), *f.bands.iter().max().unwrap());
+        let (mn, mx) = (
+            *f.bands.iter().min().unwrap(),
+            *f.bands.iter().max().unwrap(),
+        );
         assert!((mx - mn) as f32 / 255.0 * 90.0 < 50.0, "spread {mn}..{mx}");
     }
 
@@ -383,7 +427,10 @@ mod tests {
         assert!(loud >= 250);
         assert!(vals[0] > 150, "instant drop: {vals:?}");
         assert!(vals[9] < vals[0] - 30, "no decay: {vals:?}");
-        assert!(a.peak_hold()[b] > vals[9], "peak hold should outlast smoothing");
+        assert!(
+            a.peak_hold()[b] > vals[9],
+            "peak hold should outlast smoothing"
+        );
     }
 
     #[test]

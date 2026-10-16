@@ -22,7 +22,10 @@ fn decode_after_seek(name: &str, ms: u64, frames: usize) -> (u64, u64, Vec<f64>)
 }
 
 fn max_abs_diff(a: &[f64], b: &[f64]) -> f64 {
-    a.iter().zip(b).map(|(x, y)| (x - y).abs()).fold(0.0, f64::max)
+    a.iter()
+        .zip(b)
+        .map(|(x, y)| (x - y).abs())
+        .fold(0.0, f64::max)
 }
 
 fn check(name: &str, tolerance: f64) {
@@ -33,11 +36,23 @@ fn check(name: &str, tolerance: f64) {
     let full = decode_all(&mut full_dec);
     let total_ms = total * 1000 / rate;
     let mut worst: f64 = 0.0;
-    for ms in [0, 1, 123, 333, 499, total_ms / 2 + 7, total_ms.saturating_sub(40)] {
+    for ms in [
+        0,
+        1,
+        123,
+        333,
+        499,
+        total_ms / 2 + 7,
+        total_ms.saturating_sub(40),
+    ] {
         let frames = 2048;
         let (got, start, out) = decode_after_seek(name, ms, frames);
         let expect_start = ms * rate / 1000;
-        assert_eq!(got, expect_start * 1000 / rate, "{name} @ {ms} ms: returned position");
+        assert_eq!(
+            got,
+            expect_start * 1000 / rate,
+            "{name} @ {ms} ms: returned position"
+        );
         assert_eq!(start, expect_start, "{name} @ {ms} ms: frame position");
         let avail = (total - expect_start).min(frames as u64) as usize;
         assert_eq!(out.len(), avail * ch, "{name} @ {ms} ms: frames after seek");
@@ -45,9 +60,15 @@ fn check(name: &str, tolerance: f64) {
         let diff = max_abs_diff(&out, reference);
         worst = worst.max(diff);
         if tolerance == 0.0 {
-            assert!(out == reference, "{name} @ {ms} ms: not bit-exact (max diff {diff:e})");
+            assert!(
+                out == reference,
+                "{name} @ {ms} ms: not bit-exact (max diff {diff:e})"
+            );
         } else {
-            assert!(diff <= tolerance, "{name} @ {ms} ms: max diff {diff:e} > {tolerance:e}");
+            assert!(
+                diff <= tolerance,
+                "{name} @ {ms} ms: max diff {diff:e} > {tolerance:e}"
+            );
         }
     }
     println!("{name}: seek vs full decode, worst max abs diff {worst:e}");
@@ -57,7 +78,11 @@ fn check(name: &str, tolerance: f64) {
     for ms in [400, 100, 900, 0, total_ms, total_ms + 5000, 250] {
         let got = d.seek(ms).unwrap();
         let start = ms.min(total_ms) * rate / 1000;
-        assert_eq!(d.position_frames(), start.min(total), "{name}: position after seek to {ms}");
+        assert_eq!(
+            d.position_frames(),
+            start.min(total),
+            "{name}: position after seek to {ms}"
+        );
         assert_eq!(got, start.min(total) * 1000 / rate);
         let mut out = Vec::new();
         let n = d.next_frames(&mut out).unwrap();
@@ -65,7 +90,10 @@ fn check(name: &str, tolerance: f64) {
             assert_eq!(n, 0, "{name}: seek to the end yields EOF");
         } else {
             let reference = &full[start as usize * ch..(start as usize + n) * ch];
-            assert!(max_abs_diff(&out, reference) <= tolerance, "{name}: repeated seek to {ms}");
+            assert!(
+                max_abs_diff(&out, reference) <= tolerance,
+                "{name}: repeated seek to {ms}"
+            );
         }
     }
 }

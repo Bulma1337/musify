@@ -22,11 +22,18 @@ pub fn track_gain(
 
     let pick = |rg: &ReplayGainInfo| -> Option<(f64, Option<f64>)> {
         let (gain, peak) = if album {
-            (rg.album_gain_db.or(rg.track_gain_db), rg.album_peak.or(rg.track_peak))
+            (
+                rg.album_gain_db.or(rg.track_gain_db),
+                rg.album_peak.or(rg.track_peak),
+            )
         } else {
-            (rg.track_gain_db.or(rg.album_gain_db), rg.track_peak.or(rg.album_peak))
+            (
+                rg.track_gain_db.or(rg.album_gain_db),
+                rg.track_peak.or(rg.album_peak),
+            )
         };
-        gain.filter(|g| g.is_finite()).map(|g| (g, peak.filter(|p| p.is_finite() && *p > 0.0)))
+        gain.filter(|g| g.is_finite())
+            .map(|g| (g, peak.filter(|p| p.is_finite() && *p > 0.0)))
     };
 
     let Some((gain_db, peak)) = server.and_then(pick).or_else(|| tags.and_then(pick)) else {
@@ -48,12 +55,26 @@ mod tests {
     use super::*;
     use crate::api::LoudnessTarget;
 
-    fn cfg(mode: NormalizationMode, target: LoudnessTarget, prevent_clipping: bool) -> NormalizationConfig {
-        NormalizationConfig { mode, target, prevent_clipping, analyze_untagged: false }
+    fn cfg(
+        mode: NormalizationMode,
+        target: LoudnessTarget,
+        prevent_clipping: bool,
+    ) -> NormalizationConfig {
+        NormalizationConfig {
+            mode,
+            target,
+            prevent_clipping,
+            analyze_untagged: false,
+        }
     }
 
     fn rg(track: f64, album: f64, peak: f64) -> ReplayGainInfo {
-        ReplayGainInfo { track_gain_db: Some(track), album_gain_db: Some(album), track_peak: Some(peak), album_peak: Some(peak) }
+        ReplayGainInfo {
+            track_gain_db: Some(track),
+            album_gain_db: Some(album),
+            track_peak: Some(peak),
+            album_peak: Some(peak),
+        }
     }
 
     #[test]
@@ -91,7 +112,12 @@ mod tests {
         let c = cfg(NormalizationMode::Track, LoudnessTarget::Normal, false);
         let from_tags = track_gain(&c, None, Some(&rg(-4.0, -4.0, 1.0)), false);
         assert!((20.0 * from_tags.log10()).abs() < 1e-9); // −4 + 4 = 0 dB
-        let both = track_gain(&c, Some(&rg(-10.0, -10.0, 1.0)), Some(&rg(-4.0, -4.0, 1.0)), false);
+        let both = track_gain(
+            &c,
+            Some(&rg(-10.0, -10.0, 1.0)),
+            Some(&rg(-4.0, -4.0, 1.0)),
+            false,
+        );
         assert!((20.0 * both.log10() + 6.0).abs() < 1e-9);
         assert_eq!(track_gain(&c, None, None, false), 1.0);
     }

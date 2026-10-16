@@ -55,11 +55,17 @@ fn truncated_flac_ends_early_with_valid_prefix() {
     let mut d = open("truncated.flac");
     let (frames, err) = drain(&mut d);
     println!("truncated.flac: {frames} of 66150 frames, error {err:?}");
-    assert!(err.is_none(), "a truncated file ends early instead of failing: {err:?}");
+    assert!(
+        err.is_none(),
+        "a truncated file ends early instead of failing: {err:?}"
+    );
     assert!(frames > 20_000 && frames < 66_150);
     let mut d = open("truncated.flac");
     let got = decode_all(&mut d);
-    assert!(got[..] == reference[..got.len()], "decoded prefix is bit-exact");
+    assert!(
+        got[..] == reference[..got.len()],
+        "decoded prefix is bit-exact"
+    );
 }
 
 #[test]
@@ -78,8 +84,18 @@ fn garbage_and_empty_input_fail_cleanly() {
     let r = Decoder::open(Box::new(src), Some("mp3"));
     println!("garbage.mp3: {:?}", r.as_ref().err());
     assert!(r.is_err());
-    for hint in [None, Some("flac"), Some("mp3"), Some("m4a"), Some("ogg"), Some("wav")] {
-        assert!(open_bytes(Vec::new(), hint).is_err(), "empty input with hint {hint:?}");
+    for hint in [
+        None,
+        Some("flac"),
+        Some("mp3"),
+        Some("m4a"),
+        Some("ogg"),
+        Some("wav"),
+    ] {
+        assert!(
+            open_bytes(Vec::new(), hint).is_err(),
+            "empty input with hint {hint:?}"
+        );
         assert!(open_bytes(b"RIFF\x10\x00\x00\x00WAVEfmt ".to_vec(), hint).is_err());
         assert!(open_bytes(b"fLaC\x00\x00\x00\x22".to_vec(), hint).is_err());
         assert!(open_bytes(b"\x00\x00\x00\x20ftypM4A \x00\x00\x00\x00".to_vec(), hint).is_err());
@@ -89,13 +105,22 @@ fn garbage_and_empty_input_fail_cleanly() {
 /// Deterministic mutation fuzzing of every fixture format: random byte flips and truncations.
 #[test]
 fn mutated_files_never_panic() {
-    let mut names = vec!["gapless_p1.flac", "gapless_p1.mp3", "gapless_p1.aac.m4a", "gapless_p1.alac.m4a", "gapless_p1.ogg", "wav24_48k.wav"];
+    let mut names = vec![
+        "gapless_p1.flac",
+        "gapless_p1.mp3",
+        "gapless_p1.aac.m4a",
+        "gapless_p1.alac.m4a",
+        "gapless_p1.ogg",
+        "wav24_48k.wav",
+    ];
     if cfg!(feature = "opus") {
         names.push("gapless_p1.opus");
     }
     let mut rng: u64 = 0x5eed;
     let mut next = move |n: usize| {
-        rng = rng.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        rng = rng
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (rng >> 33) as usize % n.max(1)
     };
     let (mut opened, mut errors) = (0, 0);
@@ -140,5 +165,8 @@ fn forward_seek_on_unseekable_source() {
     d.seek(500).unwrap();
     assert_eq!(d.position_frames(), 22050);
     let got = decode_all(&mut d);
-    assert!(got[..] == reference[22050 * 2..], "discard-forward seek is sample-exact");
+    assert!(
+        got[..] == reference[22050 * 2..],
+        "discard-forward seek is sample-exact"
+    );
 }

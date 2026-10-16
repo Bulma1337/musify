@@ -31,9 +31,16 @@ fn lru_eviction_respects_limit_and_open_entries() {
         assert!(read_all(src.as_mut()) == data);
         events.wait_completed(k);
         drop(src);
-        assert!(data_file(dir.path(), "a").exists(), "open entry evicted after {k}");
+        assert!(
+            data_file(dir.path(), "a").exists(),
+            "open entry evicted after {k}"
+        );
     }
-    assert!(wait_until(Duration::from_secs(5), || mgr.cache_size() <= limit), "size {}", mgr.cache_size());
+    assert!(
+        wait_until(Duration::from_secs(5), || mgr.cache_size() <= limit),
+        "size {}",
+        mgr.cache_size()
+    );
     // Oldest closed entries went first; the newest survive.
     assert!(!data_file(dir.path(), "b").exists());
     assert!(!data_file(dir.path(), "c").exists());
@@ -100,7 +107,11 @@ fn crashed_or_foreign_files_are_cleaned_up() {
     let mut names = dir_names(dir.path());
     names.sort();
     // The truncated "complete" entry is kept as a partial entry (its metadata is well-formed).
-    let mut expected = vec![format!("{}.data", h("trunc")), format!("{}.meta", h("trunc")), "notes.txt".to_string()];
+    let mut expected = vec![
+        format!("{}.data", h("trunc")),
+        format!("{}.meta", h("trunc")),
+        "notes.txt".to_string(),
+    ];
     expected.sort();
     assert_eq!(names, expected);
     assert_eq!(mgr.cache_size(), 10);
@@ -117,7 +128,10 @@ fn partial_entry_resumes_after_restart() {
     let data = test_data(3 * MB, 21);
     let server = TestServer::start(
         data.clone(),
-        ServerConfig { throttle: Some((64 * 1024, Duration::from_millis(20))), ..Default::default() },
+        ServerConfig {
+            throttle: Some((64 * 1024, Duration::from_millis(20))),
+            ..Default::default()
+        },
     );
     let dir = tempfile::tempdir().unwrap();
     let key = "srv:resume:raw";
@@ -132,7 +146,10 @@ fn partial_entry_resumes_after_restart() {
         std::thread::sleep(Duration::from_millis(500));
     }
     let partial = std::fs::metadata(data_file(dir.path(), key)).unwrap().len();
-    assert!(partial >= 500_000 && partial < data.len() as u64, "partial = {partial}");
+    assert!(
+        partial >= 500_000 && partial < data.len() as u64,
+        "partial = {partial}"
+    );
     let first_session_requests = server.requests();
 
     let (mgr, events) = manager(dir.path(), 1 << 30);
@@ -145,5 +162,10 @@ fn partial_entry_resumes_after_restart() {
     let log = server.log();
     let resumed = &log[first_session_requests..];
     assert!(!resumed.is_empty());
-    assert!(resumed.iter().all(|r| r.range.as_deref() != Some("bytes=0-")), "{resumed:?}");
+    assert!(
+        resumed
+            .iter()
+            .all(|r| r.range.as_deref() != Some("bytes=0-")),
+        "{resumed:?}"
+    );
 }

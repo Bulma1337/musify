@@ -17,7 +17,11 @@ impl ByteSourceMedia {
         // Both queries may be expensive (see `MediaSource`); symphonia calls them repeatedly.
         let seekable = inner.is_seekable();
         let len = inner.byte_len();
-        Self { inner, seekable, len }
+        Self {
+            inner,
+            seekable,
+            len,
+        }
     }
 }
 

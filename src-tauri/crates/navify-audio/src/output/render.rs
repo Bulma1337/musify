@@ -28,7 +28,12 @@ pub fn map_stereo_frame(l: f32, r: f32, out: &mut [f32]) {
 /// Converts interleaved stereo into interleaved `channels`-channel frames (see [`map_stereo_frame`]).
 /// Processes `min(stereo frames, out frames)` frames.
 pub fn map_stereo(stereo: &[f32], channels: usize, out: &mut [f32]) {
-    for (src, dst) in stereo.as_chunks::<ENGINE_CHANNELS>().0.iter().zip(out.chunks_exact_mut(channels)) {
+    for (src, dst) in stereo
+        .as_chunks::<ENGINE_CHANNELS>()
+        .0
+        .iter()
+        .zip(out.chunks_exact_mut(channels))
+    {
         map_stereo_frame(src[0], src[1], dst);
     }
 }
@@ -57,7 +62,13 @@ pub struct Renderer {
 impl Renderer {
     pub fn new(channels: u16, sample_rate: u32, control: Arc<Control>) -> Self {
         assert!(channels > 0, "device must have at least one channel");
-        Self { channels: channels as usize, ramp: Ramp::for_rate(sample_rate), control, primed: false, starved: false }
+        Self {
+            channels: channels as usize,
+            ramp: Ramp::for_rate(sample_rate),
+            control,
+            primed: false,
+            starved: false,
+        }
     }
 
     pub fn channels(&self) -> usize {
@@ -75,7 +86,12 @@ impl Renderer {
 
     /// Fills `out` and returns the number of frames produced (always all of them in
     /// [`FillMode::Device`]).
-    pub fn render_with(&mut self, ring: &mut Consumer<f32>, out: &mut [f32], mode: FillMode) -> usize {
+    pub fn render_with(
+        &mut self,
+        ring: &mut Consumer<f32>,
+        out: &mut [f32],
+        mode: FillMode,
+    ) -> usize {
         let ch = self.channels;
         let total = out.len() / ch;
         if self.control.take_flush() {

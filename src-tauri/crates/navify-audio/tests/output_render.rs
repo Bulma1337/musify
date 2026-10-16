@@ -28,14 +28,20 @@ mod output_render {
             let mut out = vec![9.0; ch];
             map_stereo_frame(0.5, -0.25, &mut out);
             assert_eq!(&out[..2], &[0.5, -0.25]);
-            assert!(out[2..].iter().all(|&s| s == 0.0), "{ch} ch: extra channels silent");
+            assert!(
+                out[2..].iter().all(|&s| s == 0.0),
+                "{ch} ch: extra channels silent"
+            );
         }
 
         // Interleaved buffers, and the same through the renderer for a 6-channel device.
         let stereo = [0.1, 0.2, 0.3, 0.4];
         let mut out = vec![9.0; 12];
         map_stereo(&stereo, 6, &mut out);
-        assert_eq!(out, vec![0.1, 0.2, 0.0, 0.0, 0.0, 0.0, 0.3, 0.4, 0.0, 0.0, 0.0, 0.0]);
+        assert_eq!(
+            out,
+            vec![0.1, 0.2, 0.0, 0.0, 0.0, 0.0, 0.3, 0.4, 0.0, 0.0, 0.0, 0.0]
+        );
 
         let (mut p, mut c) = RingBuffer::new(64);
         for s in stereo {
@@ -44,7 +50,10 @@ mod output_render {
         let mut r = Renderer::new(6, RATE, Control::new());
         let mut out = vec![9.0; 12];
         r.render(&mut c, &mut out);
-        assert_eq!(out, vec![0.1, 0.2, 0.0, 0.0, 0.0, 0.0, 0.3, 0.4, 0.0, 0.0, 0.0, 0.0]);
+        assert_eq!(
+            out,
+            vec![0.1, 0.2, 0.0, 0.0, 0.0, 0.0, 0.3, 0.4, 0.0, 0.0, 0.0, 0.0]
+        );
 
         let (mut p, mut c) = RingBuffer::new(64);
         for s in stereo {
@@ -96,7 +105,10 @@ mod output_render {
         let left: Vec<f32> = out.chunks(2).map(|f| f[0]).collect();
         assert!(left[0] > 0.0 && left[0] < 0.01);
         assert!(left.windows(2).all(|w| w[1] >= w[0]), "monotonic");
-        assert!(left[ramp - 1..].iter().all(|&s| s == 0.5), "unity after the ramp");
+        assert!(
+            left[ramp - 1..].iter().all(|&s| s == 0.5),
+            "unity after the ramp"
+        );
         assert_eq!(consumed_at_pause - c.slots(), 2 * 512);
     }
 

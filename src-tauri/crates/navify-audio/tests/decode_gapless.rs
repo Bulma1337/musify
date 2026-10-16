@@ -18,8 +18,16 @@ fn concat_parts(ext: &str) -> (Vec<f64>, usize, usize) {
     let ch = p1.channels();
     assert_eq!(p2.channels(), ch);
     let (n1, n2) = (a.len() / ch, b.len() / ch);
-    assert_eq!(p1.info().n_frames, Some(n1 as u64), "{ext}: p1 n_frames matches decoded length");
-    assert_eq!(p2.info().n_frames, Some(n2 as u64), "{ext}: p2 n_frames matches decoded length");
+    assert_eq!(
+        p1.info().n_frames,
+        Some(n1 as u64),
+        "{ext}: p1 n_frames matches decoded length"
+    );
+    assert_eq!(
+        p2.info().n_frames,
+        Some(n2 as u64),
+        "{ext}: p2 n_frames matches decoded length"
+    );
     let mut all = a;
     all.extend_from_slice(&b);
     (all, n1, n2)
@@ -37,9 +45,19 @@ fn lossless_parts_are_bit_identical_to_source() {
 
     for ext in ["flac", "alac.m4a"] {
         let (all, n1, n2) = concat_parts(ext);
-        assert_eq!((n1, n2), (SPLIT_44, TOTAL_44 - SPLIT_44), "{ext}: part lengths");
-        let first_diff = all.iter().zip(&src).position(|(a, b)| a.to_bits() != b.to_bits());
-        assert_eq!(first_diff, None, "{ext}: concatenated parts differ from the source");
+        assert_eq!(
+            (n1, n2),
+            (SPLIT_44, TOTAL_44 - SPLIT_44),
+            "{ext}: part lengths"
+        );
+        let first_diff = all
+            .iter()
+            .zip(&src)
+            .position(|(a, b)| a.to_bits() != b.to_bits());
+        assert_eq!(
+            first_diff, None,
+            "{ext}: concatenated parts differ from the source"
+        );
         assert_eq!(all.len(), src.len());
 
         let mut full = open(&format!("gapless_full.{ext}"));
@@ -55,8 +73,12 @@ fn synth_source(rate: f64, frames: usize) -> Vec<f64> {
     let mut out = Vec::with_capacity(frames * 2);
     for n in 0..frames {
         let t = n as f64 / rate;
-        out.push(q(0.3 * (2.0 * PI * 440.0 * t).sin() + 0.2 * (2.0 * PI * (200.0 + 1500.0 * t) * t).sin()));
-        out.push(q(0.3 * (2.0 * PI * 660.0 * t).sin() + 0.15 * (2.0 * PI * 1234.0 * t).sin()));
+        out.push(q(
+            0.3 * (2.0 * PI * 440.0 * t).sin() + 0.2 * (2.0 * PI * (200.0 + 1500.0 * t) * t).sin()
+        ));
+        out.push(q(
+            0.3 * (2.0 * PI * 660.0 * t).sin() + 0.15 * (2.0 * PI * 1234.0 * t).sin()
+        ));
     }
     out
 }
@@ -71,11 +93,19 @@ fn db(x: f64) -> f64 {
 fn check_lossy(ext: &str, split: usize, total: usize, max_excess_db: f64) {
     let (all, n1, n2) = concat_parts(ext);
     let ch = 2;
-    println!("{ext}: parts {n1} + {n2} = {} frames (source {split} + {})", n1 + n2, total - split);
+    println!(
+        "{ext}: parts {n1} + {n2} = {} frames (source {split} + {})",
+        n1 + n2,
+        total - split
+    );
     assert_eq!(n1, split, "{ext}: part 1 length");
     assert_eq!(n2, total - split, "{ext}: part 2 length");
 
-    let src = if split == SPLIT_44 { read_wav16("gapless_src.wav").0 } else { synth_source(48000.0, total) };
+    let src = if split == SPLIT_44 {
+        read_wav16("gapless_src.wav").0
+    } else {
+        synth_source(48000.0, total)
+    };
     assert_eq!(src.len(), all.len());
 
     // Time alignment of the end of part 1 and the start of part 2 against the source.
@@ -84,20 +114,32 @@ fn check_lossy(ext: &str, split: usize, total: usize, max_excess_db: f64) {
         let a = &l_all[from..from + 4096];
         (-40..=40isize)
             .max_by(|&x, &y| {
-                let c = |lg: isize| a.iter().enumerate().map(|(i, v)| v * l_src[(from as isize + i as isize + lg) as usize]).sum::<f64>();
+                let c = |lg: isize| {
+                    a.iter()
+                        .enumerate()
+                        .map(|(i, v)| v * l_src[(from as isize + i as isize + lg) as usize])
+                        .sum::<f64>()
+                };
                 c(x).total_cmp(&c(y))
             })
             .unwrap()
     };
     let (lag1, lag2) = (lag(split - 4096 - 512), lag(split + 512));
     println!("{ext}: lag vs source: part 1 tail {lag1}, part 2 head {lag2}");
-    assert_eq!((lag1, lag2), (0, 0), "{ext}: parts are time-aligned with the source");
+    assert_eq!(
+        (lag1, lag2),
+        (0, 0),
+        "{ext}: parts are time-aligned with the source"
+    );
 
     // Error against the source in 256-frame windows.
     let err: Vec<f64> = all.iter().zip(&src).map(|(a, b)| a - b).collect();
     let w = 256;
     let win_db = |start: usize| db(rms(&err[start * ch..(start + w) * ch]));
-    let joint = (split - 2 * w..split + 4 * w).step_by(w).map(win_db).fold(f64::MIN, f64::max);
+    let joint = (split - 2 * w..split + 4 * w)
+        .step_by(w)
+        .map(win_db)
+        .fold(f64::MIN, f64::max);
     let mut interior: Vec<f64> = (2048..total - 2048 - w)
         .step_by(w)
         .filter(|&s| s + w + 2048 < split || s > split + 2048)

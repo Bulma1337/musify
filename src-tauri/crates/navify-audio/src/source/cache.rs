@@ -163,7 +163,10 @@ pub(crate) struct Inner {
 /// Strictly increasing wall-clock milliseconds (LRU order must be total even within one ms).
 pub(crate) fn now_access() -> u64 {
     static LAST: AtomicU64 = AtomicU64::new(0);
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0);
     let mut prev = LAST.load(Ordering::Relaxed);
     loop {
         let next = now.max(prev + 1);
@@ -175,7 +178,9 @@ pub(crate) fn now_access() -> u64 {
 }
 
 fn is_hash(s: &str) -> bool {
-    s.len() == 64 && s.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    s.len() == 64
+        && s.bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 fn remove_if_exists(path: &Path) -> io::Result<()> {
@@ -208,11 +213,16 @@ impl Inner {
     }
 
     pub(crate) fn client(&self, insecure: bool) -> Result<Client, String> {
-        self.clients[usize::from(insecure)].get_or_init(|| build_http_client(insecure).map_err(|e| e.to_string())).clone()
+        self.clients[usize::from(insecure)]
+            .get_or_init(|| build_http_client(insecure).map_err(|e| e.to_string()))
+            .clone()
     }
 
     fn data_path(&self, hash: &str, ephemeral: bool) -> PathBuf {
-        self.dir.join(format!("{hash}.{}", if ephemeral { "stream" } else { "data" }))
+        self.dir.join(format!(
+            "{hash}.{}",
+            if ephemeral { "stream" } else { "data" }
+        ))
     }
 
     fn meta_path(&self, hash: &str) -> PathBuf {
@@ -251,13 +261,19 @@ impl Inner {
         let data_path = self.data_path(hash, ephemeral);
         let meta_path = (!ephemeral).then(|| self.meta_path(hash));
         let data_len = fs::metadata(&data_path).ok().map(|m| m.len());
-        let loaded = meta_path.as_deref().and_then(Meta::load).filter(|_| data_len.is_some());
+        let loaded = meta_path
+            .as_deref()
+            .and_then(Meta::load)
+            .filter(|_| data_len.is_some());
         let valid = loaded.is_some();
         let mut meta = loaded.unwrap_or_default();
         if !meta.complete && meta.seekable == Some(false) {
             // A partial forward-only (transcoded) stream restarts from byte 0; a new transcode is
             // not guaranteed to be byte-identical, so the old prefix is dropped.
-            meta = Meta { last_access: meta.last_access, ..Meta::default() };
+            meta = Meta {
+                last_access: meta.last_access,
+                ..Meta::default()
+            };
         }
         if let Some(len) = data_len {
             meta.ranges.truncate(len);
@@ -271,7 +287,11 @@ impl Inner {
             meta.ranges.clear();
             meta.complete = false;
         } else {
-            OpenOptions::new().write(true).create(true).truncate(false).open(&data_path)?;
+            OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(false)
+                .open(&data_path)?;
         }
 
         let last_access = now_access();
@@ -301,7 +321,14 @@ impl Inner {
         });
         if !ephemeral {
             let size = fs::metadata(&entry.data_path).map(|m| m.len()).unwrap_or(0);
-            self.index.lock().insert(hash.to_owned(), IndexRec { size, last_access, complete });
+            self.index.lock().insert(
+                hash.to_owned(),
+                IndexRec {
+                    size,
+                    last_access,
+                    complete,
+                },
+            );
         }
         active.insert(hash.to_owned(), entry.clone());
         Ok(entry)
@@ -351,19 +378,30 @@ impl Inner {
         (true, prefetch_ended, removed)
     }
 
-    fn retire_if_unused(&self, active: &mut HashMap<String, Arc<Entry>>, entry: &Arc<Entry>) -> bool {
+    fn retire_if_unused(
+        &self,
+        active: &mut HashMap<String, Arc<Entry>>,
+        entry: &Arc<Entry>,
+    ) -> bool {
         let unused = {
             let st = entry.state.lock();
             st.users() == 0 && !st.downloader_running
         };
-        if !unused || !active.get(&entry.hash).is_some_and(|e| Arc::ptr_eq(e, entry)) {
+        if !unused
+            || !active
+                .get(&entry.hash)
+                .is_some_and(|e| Arc::ptr_eq(e, entry))
+        {
             return false;
         }
         active.remove(&entry.hash);
         if entry.is_ephemeral()
             && let Err(e) = remove_if_exists(&entry.data_path)
         {
-            log::warn!("source {}: could not delete temporary stream file: {e}", entry.key);
+            log::warn!(
+                "source {}: could not delete temporary stream file: {e}",
+                entry.key
+            );
         }
         true
     }
@@ -374,16 +412,22 @@ impl Inner {
         }
         st.downloader_running = true;
         let downloader = Downloader::new(self.clone(), entry.clone());
-        let spawned = thread::Builder::new().name("navify-source-dl".into()).spawn(move || downloader.run());
+        let spawned = thread::Builder::new()
+            .name("navify-source-dl".into())
+            .spawn(move || downloader.run());
         if let Err(e) = spawned {
             st.downloader_running = false;
-            st.error = Some(FetchError::Io(format!("could not start download thread: {e}")));
+            st.error = Some(FetchError::Io(format!(
+                "could not start download thread: {e}"
+            )));
         }
     }
 
     /// Persists the entry metadata (atomic) and refreshes the index. Ephemeral entries: no-op.
     pub(crate) fn save_meta(&self, entry: &Entry) {
-        let Some(meta_path) = entry.meta_path.as_deref() else { return };
+        let Some(meta_path) = entry.meta_path.as_deref() else {
+            return;
+        };
         let _guard = entry.meta_lock.lock();
         let meta = {
             let st = entry.state.lock();
@@ -399,9 +443,14 @@ impl Inner {
             log::warn!("source {}: could not write cache metadata: {e}", entry.key);
         }
         let size = fs::metadata(&entry.data_path).map(|m| m.len()).unwrap_or(0);
-        self.index
-            .lock()
-            .insert(entry.hash.clone(), IndexRec { size, last_access: meta.last_access, complete: meta.complete });
+        self.index.lock().insert(
+            entry.hash.clone(),
+            IndexRec {
+                size,
+                last_access: meta.last_access,
+                complete: meta.complete,
+            },
+        );
     }
 
     pub(crate) fn on_completed(&self, entry: &Entry) {
@@ -409,7 +458,10 @@ impl Inner {
         self.enforce_limit();
         if !entry.is_ephemeral() {
             log::debug!("source {}: cache entry complete", entry.key);
-            self.emit(SourceEvent::Completed { cache_key: entry.key.clone(), path: entry.data_path.clone() });
+            self.emit(SourceEvent::Completed {
+                cache_key: entry.key.clone(),
+                path: entry.data_path.clone(),
+            });
         }
     }
 
@@ -476,8 +528,13 @@ impl Inner {
         for item in read_dir.flatten() {
             let name = item.file_name();
             let Some(name) = name.to_str() else { continue };
-            let Some((stem, ext)) = name.split_once('.') else { continue };
-            if !is_hash(stem) || !matches!(ext, "data" | "meta" | "meta.tmp" | "stream") || active.contains_key(stem) {
+            let Some((stem, ext)) = name.split_once('.') else {
+                continue;
+            };
+            if !is_hash(stem)
+                || !matches!(ext, "data" | "meta" | "meta.tmp" | "stream")
+                || active.contains_key(stem)
+            {
                 continue;
             }
             if let Err(e) = remove_if_exists(&item.path()) {
@@ -494,7 +551,11 @@ impl Inner {
         if pq.active.as_deref() == Some(hash.as_str()) || pq.queue.iter().any(|j| j.hash == hash) {
             return;
         }
-        pq.queue.push_back(PrefetchJob { key: key.to_owned(), hash, spec });
+        pq.queue.push_back(PrefetchJob {
+            key: key.to_owned(),
+            hash,
+            spec,
+        });
         self.pump_prefetch(&mut pq);
     }
 
@@ -537,7 +598,9 @@ impl Inner {
     /// Starts queued prefetches, one at a time.
     fn pump_prefetch(self: &Arc<Self>, pq: &mut PrefetchQueue) {
         while pq.active.is_none() {
-            let Some(job) = pq.queue.pop_front() else { break };
+            let Some(job) = pq.queue.pop_front() else {
+                break;
+            };
             if self.is_complete(&job.hash) {
                 continue;
             }
@@ -565,13 +628,17 @@ impl Inner {
 /// without metadata, temporary files and leftover time-offset streams.
 fn scan_dir(dir: &Path) -> HashMap<String, IndexRec> {
     let mut index = HashMap::new();
-    let Ok(read_dir) = fs::read_dir(dir) else { return index };
+    let Ok(read_dir) = fs::read_dir(dir) else {
+        return index;
+    };
     let mut metas = Vec::new();
     let mut datas = HashSet::new();
     for item in read_dir.flatten() {
         let name = item.file_name();
         let Some(name) = name.to_str() else { continue };
-        let Some((stem, ext)) = name.split_once('.') else { continue };
+        let Some((stem, ext)) = name.split_once('.') else {
+            continue;
+        };
         if !is_hash(stem) {
             continue;
         }
@@ -594,7 +661,14 @@ fn scan_dir(dir: &Path) -> HashMap<String, IndexRec> {
             (Some(meta), Some(len)) => {
                 datas.remove(&hash);
                 let complete = meta.complete && meta.total_len == Some(len);
-                index.insert(hash, IndexRec { size: len, last_access: meta.last_access, complete });
+                index.insert(
+                    hash,
+                    IndexRec {
+                        size: len,
+                        last_access: meta.last_access,
+                        complete,
+                    },
+                );
             }
             _ => {
                 log::debug!("source cache: removing invalid entry {hash}");

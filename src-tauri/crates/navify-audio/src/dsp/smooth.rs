@@ -67,10 +67,6 @@ impl Ramp {
         }
     }
 
-    pub fn target(&self) -> f64 {
-        self.target
-    }
-
     /// Value at the end of the current chunk.
     pub fn value(&self) -> f64 {
         self.end
@@ -253,10 +249,6 @@ impl SmoothFilter {
 
     pub fn coeffs(&self) -> &Coeffs {
         &self.coeffs
-    }
-
-    pub fn is_settled(&self) -> bool {
-        self.settled
     }
 
     /// Settled and not interpolating within the current chunk.

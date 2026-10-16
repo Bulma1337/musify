@@ -43,12 +43,25 @@ impl CachedHttpSource {
 
     fn set_buffering(&self, active: bool) {
         if active {
-            self.r.inner.buffering_readers.fetch_add(1, Ordering::Relaxed);
+            self.r
+                .inner
+                .buffering_readers
+                .fetch_add(1, Ordering::Relaxed);
         } else {
-            self.r.inner.buffering_readers.fetch_sub(1, Ordering::Relaxed);
+            self.r
+                .inner
+                .buffering_readers
+                .fetch_sub(1, Ordering::Relaxed);
         }
-        log::debug!("source {}: buffering {}", self.r.entry.key, if active { "started" } else { "ended" });
-        self.r.inner.emit(SourceEvent::Buffering { cache_key: self.r.entry.key.clone(), active });
+        log::debug!(
+            "source {}: buffering {}",
+            self.r.entry.key,
+            if active { "started" } else { "ended" }
+        );
+        self.r.inner.emit(SourceEvent::Buffering {
+            cache_key: self.r.entry.key.clone(),
+            active,
+        });
     }
 
     /// Waits until bytes at `self.pos` are available; returns how many can be read (0 = EOF).
@@ -65,7 +78,9 @@ impl CachedHttpSource {
             }
             let end = st.ranges.contiguous_end_from(self.pos);
             if end > self.pos {
-                break Ok(usize::try_from(end - self.pos).unwrap_or(usize::MAX).min(max));
+                break Ok(usize::try_from(end - self.pos)
+                    .unwrap_or(usize::MAX)
+                    .min(max));
             }
             if let Some(error) = st.error.take() {
                 // Acknowledge: the next read retries the download.
@@ -80,7 +95,9 @@ impl CachedHttpSource {
             let timeout = if buffering {
                 Duration::from_millis(100)
             } else {
-                BUFFERING_AFTER.saturating_sub(started.elapsed()).max(Duration::from_millis(1))
+                BUFFERING_AFTER
+                    .saturating_sub(started.elapsed())
+                    .max(Duration::from_millis(1))
             };
             entry.cond.wait_for(&mut st, timeout);
             if !buffering && started.elapsed() >= BUFFERING_AFTER && !st.ranges.contains(self.pos) {
@@ -98,7 +115,9 @@ impl CachedHttpSource {
     /// Makes sure the download heads for `self.pos`.
     fn request_position(&self, st: &mut EntryState) {
         if st.seekable == Some(true) {
-            let near = st.dl_pos.is_some_and(|p| p <= self.pos && self.pos < p + LOOKAHEAD);
+            let near = st
+                .dl_pos
+                .is_some_and(|p| p <= self.pos && self.pos < p + LOOKAHEAD);
             if !near && st.want_pos != self.pos {
                 st.want_pos = self.pos;
                 st.generation += 1;
@@ -136,11 +155,15 @@ impl Seek for CachedHttpSource {
             SeekFrom::End(d) => match st.total_len {
                 Some(t) => t.checked_add_signed(d),
                 None => {
-                    return Err(io::Error::new(io::ErrorKind::Unsupported, "stream length unknown"));
+                    return Err(io::Error::new(
+                        io::ErrorKind::Unsupported,
+                        "stream length unknown",
+                    ));
                 }
             },
         };
-        let target = target.ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid seek position"))?;
+        let target = target
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid seek position"))?;
         if !st.is_seekable() && target > st.ranges.contiguous_end_from(0) {
             return Err(io::Error::new(
                 io::ErrorKind::Unsupported,

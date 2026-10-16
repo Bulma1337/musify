@@ -14,9 +14,6 @@
 //! independent and only talk through the types in [`api`] and the traits/structs in their `mod.rs`.
 //! `engine` wires them together.
 
-// Modules are being filled in parallel; remove once every module is implemented.
-#![allow(dead_code)]
-
 pub mod analysis;
 pub mod api;
 pub mod decode;

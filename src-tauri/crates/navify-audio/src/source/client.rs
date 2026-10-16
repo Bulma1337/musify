@@ -42,7 +42,10 @@ pub fn build_http_client(insecure: bool) -> Result<Client, SourceError> {
     } else {
         let verifier = rustls_platform_verifier::Verifier::new(provider)
             .map_err(|e| SourceError::Network(format!("TLS verifier setup failed: {e}")))?;
-        builder.dangerous().with_custom_certificate_verifier(Arc::new(verifier)).with_no_client_auth()
+        builder
+            .dangerous()
+            .with_custom_certificate_verifier(Arc::new(verifier))
+            .with_no_client_auth()
     };
     tls.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
 
@@ -80,7 +83,12 @@ impl ServerCertVerifier for AcceptAnyCert {
         cert: &CertificateDer<'_>,
         dss: &DigitallySignedStruct,
     ) -> Result<HandshakeSignatureValid, rustls::Error> {
-        rustls::crypto::verify_tls12_signature(message, cert, dss, &self.provider.signature_verification_algorithms)
+        rustls::crypto::verify_tls12_signature(
+            message,
+            cert,
+            dss,
+            &self.provider.signature_verification_algorithms,
+        )
     }
 
     fn verify_tls13_signature(
@@ -89,11 +97,18 @@ impl ServerCertVerifier for AcceptAnyCert {
         cert: &CertificateDer<'_>,
         dss: &DigitallySignedStruct,
     ) -> Result<HandshakeSignatureValid, rustls::Error> {
-        rustls::crypto::verify_tls13_signature(message, cert, dss, &self.provider.signature_verification_algorithms)
+        rustls::crypto::verify_tls13_signature(
+            message,
+            cert,
+            dss,
+            &self.provider.signature_verification_algorithms,
+        )
     }
 
     fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-        self.provider.signature_verification_algorithms.supported_schemes()
+        self.provider
+            .signature_verification_algorithms
+            .supported_schemes()
     }
 }
 
@@ -118,7 +133,11 @@ pub fn time_offset_value(unit: TimeOffsetUnit, start_ms: u64) -> (u64, u64) {
 
 /// Returns `url` with the time-offset parameter set (appended, or replaced when already present),
 /// plus the effective start position in ms. `None` when the URL cannot be parsed.
-pub fn url_with_time_offset(url: &str, param: &TimeOffsetParam, start_ms: u64) -> Option<(String, u64)> {
+pub fn url_with_time_offset(
+    url: &str,
+    param: &TimeOffsetParam,
+    start_ms: u64,
+) -> Option<(String, u64)> {
     let (value, effective_ms) = time_offset_value(param.unit, start_ms);
     let mut parsed = reqwest::Url::parse(url).ok()?;
     let value = value.to_string();
@@ -126,7 +145,13 @@ pub fn url_with_time_offset(url: &str, param: &TimeOffsetParam, start_ms: u64) -
     if present {
         let pairs: Vec<(String, String)> = parsed
             .query_pairs()
-            .map(|(k, v)| if k == param.param.as_str() { (k.into_owned(), value.clone()) } else { (k.into_owned(), v.into_owned()) })
+            .map(|(k, v)| {
+                if k == param.param.as_str() {
+                    (k.into_owned(), value.clone())
+                } else {
+                    (k.into_owned(), v.into_owned())
+                }
+            })
             .collect();
         parsed.query_pairs_mut().clear().extend_pairs(pairs);
     } else {
@@ -201,7 +226,10 @@ mod tests {
     #[test]
     fn hash_is_hex_sha256() {
         let h = hash_key("abc");
-        assert_eq!(h, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+        assert_eq!(
+            h,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
     }
 
     #[test]
@@ -209,18 +237,28 @@ mod tests {
         let url = "https://user:pw@music.example.com/rest/stream?id=1&t=secret&s=salt";
         let msg = format!("failed for {url}: t=secret&s=salt");
         let r = redact(&msg, url);
-        assert!(!r.contains("secret") && !r.contains("pw") && !r.contains("salt"), "{r}");
+        assert!(
+            !r.contains("secret") && !r.contains("pw") && !r.contains("salt"),
+            "{r}"
+        );
     }
 
     #[test]
     fn offset_urls() {
-        let p = TimeOffsetParam { param: "timeOffset".into(), unit: TimeOffsetUnit::Seconds };
+        let p = TimeOffsetParam {
+            param: "timeOffset".into(),
+            unit: TimeOffsetUnit::Seconds,
+        };
         let (u, ms) = url_with_time_offset("http://h/rest/stream?id=1&u=a", &p, 65_500).unwrap();
         assert_eq!(u, "http://h/rest/stream?id=1&u=a&timeOffset=65");
         assert_eq!(ms, 65_000);
-        let (u, _) = url_with_time_offset("http://h/rest/stream?timeOffset=3&id=1", &p, 10_000).unwrap();
+        let (u, _) =
+            url_with_time_offset("http://h/rest/stream?timeOffset=3&id=1", &p, 10_000).unwrap();
         assert_eq!(u, "http://h/rest/stream?timeOffset=10&id=1");
-        let p = TimeOffsetParam { param: "StartTimeTicks".into(), unit: TimeOffsetUnit::Ticks };
+        let p = TimeOffsetParam {
+            param: "StartTimeTicks".into(),
+            unit: TimeOffsetUnit::Ticks,
+        };
         let (u, ms) = url_with_time_offset("http://h/Audio/x/universal", &p, 1_234).unwrap();
         assert_eq!(u, "http://h/Audio/x/universal?StartTimeTicks=12340000");
         assert_eq!(ms, 1_234);

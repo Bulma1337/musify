@@ -3,7 +3,9 @@
 use std::cell::RefCell;
 
 use windows::Win32::Foundation::HANDLE;
-use windows::Win32::System::Threading::{AvRevertMmThreadCharacteristics, AvSetMmThreadCharacteristicsW};
+use windows::Win32::System::Threading::{
+    AvRevertMmThreadCharacteristics, AvSetMmThreadCharacteristicsW,
+};
 use windows::core::w;
 
 /// Registers the current thread with the MMCSS "Pro Audio" task; reverts on drop.
@@ -14,7 +16,9 @@ impl MmcssGuard {
     pub fn pro_audio() -> Option<Self> {
         let mut task_index = 0u32;
         // SAFETY: valid null-terminated task name and out pointer.
-        unsafe { AvSetMmThreadCharacteristicsW(w!("Pro Audio"), &mut task_index) }.ok().map(MmcssGuard)
+        unsafe { AvSetMmThreadCharacteristicsW(w!("Pro Audio"), &mut task_index) }
+            .ok()
+            .map(MmcssGuard)
     }
 }
 

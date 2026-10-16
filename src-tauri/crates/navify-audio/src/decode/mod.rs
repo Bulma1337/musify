@@ -101,7 +101,11 @@ impl Decoder {
     /// Opening decodes the first packet, so unreadable input fails here rather than mid-playback.
     pub fn open(source: Box<dyn ByteSource>, hint: Option<&str>) -> Result<Self, DecodeError> {
         let (engine, info) = guarded(|| decoder::Engine::open(source, hint))?;
-        Ok(Self { info, engine, poisoned: false })
+        Ok(Self {
+            info,
+            engine,
+            poisoned: false,
+        })
     }
 
     pub fn info(&self) -> &DecodedInfo {
@@ -144,7 +148,11 @@ impl Decoder {
     }
 
     fn check_poisoned(&self) -> Result<(), DecodeError> {
-        if self.poisoned { Err(DecodeError::Decode("decoder failed earlier".into())) } else { Ok(()) }
+        if self.poisoned {
+            Err(DecodeError::Decode("decoder failed earlier".into()))
+        } else {
+            Ok(())
+        }
     }
 
     fn poison_on_panic<T>(&mut self, r: Result<T, DecodeError>) -> Result<T, DecodeError> {
@@ -181,14 +189,24 @@ pub struct Conformer {
 impl Conformer {
     /// Assumes the conventional channel order for `src_channels` (see [`ChannelLayout::default_for`]).
     pub fn new(src_rate: u32, src_channels: usize, dst_rate: u32) -> Self {
-        Self::with_layout(src_rate, &ChannelLayout::default_for(src_channels), dst_rate)
+        Self::with_layout(
+            src_rate,
+            &ChannelLayout::default_for(src_channels),
+            dst_rate,
+        )
     }
 
     /// Uses the decoder's actual channel order ([`Decoder::channel_layout`]).
     pub fn with_layout(src_rate: u32, layout: &ChannelLayout, dst_rate: u32) -> Self {
         let resampler = (src_rate != dst_rate && src_rate > 0 && dst_rate > 0)
             .then(|| resample::StereoResampler::new(src_rate, dst_rate));
-        Self { src_rate, dst_rate, channels: layout.channels(), mix: layout.stereo_mix(), resampler }
+        Self {
+            src_rate,
+            dst_rate,
+            channels: layout.channels(),
+            mix: layout.stereo_mix(),
+            resampler,
+        }
     }
 
     pub fn src_rate(&self) -> u32 {
@@ -295,10 +313,17 @@ pub struct TrackWorkerConfig {
 #[derive(Debug)]
 pub enum WorkerEvent {
     /// Opened and decoding; `start_frame` is the absolute frame (device rate) of the first ring sample.
-    Ready { id: TrackId, info: DecodedInfo, start_frame: u64 },
+    Ready {
+        id: TrackId,
+        info: DecodedInfo,
+        start_frame: u64,
+    },
     /// All frames were pushed; `end_frame` is the absolute frame (device rate) after the last sample.
     Finished { id: TrackId, end_frame: u64 },
-    Error { id: TrackId, error: Arc<DecodeError> },
+    Error {
+        id: TrackId,
+        error: Arc<DecodeError>,
+    },
 }
 
 /// Handle to a decoding thread for one track. Dropping it stops the thread.

@@ -16,7 +16,9 @@ use std::thread::JoinHandle;
 use crossbeam_channel::{Receiver, Sender};
 use rtrb::Consumer;
 
-use crate::api::{DeviceInfo, EngineCommand, EngineEvent, EqConfig, EqResponse, OutputConfig, SpectrumFrame};
+use crate::api::{
+    DeviceInfo, EngineCommand, EngineEvent, EqConfig, EqResponse, OutputConfig, SpectrumFrame,
+};
 use crate::output::{OutputError, OutputEvent, OutputRequest, OutputStream};
 use crate::source::CacheConfig;
 
@@ -60,7 +62,10 @@ pub struct EngineInit {
 impl EngineInit {
     /// Engine playing on real devices.
     pub fn with_devices(cache: CacheConfig) -> Self {
-        Self { cache, output: Box::new(DeviceOutput) }
+        Self {
+            cache,
+            output: Box::new(DeviceOutput),
+        }
     }
 }
 
@@ -84,10 +89,18 @@ impl AudioEngine {
             let sample_rate = sample_rate.clone();
             std::thread::Builder::new()
                 .name("navify-engine".into())
-                .spawn(move || controller::run(init, command_rx, event_tx, spectrum_tx, sample_rate))
+                .spawn(move || {
+                    controller::run(init, command_rx, event_tx, spectrum_tx, sample_rate)
+                })
                 .expect("spawn engine control thread")
         };
-        Self { commands, events, spectrum, sample_rate, thread: Some(thread) }
+        Self {
+            commands,
+            events,
+            spectrum,
+            sample_rate,
+            thread: Some(thread),
+        }
     }
 
     /// Never blocks.

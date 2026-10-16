@@ -60,9 +60,15 @@ pub struct CacheConfig {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SourceEvent {
-    Buffering { cache_key: String, active: bool },
+    Buffering {
+        cache_key: String,
+        active: bool,
+    },
     /// An entry was fully downloaded (e.g. to trigger loudness analysis).
-    Completed { cache_key: String, path: PathBuf },
+    Completed {
+        cache_key: String,
+        path: PathBuf,
+    },
 }
 
 pub type SourceEventSink = Arc<dyn Fn(SourceEvent) + Send + Sync>;
@@ -87,7 +93,6 @@ pub struct OpenedSource {
     pub starts_at_ms: u64,
 }
 
-
 /// How long `open` waits for the server's response headers (after retries) before giving up.
 const OPEN_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(60);
 
@@ -99,7 +104,10 @@ pub struct SourceManager {
 impl SourceManager {
     pub fn new(cache: CacheConfig, events: SourceEventSink) -> Self {
         let inner = Inner::new(cache.dir.clone(), cache.max_bytes, events);
-        Self { config: cache, inner }
+        Self {
+            config: cache,
+            inner,
+        }
     }
 
     /// Opens a location. `start_ms` matters only for non-seekable transcodes (time-offset restart);
@@ -107,29 +115,57 @@ impl SourceManager {
     ///
     /// A transcoded location with a `time_offset` that is not completely cached is restarted at
     /// `start_ms` (seconds are truncated; `starts_at_ms` reports the effective position).
-    pub fn open(&self, location: &SourceLocation, start_ms: u64) -> Result<OpenedSource, SourceError> {
+    pub fn open(
+        &self,
+        location: &SourceLocation,
+        start_ms: u64,
+    ) -> Result<OpenedSource, SourceError> {
         match location {
-            SourceLocation::Local { path } => {
-                Ok(OpenedSource { source: Box::new(FileSource::open(path)?), starts_at_ms: 0 })
-            }
-            SourceLocation::Http { url, headers, cache_key, transcoded, time_offset, allow_insecure_tls, .. } => {
+            SourceLocation::Local { path } => Ok(OpenedSource {
+                source: Box::new(FileSource::open(path)?),
+                starts_at_ms: 0,
+            }),
+            SourceLocation::Http {
+                url,
+                headers,
+                cache_key,
+                transcoded,
+                time_offset,
+                allow_insecure_tls,
+                ..
+            } => {
                 let hash = hash_key(cache_key);
-                let spec = RequestSpec { url: url.clone(), headers: headers.clone(), insecure: *allow_insecure_tls };
+                let spec = RequestSpec {
+                    url: url.clone(),
+                    headers: headers.clone(),
+                    insecure: *allow_insecure_tls,
+                };
                 if start_ms > 0
                     && *transcoded
                     && let Some(param) = time_offset
                     && !self.inner.is_complete(&hash)
                 {
                     let (offset_url, effective_ms) = url_with_time_offset(url, param, start_ms)
-                        .ok_or_else(|| SourceError::Network(format!("invalid stream URL for {cache_key}")))?;
+                        .ok_or_else(|| {
+                            SourceError::Network(format!("invalid stream URL for {cache_key}"))
+                        })?;
                     // Separate, temporary file (never persisted); events keep the real cache key.
                     let offset_hash = hash_key(&format!("{cache_key}#t={effective_ms}"));
-                    let spec = RequestSpec { url: offset_url, ..spec };
+                    let spec = RequestSpec {
+                        url: offset_url,
+                        ..spec
+                    };
                     let source = self.open_http(cache_key, &offset_hash, spec, true)?;
-                    return Ok(OpenedSource { source, starts_at_ms: effective_ms });
+                    return Ok(OpenedSource {
+                        source,
+                        starts_at_ms: effective_ms,
+                    });
                 }
                 let source = self.open_http(cache_key, &hash, spec, false)?;
-                Ok(OpenedSource { source, starts_at_ms: 0 })
+                Ok(OpenedSource {
+                    source,
+                    starts_at_ms: 0,
+                })
             }
         }
     }
@@ -141,8 +177,13 @@ impl SourceManager {
         spec: RequestSpec,
         ephemeral: bool,
     ) -> Result<Box<dyn ByteSource>, SourceError> {
-        let entry = self.inner.acquire(key, hash, spec, ephemeral, Holder::Reader)?;
-        let r = EntryRef { inner: self.inner.clone(), entry };
+        let entry = self
+            .inner
+            .acquire(key, hash, spec, ephemeral, Holder::Reader)?;
+        let r = EntryRef {
+            inner: self.inner.clone(),
+            entry,
+        };
         let entry = r.entry.clone();
         if entry.state.lock().complete {
             // Offline / fully cached: plain buffered file, no network.
@@ -161,9 +202,14 @@ impl SourceManager {
             }
             let now = std::time::Instant::now();
             if now >= deadline {
-                return Err(SourceError::Network(format!("timed out waiting for the server ({key})")));
+                return Err(SourceError::Network(format!(
+                    "timed out waiting for the server ({key})"
+                )));
             }
-            entry.cond.wait_for(&mut st, (deadline - now).min(std::time::Duration::from_millis(200)));
+            entry.cond.wait_for(
+                &mut st,
+                (deadline - now).min(std::time::Duration::from_millis(200)),
+            );
         }
         drop(st);
         Ok(Box::new(CachedHttpSource::new(r)?))
@@ -171,12 +217,25 @@ impl SourceManager {
 
     /// Starts downloading a location into the cache in the background (next track).
     pub fn prefetch(&self, location: &SourceLocation) {
-        let SourceLocation::Http { url, headers, cache_key, allow_insecure_tls, .. } = location else { return };
+        let SourceLocation::Http {
+            url,
+            headers,
+            cache_key,
+            allow_insecure_tls,
+            ..
+        } = location
+        else {
+            return;
+        };
         let hash = hash_key(cache_key);
         if self.inner.is_complete(&hash) {
             return;
         }
-        let spec = RequestSpec { url: url.clone(), headers: headers.clone(), insecure: *allow_insecure_tls };
+        let spec = RequestSpec {
+            url: url.clone(),
+            headers: headers.clone(),
+            insecure: *allow_insecure_tls,
+        };
         self.inner.enqueue_prefetch(cache_key, hash, spec);
     }
 

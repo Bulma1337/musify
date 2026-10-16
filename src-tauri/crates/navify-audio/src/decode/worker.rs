@@ -49,15 +49,29 @@ pub(crate) fn spawn(
     events: Sender<WorkerEvent>,
 ) -> (Arc<Control>, rtrb::Consumer<f64>) {
     let (producer, consumer) = rtrb::RingBuffer::new(config.ring_frames.max(1) * 2);
-    let control =
-        Arc::new(Control { stop: AtomicBool::new(false), running: AtomicBool::new(true), thread: Mutex::new(None) });
+    let control = Arc::new(Control {
+        stop: AtomicBool::new(false),
+        running: AtomicBool::new(true),
+        thread: Mutex::new(None),
+    });
     let ctl = control.clone();
     let thread_events = events.clone();
     let thread_id = id.clone();
-    let name: String = format!("navify-decode-{}", id.chars().filter(|c| c.is_ascii_alphanumeric()).take(24).collect::<String>());
+    let name: String = format!(
+        "navify-decode-{}",
+        id.chars()
+            .filter(|c| c.is_ascii_alphanumeric())
+            .take(24)
+            .collect::<String>()
+    );
     let spawned = std::thread::Builder::new().name(name).spawn(move || {
         let result = catch_unwind(AssertUnwindSafe(|| {
-            let mut job = Job { id: thread_id.clone(), control: &ctl, events: &thread_events, producer };
+            let mut job = Job {
+                id: thread_id.clone(),
+                control: &ctl,
+                events: &thread_events,
+                producer,
+            };
             job.run(open, hint.as_deref(), &config)
         }));
         let error = match result {
@@ -76,7 +90,10 @@ pub(crate) fn spawn(
         if let Some(e) = error
             && !ctl.stopped()
         {
-            let _ = thread_events.send(WorkerEvent::Error { id: thread_id, error: Arc::new(e) });
+            let _ = thread_events.send(WorkerEvent::Error {
+                id: thread_id,
+                error: Arc::new(e),
+            });
         }
         ctl.running.store(false, Ordering::Release);
     });
@@ -87,7 +104,10 @@ pub(crate) fn spawn(
         }
         Err(e) => {
             control.running.store(false, Ordering::Release);
-            let _ = events.send(WorkerEvent::Error { id, error: Arc::new(DecodeError::Io(e)) });
+            let _ = events.send(WorkerEvent::Error {
+                id,
+                error: Arc::new(DecodeError::Io(e)),
+            });
         }
     }
     (control, consumer)
@@ -104,7 +124,12 @@ struct Job<'a> {
 struct Stopped;
 
 impl Job<'_> {
-    fn run(&mut self, open: OpenFn, hint: Option<&str>, config: &TrackWorkerConfig) -> Result<(), DecodeError> {
+    fn run(
+        &mut self,
+        open: OpenFn,
+        hint: Option<&str>,
+        config: &TrackWorkerConfig,
+    ) -> Result<(), DecodeError> {
         let opened = open()?;
         if self.cancelled() {
             return Ok(());
@@ -127,7 +152,11 @@ impl Job<'_> {
 
         let mut conformer = Conformer::with_layout(src_rate, decoder.channel_layout(), dst_rate);
         let info = decoder.info().clone();
-        let mut ready = Some(WorkerEvent::Ready { id: self.id.clone(), info, start_frame });
+        let mut ready = Some(WorkerEvent::Ready {
+            id: self.id.clone(),
+            info,
+            start_frame,
+        });
 
         let mut native = Vec::with_capacity(16384);
         let mut conformed = Vec::with_capacity(16384);
@@ -154,7 +183,10 @@ impl Job<'_> {
                 break;
             }
         }
-        let _ = self.events.send(WorkerEvent::Finished { id: self.id.clone(), end_frame: start_frame + pushed });
+        let _ = self.events.send(WorkerEvent::Finished {
+            id: self.id.clone(),
+            end_frame: start_frame + pushed,
+        });
         Ok(())
     }
 
@@ -178,7 +210,11 @@ impl Job<'_> {
                 std::thread::park_timeout(FULL_WAIT);
             }
         }
-        if self.cancelled() { Err(Stopped) } else { Ok(()) }
+        if self.cancelled() {
+            Err(Stopped)
+        } else {
+            Ok(())
+        }
     }
 }
 

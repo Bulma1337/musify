@@ -30,13 +30,22 @@ mod output_devices {
         }
         // Lookup by id resolves (or the device vanished in between).
         if let Some(d) = devices.first() {
-            let config = OutputConfig { device_id: Some(d.id.clone()), exclusive: false };
+            let config = OutputConfig {
+                device_id: Some(d.id.clone()),
+                exclusive: false,
+            };
             if let Ok(rate) = output::device_sample_rate(&config) {
                 assert!(rate > 0);
             }
         }
-        let unknown = OutputConfig { device_id: Some("wasapi:does-not-exist".into()), exclusive: false };
-        assert!(matches!(output::device_sample_rate(&unknown), Err(output::OutputError::DeviceNotFound(_))));
+        let unknown = OutputConfig {
+            device_id: Some("wasapi:does-not-exist".into()),
+            exclusive: false,
+        };
+        assert!(matches!(
+            output::device_sample_rate(&unknown),
+            Err(output::OutputError::DeviceNotFound(_))
+        ));
     }
 
     #[test]
@@ -47,7 +56,10 @@ mod output_devices {
         let (mut producer, consumer) = RingBuffer::new(1 << 16);
         while producer.push(0.0f32).is_ok() {}
         let (tx, rx) = crossbeam_channel::unbounded();
-        let request = OutputRequest { exclusive_rate: None, buffer_ms: 50 };
+        let request = OutputRequest {
+            exclusive_rate: None,
+            buffer_ms: 50,
+        };
         let stream = output::open(&config, request, consumer, tx).expect("open shared");
         let format = stream.format().clone();
         println!("{format:?}");

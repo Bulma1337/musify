@@ -45,7 +45,11 @@ impl Meta {
             Some(false) => "seekable 0\n",
             None => "seekable ?\n",
         });
-        s.push_str(if self.complete { "complete 1\n" } else { "complete 0\n" });
+        s.push_str(if self.complete {
+            "complete 1\n"
+        } else {
+            "complete 0\n"
+        });
         s.push_str(&format!("access {}\n", self.last_access));
         s.push_str("ranges");
         for (a, b) in self.ranges.ranges() {
@@ -62,7 +66,11 @@ impl Meta {
         }
         let mut meta = Meta::default();
         let total = lines.next()?.strip_prefix("total ")?;
-        meta.total_len = if total == "?" { None } else { Some(total.parse().ok()?) };
+        meta.total_len = if total == "?" {
+            None
+        } else {
+            Some(total.parse().ok()?)
+        };
         meta.seekable = match lines.next()?.strip_prefix("seekable ")? {
             "1" => Some(true),
             "0" => Some(false),
@@ -126,7 +134,13 @@ mod tests {
 
     #[test]
     fn roundtrip() {
-        let mut m = Meta { total_len: Some(1000), seekable: Some(true), complete: false, last_access: 42, ranges: RangeSet::new() };
+        let mut m = Meta {
+            total_len: Some(1000),
+            seekable: Some(true),
+            complete: false,
+            last_access: 42,
+            ranges: RangeSet::new(),
+        };
         m.ranges.insert(0, 100);
         m.ranges.insert(900, 1000);
         assert_eq!(Meta::parse(&m.serialize()), Some(m.clone()));
@@ -139,7 +153,13 @@ mod tests {
 
     #[test]
     fn rejects_broken() {
-        let mut m = Meta { total_len: Some(10), seekable: Some(true), complete: true, last_access: 1, ranges: RangeSet::new() };
+        let mut m = Meta {
+            total_len: Some(10),
+            seekable: Some(true),
+            complete: true,
+            last_access: 1,
+            ranges: RangeSet::new(),
+        };
         m.ranges.insert(0, 10);
         let s = m.serialize();
         assert!(Meta::parse(&s).is_some());
@@ -151,7 +171,9 @@ mod tests {
         let bad = s.replace("ranges 0-10", "ranges 0-5");
         assert!(Meta::parse(&bad).is_none());
         // Range beyond total.
-        let bad = s.replace("ranges 0-10", "ranges 0-20").replace("complete 1", "complete 0");
+        let bad = s
+            .replace("ranges 0-10", "ranges 0-20")
+            .replace("complete 1", "complete 0");
         assert!(Meta::parse(&bad).is_none());
     }
 }

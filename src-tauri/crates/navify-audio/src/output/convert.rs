@@ -112,7 +112,11 @@ fn quantize_dithered(x: f32, scale: f32, min: f32, max: f32, dither: &mut Tpdf) 
         return if v.is_nan() { 0.0 } else { v.clamp(min, max) };
     }
     let rounded = v.round();
-    let q = if rounded == v { v } else { (v + dither.sample()).round() };
+    let q = if rounded == v {
+        v
+    } else {
+        (v + dither.sample()).round()
+    };
     q.clamp(min, max)
 }
 
@@ -143,7 +147,9 @@ impl Default for Tpdf {
 
 impl Tpdf {
     pub fn new(seed: u32) -> Self {
-        Self { state: if seed == 0 { 0x9E37_79B9 } else { seed } }
+        Self {
+            state: if seed == 0 { 0x9E37_79B9 } else { seed },
+        }
     }
 
     #[inline]
@@ -178,7 +184,10 @@ pub struct Encoder {
 
 impl Encoder {
     pub fn new(encoding: SampleEncoding) -> Self {
-        Self { encoding, dither: Tpdf::default() }
+        Self {
+            encoding,
+            dither: Tpdf::default(),
+        }
     }
 
     pub fn encoding(&self) -> SampleEncoding {
@@ -193,17 +202,25 @@ impl Encoder {
         let pairs = src.iter().zip(dst.chunks_exact_mut(bps));
         match self.encoding {
             SampleEncoding::F32 => pairs.for_each(|(&x, d)| d.copy_from_slice(&x.to_ne_bytes())),
-            SampleEncoding::F64 => pairs.for_each(|(&x, d)| d.copy_from_slice(&f64::from(x).to_ne_bytes())),
-            SampleEncoding::I8 => pairs.for_each(|(&x, d)| d[0] = f32_to_i8_dithered(x, dither) as u8),
-            SampleEncoding::U8 => pairs.for_each(|(&x, d)| d[0] = (f32_to_i8_dithered(x, dither) as u8) ^ 0x80),
-            SampleEncoding::I16 => {
-                pairs.for_each(|(&x, d)| d.copy_from_slice(&f32_to_i16_dithered(x, dither).to_ne_bytes()))
+            SampleEncoding::F64 => {
+                pairs.for_each(|(&x, d)| d.copy_from_slice(&f64::from(x).to_ne_bytes()))
             }
+            SampleEncoding::I8 => {
+                pairs.for_each(|(&x, d)| d[0] = f32_to_i8_dithered(x, dither) as u8)
+            }
+            SampleEncoding::U8 => {
+                pairs.for_each(|(&x, d)| d[0] = (f32_to_i8_dithered(x, dither) as u8) ^ 0x80)
+            }
+            SampleEncoding::I16 => pairs.for_each(|(&x, d)| {
+                d.copy_from_slice(&f32_to_i16_dithered(x, dither).to_ne_bytes())
+            }),
             SampleEncoding::U16 => pairs.for_each(|(&x, d)| {
                 let v = (f32_to_i16_dithered(x, dither) as u16) ^ 0x8000;
                 d.copy_from_slice(&v.to_ne_bytes())
             }),
-            SampleEncoding::I24In32Low => pairs.for_each(|(&x, d)| d.copy_from_slice(&f32_to_i24(x).to_ne_bytes())),
+            SampleEncoding::I24In32Low => {
+                pairs.for_each(|(&x, d)| d.copy_from_slice(&f32_to_i24(x).to_ne_bytes()))
+            }
             SampleEncoding::U24In32Low => pairs.for_each(|(&x, d)| {
                 let v = (f32_to_i24(x) + (1 << 23)) as u32;
                 d.copy_from_slice(&v.to_ne_bytes())
@@ -219,12 +236,16 @@ impl Encoder {
                     d.copy_from_slice(&[b[2], b[1], b[0]]);
                 }
             }),
-            SampleEncoding::I32 => pairs.for_each(|(&x, d)| d.copy_from_slice(&f32_to_i32(x).to_ne_bytes())),
+            SampleEncoding::I32 => {
+                pairs.for_each(|(&x, d)| d.copy_from_slice(&f32_to_i32(x).to_ne_bytes()))
+            }
             SampleEncoding::U32 => pairs.for_each(|(&x, d)| {
                 let v = (f32_to_i32(x) as u32) ^ 0x8000_0000;
                 d.copy_from_slice(&v.to_ne_bytes())
             }),
-            SampleEncoding::I64 => pairs.for_each(|(&x, d)| d.copy_from_slice(&f32_to_i64(x).to_ne_bytes())),
+            SampleEncoding::I64 => {
+                pairs.for_each(|(&x, d)| d.copy_from_slice(&f32_to_i64(x).to_ne_bytes()))
+            }
             SampleEncoding::U64 => pairs.for_each(|(&x, d)| {
                 let v = (f32_to_i64(x) as u64) ^ 0x8000_0000_0000_0000;
                 d.copy_from_slice(&v.to_ne_bytes())

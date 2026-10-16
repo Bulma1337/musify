@@ -64,7 +64,13 @@ impl NullOutput {
             exclusive: false,
             bit_perfect: false,
         };
-        Self { format, control, samples, stop, thread: Some(thread) }
+        Self {
+            format,
+            control,
+            samples,
+            stop,
+            thread: Some(thread),
+        }
     }
 
     /// Handle to the recording; keep it before boxing the stream as `Box<dyn OutputStream>`.
@@ -111,7 +117,9 @@ fn run(
             NullPacing::Unpaced => {
                 let frames = renderer.render_with(&mut ring, &mut block, FillMode::Available);
                 if frames > 0 {
-                    samples.lock().extend_from_slice(&block[..frames * ENGINE_CHANNELS]);
+                    samples
+                        .lock()
+                        .extend_from_slice(&block[..frames * ENGINE_CHANNELS]);
                 } else {
                     std::thread::sleep(Duration::from_millis(1));
                 }

@@ -16,8 +16,8 @@
 
 use rubato::audioadapter_buffers::direct::SequentialSliceOfVecs;
 use rubato::{
-    Async, Fft, FixedAsync, FixedSync, Indexing, Resampler, SincInterpolationParameters, SincInterpolationType,
-    WindowFunction,
+    Async, Fft, FixedAsync, FixedSync, Indexing, Resampler, SincInterpolationParameters,
+    SincInterpolationType, WindowFunction,
 };
 
 /// Minimum filter / FFT block length (taps) on the shorter side of the conversion.
@@ -113,7 +113,10 @@ impl StereoResampler {
         if self.inner.is_adjustable() {
             ResamplerKind::AsyncSinc { taps: 256 }
         } else {
-            ResamplerKind::Fft { block_in: self.inner.input_frames_max(), block_out: self.inner.output_frames_max() }
+            ResamplerKind::Fft {
+                block_in: self.inner.input_frames_max(),
+                block_out: self.inner.output_frames_max(),
+            }
         }
     }
 
@@ -156,15 +159,24 @@ impl StereoResampler {
     fn process_chunk(&mut self, indexing: Option<&Indexing>) -> (usize, usize) {
         let frames_in = self.input[0].len();
         let frames_out = self.output[0].len();
-        let input = SequentialSliceOfVecs::new(&self.input[..], 2, frames_in).expect("input buffer shape");
-        let mut output =
-            SequentialSliceOfVecs::new_mut(&mut self.output[..], 2, frames_out).expect("output buffer shape");
-        match self.inner.process_into_buffer(&input, &mut output, indexing) {
+        let input =
+            SequentialSliceOfVecs::new(&self.input[..], 2, frames_in).expect("input buffer shape");
+        let mut output = SequentialSliceOfVecs::new_mut(&mut self.output[..], 2, frames_out)
+            .expect("output buffer shape");
+        match self
+            .inner
+            .process_into_buffer(&input, &mut output, indexing)
+        {
             Ok(r) => r,
             Err(e) => {
                 // Only possible on buffer-size bugs; never panic in the audio path.
                 log::error!("resampler error: {e}");
-                (indexing.and_then(|i| i.partial_len).unwrap_or(self.inner.input_frames_next()), 0)
+                (
+                    indexing
+                        .and_then(|i| i.partial_len)
+                        .unwrap_or(self.inner.input_frames_next()),
+                    0,
+                )
             }
         }
     }
@@ -195,7 +207,9 @@ impl StereoResampler {
         let mut partial = remaining;
         let mut guard = 0;
         while self.out_total < expected && guard < 64 {
-            let indexing = Indexing::new().input_offset(self.in_pos).partial_len(partial);
+            let indexing = Indexing::new()
+                .input_offset(self.in_pos)
+                .partial_len(partial);
             let (_, n_out) = self.process_chunk(Some(&indexing));
             self.in_pos += partial;
             partial = 0;

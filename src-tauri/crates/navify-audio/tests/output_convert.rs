@@ -1,13 +1,23 @@
 //! f32 → device format conversion: exactness, clipping, dither policy.
 
 mod output_convert {
-    use navify_audio::output::convert::{Encoder, SampleEncoding, Tpdf, f32_to_i16_dithered, f32_to_i24, f32_to_i32};
+    use navify_audio::output::convert::{
+        Encoder, SampleEncoding, Tpdf, f32_to_i16_dithered, f32_to_i24, f32_to_i32,
+    };
 
     const S24: f32 = 8_388_608.0;
 
     /// Every 24-bit value at a coprime stride plus the edges.
     fn i24_values() -> impl Iterator<Item = i32> {
-        let edges = [-(1 << 23), -(1 << 23) + 1, -1, 0, 1, (1 << 23) - 2, (1 << 23) - 1];
+        let edges = [
+            -(1 << 23),
+            -(1 << 23) + 1,
+            -1,
+            0,
+            1,
+            (1 << 23) - 2,
+            (1 << 23) - 1,
+        ];
         (-(1 << 23)..(1 << 23)).step_by(997).chain(edges)
     }
 
@@ -29,14 +39,24 @@ mod output_convert {
             let mut dst = vec![0u8; src.len() * bps];
             Encoder::new(enc).encode(&src, &mut dst);
             for (i, &k) in ks.iter().enumerate() {
-                assert_eq!(&dst[i * bps..(i + 1) * bps], expect(k).as_slice(), "{enc:?} {k}");
+                assert_eq!(
+                    &dst[i * bps..(i + 1) * bps],
+                    expect(k).as_slice(),
+                    "{enc:?} {k}"
+                );
             }
         };
-        check(SampleEncoding::I24In32High, &|k| (k << 8).to_ne_bytes().to_vec());
+        check(SampleEncoding::I24In32High, &|k| {
+            (k << 8).to_ne_bytes().to_vec()
+        });
         check(SampleEncoding::I24In32Low, &|k| k.to_ne_bytes().to_vec());
         check(SampleEncoding::I32, &|k| (k << 8).to_ne_bytes().to_vec());
-        check(SampleEncoding::I24Packed, &|k| k.to_le_bytes()[..3].to_vec());
-        check(SampleEncoding::F32, &|k| (k as f32 / S24).to_ne_bytes().to_vec());
+        check(SampleEncoding::I24Packed, &|k| {
+            k.to_le_bytes()[..3].to_vec()
+        });
+        check(SampleEncoding::F32, &|k| {
+            (k as f32 / S24).to_ne_bytes().to_vec()
+        });
     }
 
     #[test]
@@ -78,7 +98,12 @@ mod output_convert {
     fn dither_only_when_reducing_to_16_bit_or_less() {
         assert!(SampleEncoding::I16.needs_dither());
         assert!(SampleEncoding::U8.needs_dither());
-        for enc in [SampleEncoding::I24In32High, SampleEncoding::I24Packed, SampleEncoding::I32, SampleEncoding::F32] {
+        for enc in [
+            SampleEncoding::I24In32High,
+            SampleEncoding::I24Packed,
+            SampleEncoding::I32,
+            SampleEncoding::F32,
+        ] {
             assert!(!enc.needs_dither(), "{enc:?}");
         }
 
@@ -86,7 +111,9 @@ mod output_convert {
         let x = 0.300_007_f32;
         let target = f64::from(x) * 32_768.0;
         let mut d = Tpdf::new(12345);
-        let outs: Vec<i16> = (0..20_000).map(|_| f32_to_i16_dithered(x, &mut d)).collect();
+        let outs: Vec<i16> = (0..20_000)
+            .map(|_| f32_to_i16_dithered(x, &mut d))
+            .collect();
         let min = *outs.iter().min().unwrap();
         let max = *outs.iter().max().unwrap();
         assert!(max > min, "16-bit output must be dithered");
@@ -96,7 +123,11 @@ mod output_convert {
 
         // 24/32-bit: deterministic rounding, no dither, even for content finer than 24 bit.
         let fine = [x, 1.0e-9, -0.123_456_79, 0.999_999_9];
-        for enc in [SampleEncoding::I24In32High, SampleEncoding::I24Packed, SampleEncoding::I32] {
+        for enc in [
+            SampleEncoding::I24In32High,
+            SampleEncoding::I24Packed,
+            SampleEncoding::I32,
+        ] {
             let mut a = vec![0u8; fine.len() * enc.bytes_per_sample()];
             let mut b = a.clone();
             let mut e = Encoder::new(enc);
@@ -106,7 +137,10 @@ mod output_convert {
             Encoder::new(enc).encode(&fine, &mut b);
             assert_eq!(a, b, "{enc:?} must not dither");
         }
-        assert_eq!(f32_to_i24(x), (f64::from(x) * f64::from(S24)).round() as i32);
+        assert_eq!(
+            f32_to_i24(x),
+            (f64::from(x) * f64::from(S24)).round() as i32
+        );
 
         // Digital silence stays digital silence.
         let mut dst = vec![0xAAu8; 2 * 64];

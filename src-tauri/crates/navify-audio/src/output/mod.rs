@@ -110,7 +110,8 @@ pub fn open(
     {
         #[cfg(windows)]
         {
-            let endpoint = devices::device_id_string(&device).and_then(|id| devices::wasapi_endpoint_id(&id));
+            let endpoint =
+                devices::device_id_string(&device).and_then(|id| devices::wasapi_endpoint_id(&id));
             let failure = match endpoint {
                 Some(endpoint) => match wasapi_exclusive::ExclusiveOutput::open(
                     endpoint,
@@ -124,11 +125,16 @@ pub fn open(
                     Ok(stream) => return Ok(Box::new(stream)),
                     Err(failure) => failure,
                 },
-                None => ("the device is not a WASAPI endpoint".to_string(), Some(ring)),
+                None => (
+                    "the device is not a WASAPI endpoint".to_string(),
+                    Some(ring),
+                ),
             };
             let (reason, recovered) = failure;
             log::warn!("audio output: exclusive mode unavailable, using shared mode: {reason}");
-            let _ = events.try_send(OutputEvent::Error(OutputError::ExclusiveUnavailable(reason.clone()).to_string()));
+            let _ = events.try_send(OutputEvent::Error(
+                OutputError::ExclusiveUnavailable(reason.clone()).to_string(),
+            ));
             ring = recovered.ok_or(OutputError::ExclusiveUnavailable(reason))?;
         }
         #[cfg(not(windows))]

@@ -130,8 +130,25 @@ impl ChannelLayout {
             4 => vec![FrontLeft, FrontRight, BackLeft, BackRight],
             5 => vec![FrontLeft, FrontRight, FrontCenter, BackLeft, BackRight],
             6 => vec![FrontLeft, FrontRight, FrontCenter, Lfe, BackLeft, BackRight],
-            7 => vec![FrontLeft, FrontRight, FrontCenter, Lfe, BackCenter, SideLeft, SideRight],
-            8 => vec![FrontLeft, FrontRight, FrontCenter, Lfe, BackLeft, BackRight, SideLeft, SideRight],
+            7 => vec![
+                FrontLeft,
+                FrontRight,
+                FrontCenter,
+                Lfe,
+                BackCenter,
+                SideLeft,
+                SideRight,
+            ],
+            8 => vec![
+                FrontLeft,
+                FrontRight,
+                FrontCenter,
+                Lfe,
+                BackLeft,
+                BackRight,
+                SideLeft,
+                SideRight,
+            ],
             n => (0..n).map(|i| Discrete(i as u16)).collect(),
         };
         Self { speakers }
@@ -184,7 +201,10 @@ impl ChannelLayout {
 
     /// Per input channel (left, right) gains, normalized so that a full-scale input cannot clip.
     pub fn downmix_matrix(&self) -> Vec<(f64, f64)> {
-        let all_discrete = self.speakers.iter().all(|s| matches!(s, Speaker::Discrete(_)));
+        let all_discrete = self
+            .speakers
+            .iter()
+            .all(|s| matches!(s, Speaker::Discrete(_)));
         let mut m: Vec<(f64, f64)> = if all_discrete {
             // Unknown layout: treat as the conventional layout for that count.
             ChannelLayout::default_for(self.speakers.len())
@@ -228,9 +248,19 @@ mod tests {
     fn five_one_matrix_is_bs775_and_cannot_clip() {
         let m = ChannelLayout::default_for(6).downmix_matrix();
         let s = 1.0 / (1.0 + 2.0 * MINUS_3DB);
-        let expect = [(s, 0.0), (0.0, s), (MINUS_3DB * s, MINUS_3DB * s), (0.0, 0.0), (MINUS_3DB * s, 0.0), (0.0, MINUS_3DB * s)];
+        let expect = [
+            (s, 0.0),
+            (0.0, s),
+            (MINUS_3DB * s, MINUS_3DB * s),
+            (0.0, 0.0),
+            (MINUS_3DB * s, 0.0),
+            (0.0, MINUS_3DB * s),
+        ];
         for (a, b) in m.iter().zip(expect) {
-            assert!((a.0 - b.0).abs() < 1e-15 && (a.1 - b.1).abs() < 1e-15, "{m:?}");
+            assert!(
+                (a.0 - b.0).abs() < 1e-15 && (a.1 - b.1).abs() < 1e-15,
+                "{m:?}"
+            );
         }
         let sum_l: f64 = m.iter().map(|g| g.0).sum();
         assert!((sum_l - 1.0).abs() < 1e-12);
@@ -238,9 +268,18 @@ mod tests {
 
     #[test]
     fn mixes() {
-        assert_eq!(ChannelLayout::default_for(1).stereo_mix(), StereoMix::DualMono);
-        assert_eq!(ChannelLayout::default_for(2).stereo_mix(), StereoMix::Passthrough);
-        assert!(matches!(ChannelLayout::default_for(8).stereo_mix(), StereoMix::Matrix(_)));
+        assert_eq!(
+            ChannelLayout::default_for(1).stereo_mix(),
+            StereoMix::DualMono
+        );
+        assert_eq!(
+            ChannelLayout::default_for(2).stereo_mix(),
+            StereoMix::Passthrough
+        );
+        assert!(matches!(
+            ChannelLayout::default_for(8).stereo_mix(),
+            StereoMix::Matrix(_)
+        ));
     }
 
     #[test]
@@ -254,7 +293,14 @@ mod tests {
         let l = ChannelLayout::from_symphonia(&Channels::Positioned(mask));
         assert_eq!(
             l.speakers(),
-            &[Speaker::FrontLeft, Speaker::FrontRight, Speaker::FrontCenter, Speaker::Lfe, Speaker::SideLeft, Speaker::SideRight]
+            &[
+                Speaker::FrontLeft,
+                Speaker::FrontRight,
+                Speaker::FrontCenter,
+                Speaker::Lfe,
+                Speaker::SideLeft,
+                Speaker::SideRight
+            ]
         );
     }
 }

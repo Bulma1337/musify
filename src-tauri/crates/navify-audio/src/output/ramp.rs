@@ -69,7 +69,11 @@ impl Ramp {
     /// A ramp of `len` frames, starting at unity gain (no fade at stream start).
     pub fn new(len: u32) -> Self {
         let len = len.max(1);
-        Self { pos: len, len, up: true }
+        Self {
+            pos: len,
+            len,
+            up: true,
+        }
     }
 
     pub fn for_rate(sample_rate: u32) -> Self {

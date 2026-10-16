@@ -19,7 +19,11 @@ impl FileSource {
     pub fn open(path: &std::path::Path) -> io::Result<Self> {
         let file = File::open(path)?;
         let len = file.metadata()?.len();
-        Ok(Self { file, len, seekable: true })
+        Ok(Self {
+            file,
+            len,
+            seekable: true,
+        })
     }
 
     /// A source that reports itself as non-seekable (like an HTTP transcode).
@@ -53,7 +57,9 @@ impl ByteSource for FileSource {
 }
 
 pub fn fixture(name: &str) -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/decode").join(name)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/decode")
+        .join(name)
 }
 
 pub fn hint_for(name: &str) -> Option<String> {
@@ -62,7 +68,8 @@ pub fn hint_for(name: &str) -> Option<String> {
 
 pub fn open(name: &str) -> Decoder {
     let src = FileSource::open(&fixture(name)).expect("fixture exists");
-    Decoder::open(Box::new(src), hint_for(name).as_deref()).unwrap_or_else(|e| panic!("{name}: {e}"))
+    Decoder::open(Box::new(src), hint_for(name).as_deref())
+        .unwrap_or_else(|e| panic!("{name}: {e}"))
 }
 
 pub fn decode_all(dec: &mut Decoder) -> Vec<f64> {
@@ -91,7 +98,12 @@ pub fn read_wav16(name: &str) -> (Vec<f64>, u32, usize) {
             rate = u32::from_le_bytes(body[4..8].try_into().unwrap());
             assert_eq!(u16::from_le_bytes([body[14], body[15]]), 16);
         } else if id == b"data" {
-            let samples = body.as_chunks::<2>().0.iter().map(|b| f64::from(i16::from_le_bytes(*b)) / 32768.0).collect();
+            let samples = body
+                .as_chunks::<2>()
+                .0
+                .iter()
+                .map(|b| f64::from(i16::from_le_bytes(*b)) / 32768.0)
+                .collect();
             return (samples, rate, channels);
         }
         pos += 8 + size + (size & 1);
@@ -147,7 +159,9 @@ pub fn fit_sines(x: &[f64], freqs: &[f64]) -> Vec<(f64, f64)> {
 fn solve(mut a: Vec<Vec<f64>>, mut b: Vec<f64>) -> Vec<f64> {
     let n = b.len();
     for i in 0..n {
-        let p = (i..n).max_by(|&x, &y| a[x][i].abs().total_cmp(&a[y][i].abs())).unwrap();
+        let p = (i..n)
+            .max_by(|&x, &y| a[x][i].abs().total_cmp(&a[y][i].abs()))
+            .unwrap();
         a.swap(i, p);
         b.swap(i, p);
         let (top, bottom) = a.split_at_mut(i + 1);

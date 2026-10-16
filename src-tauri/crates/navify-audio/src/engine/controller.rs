@@ -12,8 +12,8 @@ use super::mixer::{MixSlot, MixerEvent, MixerMsg};
 use super::pipeline::{Pipeline, PipelineSettings};
 use super::{EngineInit, OutputFactory};
 use crate::api::{
-    CrossfadeConfig, DspConfig, EngineCommand, EngineEvent, ErrorKind, NormalizationConfig, OutputConfig,
-    PlaybackState, SourceFormat, SourceLocation, SpectrumFrame, TrackId, TrackSource,
+    CrossfadeConfig, DspConfig, EngineCommand, EngineEvent, ErrorKind, NormalizationConfig,
+    OutputConfig, PlaybackState, SourceFormat, SourceLocation, SpectrumFrame, TrackId, TrackSource,
 };
 use crate::decode::{DecodeError, DecodedInfo, TrackWorker, TrackWorkerConfig, WorkerEvent};
 use crate::dsp::volume_to_gain;
@@ -43,14 +43,19 @@ struct Track {
 
 impl Track {
     fn duration_ms(&self) -> Option<u64> {
-        self.info.as_ref().and_then(|i| i.duration_ms).or(self.source.duration_hint_ms)
+        self.info
+            .as_ref()
+            .and_then(|i| i.duration_ms)
+            .or(self.source.duration_hint_ms)
     }
 }
 
 fn hint_for(location: &SourceLocation) -> Option<String> {
     match location {
         SourceLocation::Http { container_hint, .. } => container_hint.clone(),
-        SourceLocation::Local { path } => path.extension().map(|e| e.to_string_lossy().to_lowercase()),
+        SourceLocation::Local { path } => {
+            path.extension().map(|e| e.to_string_lossy().to_lowercase())
+        }
     }
 }
 
@@ -171,7 +176,11 @@ impl Controller {
     }
 
     fn rate(&self) -> u32 {
-        self.pipeline.as_ref().map(|p| p.rate).unwrap_or_else(|| self.sample_rate.load(Ordering::Relaxed)).max(1)
+        self.pipeline
+            .as_ref()
+            .map(|p| p.rate)
+            .unwrap_or_else(|| self.sample_rate.load(Ordering::Relaxed))
+            .max(1)
     }
 
     fn frames_to_ms(&self, frames: u64) -> u64 {
@@ -202,7 +211,10 @@ impl Controller {
     fn build_pipeline(&mut self, exclusive_rate: Option<u32>) -> bool {
         // Release the device before opening it again (exclusive mode needs that).
         self.pipeline = None;
-        let output = OutputConfig { device_id: self.output.device_id.clone(), exclusive: self.wants_exclusive() };
+        let output = OutputConfig {
+            device_id: self.output.device_id.clone(),
+            exclusive: self.wants_exclusive(),
+        };
         let settings = PipelineSettings {
             output: &output,
             exclusive_rate,
@@ -220,7 +232,10 @@ impl Controller {
         ) {
             Ok(mut pipeline) => {
                 self.sample_rate.store(pipeline.rate, Ordering::Relaxed);
-                pipeline.meters.tap_enabled.store(self.spectrum_on, Ordering::Relaxed);
+                pipeline
+                    .meters
+                    .tap_enabled
+                    .store(self.spectrum_on, Ordering::Relaxed);
                 if self.paused {
                     pipeline.pause();
                 }
@@ -243,8 +258,12 @@ impl Controller {
     fn emit_output_format(&self) {
         let Some(p) = &self.pipeline else { return };
         let mut format = p.format.clone();
-        let unity_gain = self.current.as_ref().is_none_or(|t| (t.gain - 1.0).abs() < 1e-12);
-        format.bit_perfect = format.bit_perfect && self.dsp.is_bypass() && self.volume >= 1.0 && unity_gain;
+        let unity_gain = self
+            .current
+            .as_ref()
+            .is_none_or(|t| (t.gain - 1.0).abs() < 1e-12);
+        format.bit_perfect =
+            format.bit_perfect && self.dsp.is_bypass() && self.volume >= 1.0 && unity_gain;
         self.emit(EngineEvent::OutputChanged { format });
     }
 
@@ -259,7 +278,8 @@ impl Controller {
             return;
         }
         if let Some(mut track) = resume {
-            track.played_before += self.ms_to_frames(track.position_ms.saturating_sub(track.slot_start_ms));
+            track.played_before +=
+                self.ms_to_frames(track.position_ms.saturating_sub(track.slot_start_ms));
             self.restart_slot(track);
         }
         if let Some(source) = next {
@@ -276,7 +296,12 @@ impl Controller {
     // --------------------------------------------------------------------------------------------
 
     /// Spawns a decoding worker for `source` at `start_ms` and returns the mixer slot for it.
-    fn spawn_slot(&mut self, source: &TrackSource, start_ms: u64, gain: f64) -> Option<(u64, TrackWorker, MixSlot)> {
+    fn spawn_slot(
+        &mut self,
+        source: &TrackSource,
+        start_ms: u64,
+        gain: f64,
+    ) -> Option<(u64, TrackWorker, MixSlot)> {
         let rate = self.pipeline.as_ref()?.rate;
         self.slot_counter += 1;
         let slot = self.slot_counter;
@@ -288,9 +313,19 @@ impl Controller {
             ring_frames: (f64::from(rate) * RING_SECONDS) as usize,
             start_ms,
         };
-        let (worker, ring) =
-            TrackWorker::spawn(slot.to_string(), open, hint_for(&source.location), config, self.worker_tx.clone());
-        let mix = MixSlot { id: slot, ring, album_key: source.album_key.clone(), gain };
+        let (worker, ring) = TrackWorker::spawn(
+            slot.to_string(),
+            open,
+            hint_for(&source.location),
+            config,
+            self.worker_tx.clone(),
+        );
+        let mix = MixSlot {
+            id: slot,
+            ring,
+            album_key: source.album_key.clone(),
+            gain,
+        };
         Some((slot, worker, mix))
     }
 
@@ -324,7 +359,10 @@ impl Controller {
     /// Replays an already started track from its position in a fresh slot (seek, pipeline rebuild).
     fn restart_slot(&mut self, mut track: Track) {
         let start = track.position_ms;
-        let Some((slot, worker, mix)) = self.spawn_slot(&track.source.clone(), start, track.gain) else { return };
+        let Some((slot, worker, mix)) = self.spawn_slot(&track.source.clone(), start, track.gain)
+        else {
+            return;
+        };
         track.slot = slot;
         track.worker = Some(worker);
         track.slot_start_ms = start;
@@ -348,7 +386,9 @@ impl Controller {
             self.retired.insert(current.slot, current);
         }
         self.drop_next();
-        let Some((track, mix)) = self.new_track(source, start_ms) else { return };
+        let Some((track, mix)) = self.new_track(source, start_ms) else {
+            return;
+        };
         self.current = Some(track);
         self.send(MixerMsg::Play(mix));
         if let Some(p) = self.pipeline.as_mut() {
@@ -366,7 +406,9 @@ impl Controller {
         if matches!(source.location, SourceLocation::Http { .. }) {
             self.sources.prefetch(&source.location);
         }
-        let Some((track, mix)) = self.new_track(source, 0) else { return };
+        let Some((track, mix)) = self.new_track(source, 0) else {
+            return;
+        };
         self.next = Some(track);
         self.send(MixerMsg::SetNext(Some(mix)));
     }
@@ -377,7 +419,11 @@ impl Controller {
             if paused { p.pause() } else { p.play() }
         }
         if self.current.is_some() {
-            self.set_state(if paused { PlaybackState::Paused } else { PlaybackState::Playing });
+            self.set_state(if paused {
+                PlaybackState::Paused
+            } else {
+                PlaybackState::Playing
+            });
         }
     }
 
@@ -391,8 +437,12 @@ impl Controller {
     }
 
     fn seek(&mut self, position_ms: u64) {
-        let Some(mut track) = self.current.take() else { return };
-        let position_ms = track.duration_ms().map_or(position_ms, |d| position_ms.min(d));
+        let Some(mut track) = self.current.take() else {
+            return;
+        };
+        let position_ms = track
+            .duration_ms()
+            .map_or(position_ms, |d| position_ms.min(d));
         self.seek_slots.insert(track.slot, track.source.id.clone());
         track.position_ms = position_ms;
         track.need_next_sent = false;
@@ -404,7 +454,12 @@ impl Controller {
         {
             p.flush();
         }
-        self.emit(EngineEvent::Position { id, position_ms, duration_ms, buffered_ms: None });
+        self.emit(EngineEvent::Position {
+            id,
+            position_ms,
+            duration_ms,
+            buffered_ms: None,
+        });
     }
 
     fn skip_to_next(&mut self) {
@@ -417,7 +472,10 @@ impl Controller {
     }
 
     fn update_gains(&mut self) {
-        for track in [self.current.as_mut(), self.next.as_mut()].into_iter().flatten() {
+        for track in [self.current.as_mut(), self.next.as_mut()]
+            .into_iter()
+            .flatten()
+        {
             track.gain = track_gain(
                 &self.normalization,
                 track.source.gain.as_ref(),
@@ -425,8 +483,14 @@ impl Controller {
                 track.source.album_key.is_some(),
             );
         }
-        for track in [self.current.as_ref(), self.next.as_ref()].into_iter().flatten() {
-            self.send(MixerMsg::SetGain { id: track.slot, gain: track.gain });
+        for track in [self.current.as_ref(), self.next.as_ref()]
+            .into_iter()
+            .flatten()
+        {
+            self.send(MixerMsg::SetGain {
+                id: track.slot,
+                gain: track.gain,
+            });
         }
         self.emit_output_format();
     }
@@ -437,7 +501,11 @@ impl Controller {
 
     fn command(&mut self, command: EngineCommand) {
         match command {
-            EngineCommand::Play { track, start_ms, paused } => self.play(track, start_ms, paused),
+            EngineCommand::Play {
+                track,
+                start_ms,
+                paused,
+            } => self.play(track, start_ms, paused),
             EngineCommand::SetNext { track } => self.set_next(track),
             EngineCommand::Pause => self.set_paused(true),
             EngineCommand::Resume => self.set_paused(false),
@@ -453,9 +521,16 @@ impl Controller {
                 let exclusive_before = self.wants_exclusive();
                 self.dsp = config;
                 self.send(MixerMsg::Dsp(Box::new(self.dsp.clone())));
-                if self.output.exclusive && exclusive_before != self.wants_exclusive() && self.pipeline.is_some() {
+                if self.output.exclusive
+                    && exclusive_before != self.wants_exclusive()
+                    && self.pipeline.is_some()
+                {
                     // Exclusive (bit-perfect) output is only used while the DSP is bypassed.
-                    let rate = self.current.as_ref().and_then(|t| t.info.as_ref()).map(|i| i.format.sample_rate);
+                    let rate = self
+                        .current
+                        .as_ref()
+                        .and_then(|t| t.info.as_ref())
+                        .map(|i| i.format.sample_rate);
                     self.rebuild(rate);
                 } else {
                     self.emit_output_format();
@@ -468,13 +543,20 @@ impl Controller {
             EngineCommand::SetCrossfade { config } => {
                 self.crossfade = config;
                 let frames = u64::from(config.duration_ms) * u64::from(self.rate()) / 1000;
-                self.send(MixerMsg::Crossfade { frames, skip_same_album: config.skip_same_album });
+                self.send(MixerMsg::Crossfade {
+                    frames,
+                    skip_same_album: config.skip_same_album,
+                });
             }
             EngineCommand::SetOutput { config } => {
                 self.output = config;
                 self.exclusive_attempt = None;
                 if self.pipeline.is_some() {
-                    let rate = self.current.as_ref().and_then(|t| t.info.as_ref()).map(|i| i.format.sample_rate);
+                    let rate = self
+                        .current
+                        .as_ref()
+                        .and_then(|t| t.info.as_ref())
+                        .map(|i| i.format.sample_rate);
                     self.rebuild(rate);
                 }
             }
@@ -489,19 +571,30 @@ impl Controller {
     }
 
     fn track_by_slot_mut(&mut self, slot: u64) -> Option<&mut Track> {
-        [self.current.as_mut(), self.next.as_mut()].into_iter().flatten().find(|t| t.slot == slot)
+        [self.current.as_mut(), self.next.as_mut()]
+            .into_iter()
+            .flatten()
+            .find(|t| t.slot == slot)
     }
 
     fn worker_event(&mut self, event: WorkerEvent) {
         match event {
-            WorkerEvent::Ready { id, info, start_frame } => {
+            WorkerEvent::Ready {
+                id,
+                info,
+                start_frame,
+            } => {
                 let Ok(slot) = id.parse::<u64>() else { return };
                 let rate = u64::from(self.rate());
                 let total_frames = match (info.n_frames, info.format.sample_rate) {
                     (Some(n), src) if src > 0 => Some(n * rate / u64::from(src)),
                     _ => info.duration_ms.map(|ms| ms * rate / 1000),
                 };
-                self.send(MixerMsg::Ready { id: slot, start_frame, total_frames });
+                self.send(MixerMsg::Ready {
+                    id: slot,
+                    start_frame,
+                    total_frames,
+                });
 
                 let native_rate = info.format.sample_rate;
                 let normalization = self.normalization;
@@ -522,7 +615,10 @@ impl Controller {
                 if is_current
                     && self.wants_exclusive()
                     && native_rate > 0
-                    && self.pipeline.as_ref().is_some_and(|p| p.rate != native_rate)
+                    && self
+                        .pipeline
+                        .as_ref()
+                        .is_some_and(|p| p.rate != native_rate)
                     && self.exclusive_attempt != Some(native_rate)
                 {
                     self.exclusive_attempt = Some(native_rate);
@@ -531,7 +627,10 @@ impl Controller {
             }
             WorkerEvent::Finished { id, end_frame } => {
                 if let Ok(slot) = id.parse::<u64>() {
-                    self.send(MixerMsg::Finished { id: slot, end_frame });
+                    self.send(MixerMsg::Finished {
+                        id: slot,
+                        end_frame,
+                    });
                 }
             }
             WorkerEvent::Error { id, error } => {
@@ -539,7 +638,12 @@ impl Controller {
                 let kind = error_kind(&error);
                 if self.current.as_ref().is_some_and(|t| t.slot == slot) {
                     let track_id = self.current.as_ref().map(|t| t.source.id.clone());
-                    self.emit(EngineEvent::Error { id: track_id, kind, message: error.to_string(), recoverable: true });
+                    self.emit(EngineEvent::Error {
+                        id: track_id,
+                        kind,
+                        message: error.to_string(),
+                        recoverable: true,
+                    });
                     if self.next.is_some() {
                         self.skip_to_next();
                     } else {
@@ -547,10 +651,17 @@ impl Controller {
                     }
                 } else if self.next.as_ref().is_some_and(|t| t.slot == slot) {
                     let next_id = self.next.as_ref().map(|t| t.source.id.clone());
-                    self.emit(EngineEvent::Error { id: next_id, kind, message: error.to_string(), recoverable: true });
+                    self.emit(EngineEvent::Error {
+                        id: next_id,
+                        kind,
+                        message: error.to_string(),
+                        recoverable: true,
+                    });
                     self.drop_next();
                     if let Some(current) = &self.current {
-                        self.emit(EngineEvent::NeedNext { id: current.source.id.clone() });
+                        self.emit(EngineEvent::NeedNext {
+                            id: current.source.id.clone(),
+                        });
                     }
                 }
             }
@@ -561,8 +672,16 @@ impl Controller {
         match event {
             MixerEvent::Started { id, transition } => {
                 // A restarted slot of the current track (seek, rebuild): no new TrackStarted.
-                if self.current.as_ref().is_some_and(|t| t.slot == id && t.started) {
-                    let state = if self.paused { PlaybackState::Paused } else { PlaybackState::Playing };
+                if self
+                    .current
+                    .as_ref()
+                    .is_some_and(|t| t.slot == id && t.started)
+                {
+                    let state = if self.paused {
+                        PlaybackState::Paused
+                    } else {
+                        PlaybackState::Playing
+                    };
                     self.set_state(state);
                     return;
                 }
@@ -572,37 +691,59 @@ impl Controller {
                     }
                     self.current = self.next.take();
                 }
-                let Some(track) = self.current.as_mut().filter(|t| t.slot == id) else { return };
+                let Some(track) = self.current.as_mut().filter(|t| t.slot == id) else {
+                    return;
+                };
                 track.started = true;
                 let event = EngineEvent::TrackStarted {
                     id: track.source.id.clone(),
                     transition,
                     duration_ms: track.duration_ms(),
-                    format: track.info.as_ref().map(|i| i.format.clone()).unwrap_or_else(unknown_format),
+                    format: track
+                        .info
+                        .as_ref()
+                        .map(|i| i.format.clone())
+                        .unwrap_or_else(unknown_format),
                 };
                 self.emit(event);
-                let state = if self.paused { PlaybackState::Paused } else { PlaybackState::Playing };
+                let state = if self.paused {
+                    PlaybackState::Paused
+                } else {
+                    PlaybackState::Playing
+                };
                 self.set_state(state);
                 self.emit_output_format();
             }
             MixerEvent::Position { id, frame } => {
                 let position_ms = self.frames_to_ms(frame);
-                let Some(track) = self.current.as_mut().filter(|t| t.slot == id) else { return };
+                let Some(track) = self.current.as_mut().filter(|t| t.slot == id) else {
+                    return;
+                };
                 track.position_ms = position_ms;
                 let duration_ms = track.duration_ms();
                 let track_id = track.source.id.clone();
                 let need_next = self.next.is_none()
                     && !track.need_next_sent
-                    && duration_ms.is_some_and(|d| d.saturating_sub(position_ms) < NEED_NEXT_BEFORE_MS);
+                    && duration_ms
+                        .is_some_and(|d| d.saturating_sub(position_ms) < NEED_NEXT_BEFORE_MS);
                 if need_next {
                     track.need_next_sent = true;
                 }
-                self.emit(EngineEvent::Position { id: track_id.clone(), position_ms, duration_ms, buffered_ms: None });
+                self.emit(EngineEvent::Position {
+                    id: track_id.clone(),
+                    position_ms,
+                    duration_ms,
+                    buffered_ms: None,
+                });
                 if need_next {
                     self.emit(EngineEvent::NeedNext { id: track_id });
                 }
             }
-            MixerEvent::Ended { id, played_frames, completed } => {
+            MixerEvent::Ended {
+                id,
+                played_frames,
+                completed,
+            } => {
                 if let Some(track_id) = self.seek_slots.remove(&id) {
                     if let Some(track) = self.current.as_mut().filter(|t| t.source.id == track_id) {
                         track.played_before += played_frames;
@@ -618,7 +759,11 @@ impl Controller {
                 };
                 if let Some(track) = finished.filter(|t| t.started) {
                     let played_ms = self.frames_to_ms(track.played_before + played_frames);
-                    self.emit(EngineEvent::TrackEnded { id: track.source.id, played_ms, completed });
+                    self.emit(EngineEvent::TrackEnded {
+                        id: track.source.id,
+                        played_ms,
+                        completed,
+                    });
                 }
             }
             MixerEvent::Buffering(active) => self.emit(EngineEvent::Buffering { active }),
@@ -639,12 +784,19 @@ impl Controller {
                 self.rebuild(self.exclusive_attempt);
             }
             OutputEvent::DefaultDeviceChanged | OutputEvent::StreamInvalidated => {
-                if self.output.device_id.is_none() || matches!(event, OutputEvent::StreamInvalidated) {
+                if self.output.device_id.is_none()
+                    || matches!(event, OutputEvent::StreamInvalidated)
+                {
                     self.rebuild(self.exclusive_attempt);
                 }
             }
             OutputEvent::Error(message) => {
-                self.emit(EngineEvent::Error { id: None, kind: ErrorKind::Output, message, recoverable: true });
+                self.emit(EngineEvent::Error {
+                    id: None,
+                    kind: ErrorKind::Output,
+                    message,
+                    recoverable: true,
+                });
             }
         }
     }
@@ -657,14 +809,25 @@ mod tests {
 
     #[test]
     fn error_kinds_map_to_api() {
-        assert_eq!(error_kind(&DecodeError::Unsupported("x".into())), ErrorKind::UnsupportedFormat);
-        assert_eq!(error_kind(&DecodeError::Source(SourceError::Http(500))), ErrorKind::Network);
-        assert_eq!(error_kind(&DecodeError::Decode("x".into())), ErrorKind::Decode);
+        assert_eq!(
+            error_kind(&DecodeError::Unsupported("x".into())),
+            ErrorKind::UnsupportedFormat
+        );
+        assert_eq!(
+            error_kind(&DecodeError::Source(SourceError::Http(500))),
+            ErrorKind::Network
+        );
+        assert_eq!(
+            error_kind(&DecodeError::Decode("x".into())),
+            ErrorKind::Decode
+        );
     }
 
     #[test]
     fn hints_come_from_container_or_extension() {
-        let local = SourceLocation::Local { path: "C:/music/a.FLAC".into() };
+        let local = SourceLocation::Local {
+            path: "C:/music/a.FLAC".into(),
+        };
         assert_eq!(hint_for(&local).as_deref(), Some("flac"));
     }
 }

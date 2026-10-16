@@ -32,7 +32,11 @@ pub struct TrackSource {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "camelCase", rename_all_fields = "camelCase")]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 pub enum SourceLocation {
     /// A file on disk (offline download or local library).
     Local { path: PathBuf },
@@ -134,7 +138,12 @@ pub struct NormalizationConfig {
 
 impl Default for NormalizationConfig {
     fn default() -> Self {
-        Self { mode: NormalizationMode::Off, target: LoudnessTarget::Normal, prevent_clipping: true, analyze_untagged: true }
+        Self {
+            mode: NormalizationMode::Off,
+            target: LoudnessTarget::Normal,
+            prevent_clipping: true,
+            analyze_untagged: true,
+        }
     }
 }
 
@@ -149,7 +158,10 @@ pub struct CrossfadeConfig {
 
 impl Default for CrossfadeConfig {
     fn default() -> Self {
-        Self { duration_ms: 0, skip_same_album: true }
+        Self {
+            duration_ms: 0,
+            skip_same_album: true,
+        }
     }
 }
 
@@ -173,7 +185,10 @@ pub struct DspConfig {
 impl DspConfig {
     /// True when the chain is mathematically a no-op (required for bit-perfect output).
     pub fn is_bypass(&self) -> bool {
-        !self.eq.enabled && !self.bass.enabled && self.stereo.is_neutral() && !self.loudness_compensation
+        !self.eq.enabled
+            && !self.bass.enabled
+            && self.stereo.is_neutral()
+            && !self.loudness_compensation
     }
 }
 
@@ -190,17 +205,34 @@ pub struct EqConfig {
 
 impl Default for EqConfig {
     fn default() -> Self {
-        Self { enabled: false, preamp_db: 0.0, auto_headroom: true, mode: EqMode::Graphic { bands: GraphicBands::Ten, gains_db: vec![0.0; 10] } }
+        Self {
+            enabled: false,
+            preamp_db: 0.0,
+            auto_headroom: true,
+            mode: EqMode::Graphic {
+                bands: GraphicBands::Ten,
+                gains_db: vec![0.0; 10],
+            },
+        }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase", rename_all_fields = "camelCase")]
+#[serde(
+    tag = "type",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 pub enum EqMode {
     /// Constant-Q graphic EQ at ISO center frequencies; the engine compensates band interaction so
     /// each slider value is what the response actually reaches at its center frequency.
-    Graphic { bands: GraphicBands, gains_db: Vec<f64> },
-    Parametric { filters: Vec<ParametricFilter> },
+    Graphic {
+        bands: GraphicBands,
+        gains_db: Vec<f64>,
+    },
+    Parametric {
+        filters: Vec<ParametricFilter>,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -215,11 +247,13 @@ pub enum GraphicBands {
 impl GraphicBands {
     pub fn center_frequencies(self) -> &'static [f64] {
         match self {
-            GraphicBands::Ten => &[31.5, 63.0, 125.0, 250.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.0, 16000.0],
+            GraphicBands::Ten => &[
+                31.5, 63.0, 125.0, 250.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.0, 16000.0,
+            ],
             GraphicBands::ThirtyOne => &[
-                20.0, 25.0, 31.5, 40.0, 50.0, 63.0, 80.0, 100.0, 125.0, 160.0, 200.0, 250.0, 315.0, 400.0, 500.0,
-                630.0, 800.0, 1000.0, 1250.0, 1600.0, 2000.0, 2500.0, 3150.0, 4000.0, 5000.0, 6300.0, 8000.0,
-                10000.0, 12500.0, 16000.0, 20000.0,
+                20.0, 25.0, 31.5, 40.0, 50.0, 63.0, 80.0, 100.0, 125.0, 160.0, 200.0, 250.0, 315.0,
+                400.0, 500.0, 630.0, 800.0, 1000.0, 1250.0, 1600.0, 2000.0, 2500.0, 3150.0, 4000.0,
+                5000.0, 6300.0, 8000.0, 10000.0, 12500.0, 16000.0, 20000.0,
             ],
         }
     }
@@ -262,7 +296,12 @@ pub struct BassEnhancerConfig {
 
 impl Default for BassEnhancerConfig {
     fn default() -> Self {
-        Self { enabled: false, boost_db: 6.0, frequency_hz: 80.0, harmonics: 0.3 }
+        Self {
+            enabled: false,
+            boost_db: 6.0,
+            frequency_hz: 80.0,
+            harmonics: 0.3,
+        }
     }
 }
 
@@ -278,7 +317,11 @@ pub struct StereoConfig {
 
 impl Default for StereoConfig {
     fn default() -> Self {
-        Self { width: 1.0, mono: false, balance: 0.0 }
+        Self {
+            width: 1.0,
+            mono: false,
+            balance: 0.0,
+        }
     }
 }
 
@@ -358,26 +401,50 @@ pub struct SourceFormat {
 // ------------------------------------------------------------------------------------------------
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase", rename_all_fields = "camelCase")]
+#[serde(
+    tag = "type",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 pub enum EngineCommand {
     /// Start a track immediately (manual transition, replaces current and next).
-    Play { track: TrackSource, start_ms: u64, paused: bool },
+    Play {
+        track: TrackSource,
+        start_ms: u64,
+        paused: bool,
+    },
     /// Set or clear the track that follows the current one (preloaded for gapless/crossfade).
-    SetNext { track: Option<TrackSource> },
+    SetNext {
+        track: Option<TrackSource>,
+    },
     Pause,
     Resume,
     Stop,
-    Seek { position_ms: u64 },
+    Seek {
+        position_ms: u64,
+    },
     /// Jump to the preloaded next track now.
     SkipToNext,
     /// UI volume 0.0…1.0 (mapped to a perceptual dB curve by the engine).
-    SetVolume { volume: f64 },
-    SetDsp { config: DspConfig },
-    SetNormalization { config: NormalizationConfig },
-    SetCrossfade { config: CrossfadeConfig },
-    SetOutput { config: OutputConfig },
+    SetVolume {
+        volume: f64,
+    },
+    SetDsp {
+        config: DspConfig,
+    },
+    SetNormalization {
+        config: NormalizationConfig,
+    },
+    SetCrossfade {
+        config: CrossfadeConfig,
+    },
+    SetOutput {
+        config: OutputConfig,
+    },
     /// Spectrum analyzer frames on/off (only computed while someone is watching).
-    SetSpectrum { enabled: bool },
+    SetSpectrum {
+        enabled: bool,
+    },
     Shutdown,
 }
 
@@ -411,20 +478,53 @@ pub enum ErrorKind {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase", rename_all_fields = "camelCase")]
+#[serde(
+    tag = "type",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 pub enum EngineEvent {
-    StateChanged { state: PlaybackState },
-    TrackStarted { id: TrackId, transition: Transition, duration_ms: Option<u64>, format: SourceFormat },
+    StateChanged {
+        state: PlaybackState,
+    },
+    TrackStarted {
+        id: TrackId,
+        transition: Transition,
+        duration_ms: Option<u64>,
+        format: SourceFormat,
+    },
     /// Sent 4–10 times per second while playing; the UI interpolates in between.
-    Position { id: TrackId, position_ms: u64, duration_ms: Option<u64>, buffered_ms: Option<u64> },
-    Buffering { active: bool },
+    Position {
+        id: TrackId,
+        position_ms: u64,
+        duration_ms: Option<u64>,
+        buffered_ms: Option<u64>,
+    },
+    Buffering {
+        active: bool,
+    },
     /// The current track ends soon and no next track is set.
-    NeedNext { id: TrackId },
+    NeedNext {
+        id: TrackId,
+    },
     /// A track stopped being the current one (for listening history).
-    TrackEnded { id: TrackId, played_ms: u64, completed: bool },
-    Error { id: Option<TrackId>, kind: ErrorKind, message: String, recoverable: bool },
-    OutputChanged { format: OutputFormat },
-    DeviceLost { fallback: Option<String> },
+    TrackEnded {
+        id: TrackId,
+        played_ms: u64,
+        completed: bool,
+    },
+    Error {
+        id: Option<TrackId>,
+        kind: ErrorKind,
+        message: String,
+        recoverable: bool,
+    },
+    OutputChanged {
+        format: OutputFormat,
+    },
+    DeviceLost {
+        fallback: Option<String>,
+    },
 }
 
 /// One analyzer frame: `bands` log-spaced magnitudes quantized to 0…255 (0 = −90 dB, 255 = 0 dB).

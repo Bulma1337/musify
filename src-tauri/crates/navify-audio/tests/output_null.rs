@@ -59,15 +59,28 @@ mod output_null {
         let rec = out.samples();
         assert_eq!(rec.len(), 2 * ramp, "only the fade is consumed");
         assert_eq!(*rec.last().unwrap(), 0.0);
-        assert!(rec.chunks(2).map(|f| f[0]).collect::<Vec<_>>().windows(2).all(|w| w[1] <= w[0]));
-        assert_eq!(p.slots(), (1 << 16) - 2 * (frames - ramp), "ring untouched while paused");
+        assert!(
+            rec.chunks(2)
+                .map(|f| f[0])
+                .collect::<Vec<_>>()
+                .windows(2)
+                .all(|w| w[1] <= w[0])
+        );
+        assert_eq!(
+            p.slots(),
+            (1 << 16) - 2 * (frames - ramp),
+            "ring untouched while paused"
+        );
 
         out.play();
         assert!(wait_until(|| recording.lock().len() >= 2 * frames));
         let rec = out.take_samples();
         assert_eq!(rec.len(), 2 * frames);
         let resumed = &rec[2 * ramp..];
-        assert!(resumed[0] > 0.0 && resumed[0] < 0.01, "fade-in starts near zero");
+        assert!(
+            resumed[0] > 0.0 && resumed[0] < 0.01,
+            "fade-in starts near zero"
+        );
         assert!(resumed[2 * ramp..].iter().all(|&s| s == 0.5));
         assert!(out.samples().is_empty());
     }

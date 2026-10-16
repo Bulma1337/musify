@@ -8,8 +8,14 @@ pub(crate) struct RangeSet {
 }
 
 impl RangeSet {
+    #[cfg(test)]
     pub(crate) fn new() -> Self {
         Self::default()
+    }
+
+    #[cfg(test)]
+    pub(crate) fn covered_bytes(&self) -> u64 {
+        self.ranges.iter().map(|(s, e)| e - s).sum()
     }
 
     pub(crate) fn is_empty(&self) -> bool {
@@ -25,10 +31,6 @@ impl RangeSet {
     }
 
     /// Total number of bytes covered.
-    pub(crate) fn covered_bytes(&self) -> u64 {
-        self.ranges.iter().map(|(s, e)| e - s).sum()
-    }
-
     /// Adds `[start, end)`, merging with overlapping or adjacent ranges.
     pub(crate) fn insert(&mut self, start: u64, end: u64) {
         if start >= end {
@@ -43,7 +45,8 @@ impl RangeSet {
         }
         let new_start = start.min(self.ranges[lo].0);
         let new_end = end.max(self.ranges[hi - 1].1);
-        self.ranges.splice(lo..hi, std::iter::once((new_start, new_end)));
+        self.ranges
+            .splice(lo..hi, std::iter::once((new_start, new_end)));
     }
 
     /// Index of the range containing `pos`, if any.
@@ -172,6 +175,9 @@ mod tests {
                 assert_eq!(r.contains(p), bits[p as usize]);
             }
         }
-        assert_eq!(r.covered_bytes(), bits.iter().filter(|b| **b).count() as u64);
+        assert_eq!(
+            r.covered_bytes(),
+            bits.iter().filter(|b| **b).count() as u64
+        );
     }
 }

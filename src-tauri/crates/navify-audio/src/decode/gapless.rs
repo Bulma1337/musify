@@ -52,7 +52,10 @@ impl Mp4Timing {
                 Some(t) => total.min(t.saturating_sub(delay)),
                 None => total,
             };
-            return Some(Window { start: delay, len: Some(len) });
+            return Some(Window {
+                start: delay,
+                len: Some(len),
+            });
         }
         let (seg, media_time) = self.edit?;
         let start = rescale(media_time, self.media_timescale);
@@ -63,7 +66,11 @@ impl Mp4Timing {
             let edit_len = rescale(seg, self.movie_timescale);
             // A coarse movie timescale (e.g. 600 or 1000) cannot express the length exactly; if the
             // sample table ends within one movie tick of the edit, the sample table is exact.
-            let tick = if self.movie_timescale == 0 { 0 } else { (sr as u64).div_ceil(u64::from(self.movie_timescale)) };
+            let tick = if self.movie_timescale == 0 {
+                0
+            } else {
+                (sr as u64).div_ceil(u64::from(self.movie_timescale))
+            };
             match avail {
                 Some(a) if a.abs_diff(edit_len) <= tick => Some(a),
                 Some(a) => Some(edit_len.min(a)),
@@ -110,7 +117,9 @@ fn scan_inner(src: &mut dyn ByteSource) -> io::Result<Option<Mp4Timing>> {
     let mut first = true;
     loop {
         src.seek(SeekFrom::Start(pos))?;
-        let Some((size, kind, hdr)) = read_header(src)? else { return Ok(None) };
+        let Some((size, kind, hdr)) = read_header(src)? else {
+            return Ok(None);
+        };
         if first && &kind != b"ftyp" {
             return Ok(None);
         }
@@ -126,7 +135,9 @@ fn scan_inner(src: &mut dyn ByteSource) -> io::Result<Option<Mp4Timing>> {
         if size == 0 || size < hdr {
             return Ok(None); // atom extends to EOF (or broken) and it is not moov
         }
-        pos = pos.checked_add(size).ok_or_else(|| io::Error::other("atom size overflow"))?;
+        pos = pos
+            .checked_add(size)
+            .ok_or_else(|| io::Error::other("atom size overflow"))?;
     }
 }
 
@@ -230,7 +241,11 @@ fn parse_elst(b: &[u8]) -> Option<(u64, u64)> {
         let (seg, media_time, step) = if version == 1 {
             (be_u64(b, at)?, be_u64(b, at + 8)? as i64, 20)
         } else {
-            (u64::from(be_u32(b, at)?), i64::from(be_u32(b, at + 4)? as i32), 12)
+            (
+                u64::from(be_u32(b, at)?),
+                i64::from(be_u32(b, at + 4)? as i32),
+                12,
+            )
         };
         at += step;
         if media_time >= 0 {
@@ -247,7 +262,11 @@ fn find_itunsmpb(udta: &[u8]) -> Option<(u64, u64, u64)> {
             continue;
         }
         // `meta` is a full box in MP4 but a plain container in QuickTime files.
-        let meta_body = if meta.get(4..8) == Some(b"hdlr") { meta } else { meta.get(4..)? };
+        let meta_body = if meta.get(4..8) == Some(b"hdlr") {
+            meta
+        } else {
+            meta.get(4..)?
+        };
         for (k, ilst) in children(meta_body) {
             if &k != b"ilst" {
                 continue;
@@ -276,7 +295,12 @@ fn find_itunsmpb(udta: &[u8]) -> Option<(u64, u64, u64)> {
 
 pub(crate) fn parse_itunsmpb(data: &[u8]) -> Option<(u64, u64, u64)> {
     let s = std::str::from_utf8(data).ok()?;
-    let words: Vec<u64> = s.split_whitespace().take(4).map(|w| u64::from_str_radix(w, 16)).collect::<Result<_, _>>().ok()?;
+    let words: Vec<u64> = s
+        .split_whitespace()
+        .take(4)
+        .map(|w| u64::from_str_radix(w, 16))
+        .collect::<Result<_, _>>()
+        .ok()?;
     match words.as_slice() {
         [_, delay, padding, total] => Some((*delay, *padding, *total)),
         _ => None,
@@ -296,14 +320,52 @@ mod tests {
 
     #[test]
     fn windows() {
-        let ffmpeg_aac = Mp4Timing { movie_timescale: 44100, media_timescale: 44100, edit: Some((29399, 1024)), itunsmpb: None };
-        assert_eq!(ffmpeg_aac.window(44100, Some(30423)), Some(Window { start: 1024, len: Some(29399) }));
+        let ffmpeg_aac = Mp4Timing {
+            movie_timescale: 44100,
+            media_timescale: 44100,
+            edit: Some((29399, 1024)),
+            itunsmpb: None,
+        };
+        assert_eq!(
+            ffmpeg_aac.window(44100, Some(30423)),
+            Some(Window {
+                start: 1024,
+                len: Some(29399)
+            })
+        );
         // Coarse movie timescale: trust the sample table if it agrees within a tick.
-        let coarse = Mp4Timing { movie_timescale: 1000, media_timescale: 44100, edit: Some((667, 1024)), itunsmpb: None };
-        assert_eq!(coarse.window(44100, Some(30423)), Some(Window { start: 1024, len: Some(29399) }));
-        let apple = Mp4Timing { movie_timescale: 600, media_timescale: 44100, edit: Some((400, 2112)), itunsmpb: Some((2112, 400, 30000)) };
-        assert_eq!(apple.window(44100, Some(33792)), Some(Window { start: 2112, len: Some(30000) }));
-        let alac = Mp4Timing { movie_timescale: 44100, media_timescale: 44100, edit: Some((29399, 0)), itunsmpb: None };
+        let coarse = Mp4Timing {
+            movie_timescale: 1000,
+            media_timescale: 44100,
+            edit: Some((667, 1024)),
+            itunsmpb: None,
+        };
+        assert_eq!(
+            coarse.window(44100, Some(30423)),
+            Some(Window {
+                start: 1024,
+                len: Some(29399)
+            })
+        );
+        let apple = Mp4Timing {
+            movie_timescale: 600,
+            media_timescale: 44100,
+            edit: Some((400, 2112)),
+            itunsmpb: Some((2112, 400, 30000)),
+        };
+        assert_eq!(
+            apple.window(44100, Some(33792)),
+            Some(Window {
+                start: 2112,
+                len: Some(30000)
+            })
+        );
+        let alac = Mp4Timing {
+            movie_timescale: 44100,
+            media_timescale: 44100,
+            edit: Some((29399, 0)),
+            itunsmpb: None,
+        };
         assert_eq!(alac.window(44100, Some(29399)), None);
     }
 }

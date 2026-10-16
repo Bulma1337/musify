@@ -21,7 +21,12 @@ pub(crate) struct GainTags {
 
 impl GainTags {
     pub(crate) fn add_revision(&mut self, rev: &MetadataRevision) {
-        for tag in rev.media.tags.iter().chain(rev.per_track.iter().flat_map(|t| t.metadata.tags.iter())) {
+        for tag in rev
+            .media
+            .tags
+            .iter()
+            .chain(rev.per_track.iter().flat_map(|t| t.metadata.tags.iter()))
+        {
             self.add_tag(tag);
         }
     }
@@ -42,11 +47,14 @@ impl GainTags {
             Some(StandardTag::ReplayGainAlbumPeak(_)) => Some(Kind::AlbumPeak),
             _ => None,
         };
-        let Some(kind) = std_kind.or_else(|| kind_from_key(&tag.raw.key)) else { return };
+        let Some(kind) = std_kind.or_else(|| kind_from_key(&tag.raw.key)) else {
+            return;
+        };
         self.set(kind, &value);
     }
 
     /// Sets a value from a raw key/value pair (used for tests and non-symphonia sources).
+    #[cfg(test)]
     pub(crate) fn add_raw(&mut self, key: &str, value: &str) {
         if let Some(kind) = kind_from_key(key) {
             self.set(kind, value);
@@ -68,7 +76,13 @@ impl GainTags {
     /// tags); everywhere else ReplayGain tags win and R128 only fills gaps.
     pub(crate) fn finish(&self, prefer_r128: bool) -> Option<ReplayGainInfo> {
         let mut out = self.rg;
-        let pick = |rg: Option<f64>, r128: Option<f64>| if prefer_r128 { r128.or(rg) } else { rg.or(r128) };
+        let pick = |rg: Option<f64>, r128: Option<f64>| {
+            if prefer_r128 {
+                r128.or(rg)
+            } else {
+                rg.or(r128)
+            }
+        };
         out.track_gain_db = pick(out.track_gain_db, self.r128_track);
         out.album_gain_db = pick(out.album_gain_db, self.r128_album);
         (out != ReplayGainInfo::default()).then_some(out)
@@ -88,7 +102,12 @@ enum Kind {
 /// Matches the bare key as well as namespaced variants such as `TXXX:replaygain_track_gain` or
 /// `----:com.apple.iTunes:REPLAYGAIN_TRACK_GAIN`.
 fn kind_from_key(key: &str) -> Option<Kind> {
-    let name = key.rsplit([':', '/']).next().unwrap_or(key).trim().to_ascii_uppercase();
+    let name = key
+        .rsplit([':', '/'])
+        .next()
+        .unwrap_or(key)
+        .trim()
+        .to_ascii_uppercase();
     Some(match name.as_str() {
         "REPLAYGAIN_TRACK_GAIN" => Kind::TrackGain,
         "REPLAYGAIN_TRACK_PEAK" => Kind::TrackPeak,
@@ -149,7 +168,10 @@ pub(crate) fn opus_pre_skip(extra_data: &[u8]) -> Option<u64> {
     if extra_data.len() < 19 || &extra_data[..8] != b"OpusHead" {
         return None;
     }
-    Some(u64::from(u16::from_le_bytes([extra_data[10], extra_data[11]])))
+    Some(u64::from(u16::from_le_bytes([
+        extra_data[10],
+        extra_data[11],
+    ])))
 }
 
 #[cfg(test)]

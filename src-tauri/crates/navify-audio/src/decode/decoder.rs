@@ -19,8 +19,6 @@
 //! `trim_end`; for every other codec this module applies them itself, so trimming never happens
 //! twice or not at all.
 
-use std::sync::Arc;
-
 use symphonia::core::codecs::CodecParameters;
 use symphonia::core::codecs::audio::well_known::*;
 use symphonia::core::codecs::audio::{AudioCodecId, AudioDecoder, AudioDecoderOptions};
@@ -72,8 +70,12 @@ impl CodecKind {
             CODEC_ID_AAC => Self::Aac,
             CODEC_ID_VORBIS => Self::Vorbis,
             CODEC_ID_OPUS => Self::Opus,
-            CODEC_ID_ADPCM_G722 | CODEC_ID_ADPCM_G726 | CODEC_ID_ADPCM_G726LE | CODEC_ID_ADPCM_MS
-            | CODEC_ID_ADPCM_IMA_WAV | CODEC_ID_ADPCM_IMA_QT => Self::Adpcm,
+            CODEC_ID_ADPCM_G722
+            | CODEC_ID_ADPCM_G726
+            | CODEC_ID_ADPCM_G726LE
+            | CODEC_ID_ADPCM_MS
+            | CODEC_ID_ADPCM_IMA_WAV
+            | CODEC_ID_ADPCM_IMA_QT => Self::Adpcm,
             id if (CODEC_ID_PCM_S32LE..=CODEC_ID_PCM_MULAW).contains(&id) => Self::Pcm,
             _ => Self::Other,
         }
@@ -99,7 +101,10 @@ impl CodecKind {
         match self {
             Self::Flac | Self::Alac => true,
             Self::Pcm => !matches!(id, CODEC_ID_PCM_ALAW | CODEC_ID_PCM_MULAW),
-            _ => matches!(id, CODEC_ID_WAVPACK | CODEC_ID_TTA | CODEC_ID_MONKEYS_AUDIO | CODEC_ID_TRUEHD),
+            _ => matches!(
+                id,
+                CODEC_ID_WAVPACK | CODEC_ID_TTA | CODEC_ID_MONKEYS_AUDIO | CODEC_ID_TRUEHD
+            ),
         }
     }
 
@@ -179,15 +184,23 @@ impl Engine {
         };
         let byte_len = source.byte_len();
 
-        let mss = MediaSourceStream::new(Box::new(ByteSourceMedia::new(source)), Default::default());
+        let mss =
+            MediaSourceStream::new(Box::new(ByteSourceMedia::new(source)), Default::default());
         let mut sym_hint = Hint::new();
         if let Some(ext) = &hint_ext {
             sym_hint.with_extension(ext);
         }
         let reader = registry::probe()
-            .probe(&sym_hint, mss, FormatOptions::default(), MetadataOptions::default())
+            .probe(
+                &sym_hint,
+                mss,
+                FormatOptions::default(),
+                MetadataOptions::default(),
+            )
             .map_err(|e| match e {
-                SymError::Unsupported(_) => DecodeError::Unsupported("unrecognized container format".into()),
+                SymError::Unsupported(_) => {
+                    DecodeError::Unsupported("unrecognized container format".into())
+                }
                 other => map_err(other),
             })?;
 
@@ -209,8 +222,10 @@ impl Engine {
                 )),
                 other => map_err(other),
             })?;
-        let codec_name =
-            codec.name().map(str::to_owned).unwrap_or_else(|| decoder.codec_info().short_name.to_ascii_uppercase());
+        let codec_name = codec
+            .name()
+            .map(str::to_owned)
+            .unwrap_or_else(|| decoder.codec_info().short_name.to_ascii_uppercase());
         let lossless = codec.lossless(params.codec);
         let bits = if lossless {
             params.bits_per_sample.or_else(|| match codec {
@@ -282,7 +297,9 @@ impl Engine {
             }
         }
         if engine.sample_rate == 0 || engine.channels == 0 {
-            return Err(DecodeError::Decode("unknown sample rate or channel count".into()));
+            return Err(DecodeError::Decode(
+                "unknown sample rate or channel count".into(),
+            ));
         }
         engine.pending = primed;
         if engine.pending.is_empty() && !engine.eof {
@@ -290,9 +307,14 @@ impl Engine {
         }
 
         // Length and gapless window.
-        let track_frames = track.num_frames.map(|n| engine.ts_to_frames(n as i64)).or_else(|| {
-            track.duration.map(|d| engine.ts_to_frames(d.get().min(i64::MAX as u64) as i64))
-        });
+        let track_frames = track
+            .num_frames
+            .map(|n| engine.ts_to_frames(n as i64))
+            .or_else(|| {
+                track
+                    .duration
+                    .map(|d| engine.ts_to_frames(d.get().min(i64::MAX as u64) as i64))
+            });
         let track_frames = track_frames.map(|f| f.max(0) as u64);
         if let Some(window) = mp4_timing.and_then(|t| t.window(engine.sample_rate, track_frames)) {
             // The window starts in raw decoder output; the priming buffer was decoded with
@@ -315,7 +337,9 @@ impl Engine {
             }
         }
 
-        let duration_ms = engine.n_frames.map(|n| n * 1000 / u64::from(engine.sample_rate));
+        let duration_ms = engine
+            .n_frames
+            .map(|n| n * 1000 / u64::from(engine.sample_rate));
         let bitrate_kbps = match (byte_len, engine.n_frames) {
             (Some(bytes), Some(n)) if n > 0 => {
                 let kbps = bytes as f64 * 8.0 * f64::from(engine.sample_rate) / n as f64 / 1000.0;
@@ -358,15 +382,21 @@ impl Engine {
         self.pending.truncate(hi * ch);
         self.pending.drain(..lo * ch);
         self.position = (first_ts + hi as i64 - start).max(0) as u64;
-        if self.end_ts.is_some_and(|e| first_ts + pending_frames >= e) && hi < pending_frames as usize {
+        if self.end_ts.is_some_and(|e| first_ts + pending_frames >= e)
+            && hi < pending_frames as usize
+        {
             self.eof = true;
         }
     }
 
     fn ts_to_frames(&self, ts: i64) -> i64 {
         match self.time_base {
-            Some(tb) if !(tb.numer.get() == 1 && tb.denom.get() == self.sample_rate) && self.sample_rate > 0 => {
-                let num = i128::from(ts) * i128::from(tb.numer.get()) * i128::from(self.sample_rate);
+            Some(tb)
+                if !(tb.numer.get() == 1 && tb.denom.get() == self.sample_rate)
+                    && self.sample_rate > 0 =>
+            {
+                let num =
+                    i128::from(ts) * i128::from(tb.numer.get()) * i128::from(self.sample_rate);
                 let den = i128::from(tb.denom.get());
                 let q = (num + den.signum() * den / 2).div_euclid(den);
                 q.clamp(i64::MIN as i128, i64::MAX as i128) as i64
@@ -377,17 +407,22 @@ impl Engine {
 
     fn frames_to_ts(&self, frames: i64) -> i64 {
         match self.time_base {
-            Some(tb) if !(tb.numer.get() == 1 && tb.denom.get() == self.sample_rate) && self.sample_rate > 0 => {
+            Some(tb)
+                if !(tb.numer.get() == 1 && tb.denom.get() == self.sample_rate)
+                    && self.sample_rate > 0 =>
+            {
                 let num = i128::from(frames) * i128::from(tb.denom.get());
                 let den = i128::from(tb.numer.get()) * i128::from(self.sample_rate);
-                num.div_euclid(den).clamp(i64::MIN as i128, i64::MAX as i128) as i64
+                num.div_euclid(den)
+                    .clamp(i64::MIN as i128, i64::MAX as i128) as i64
             }
             _ => frames,
         }
     }
 
     fn dur_frames(&self, d: Duration) -> u64 {
-        self.ts_to_frames(d.get().min(i64::MAX as u64) as i64).max(0) as u64
+        self.ts_to_frames(d.get().min(i64::MAX as u64) as i64)
+            .max(0) as u64
     }
 
     pub(crate) fn next_frames(&mut self, out: &mut Vec<f64>) -> Result<usize, DecodeError> {
@@ -478,7 +513,9 @@ impl Engine {
             Err(SymError::DecodeError(msg)) => {
                 self.consecutive_errors += 1;
                 if self.consecutive_errors > MAX_CONSECUTIVE_ERRORS {
-                    return Err(DecodeError::Decode(format!("too many corrupt packets: {msg}")));
+                    return Err(DecodeError::Decode(format!(
+                        "too many corrupt packets: {msg}"
+                    )));
                 }
                 log::warn!("skipping undecodable packet: {msg}");
                 return Ok(self.conceal(&packet, out));
@@ -495,21 +532,34 @@ impl Engine {
             Err(e) => return Err(map_err(e)),
         };
         self.consecutive_errors = 0;
-        let Some(n) = decoded else { return Ok(Step::Continue) };
+        let Some(n) = decoded else {
+            return Ok(Step::Continue);
+        };
         let n64 = n as u64;
 
         // symphonia's MP3 / Vorbis decoders and the libopus adapter apply the packet trims
         // themselves (the adapter also drops the Opus pre-skip on its very first packet); the
         // others (AAC, ALAC, FLAC, PCM, …) ignore them, so they are applied here. Packet `dur` is
         // not used: demuxers disagree on whether it already excludes the trims.
-        let decoder_trims = matches!(self.codec, CodecKind::Mp3 | CodecKind::Mp2 | CodecKind::Mp1 | CodecKind::Vorbis | CodecKind::Opus);
-        let (head, tail) = if decoder_trims { (0, 0) } else { (trim_start.min(n64), trim_end.min(n64 - trim_start.min(n64))) };
+        let decoder_trims = matches!(
+            self.codec,
+            CodecKind::Mp3 | CodecKind::Mp2 | CodecKind::Mp1 | CodecKind::Vorbis | CodecKind::Opus
+        );
+        let (head, tail) = if decoder_trims {
+            (0, 0)
+        } else {
+            (trim_start.min(n64), trim_end.min(n64 - trim_start.min(n64)))
+        };
         let buf_start = match self.next_ts {
             Some(t) => t - head as i64,
             None => {
                 let pts = self.ts_to_frames(packet.pts.get());
                 if decoder_trims {
-                    let pre_skip = if first_decode && self.codec == CodecKind::Opus { self.opus_pre_skip } else { 0 };
+                    let pre_skip = if first_decode && self.codec == CodecKind::Opus {
+                        self.opus_pre_skip
+                    } else {
+                        0
+                    };
                     pts + (trim_start + pre_skip) as i64
                 } else {
                     pts
@@ -524,7 +574,9 @@ impl Engine {
 
     /// Replaces an undecodable packet with silence to keep the timeline intact.
     fn conceal(&mut self, packet: &Packet, out: &mut Vec<f64>) -> Step {
-        let (Some(t), true) = (self.next_ts, self.channels > 0) else { return Step::Continue };
+        let (Some(t), true) = (self.next_ts, self.channels > 0) else {
+            return Step::Continue;
+        };
         let max = u64::from(self.sample_rate) * MAX_CONCEAL_MS / 1000;
         let n = self.dur_frames(packet.dur).min(max);
         if n == 0 {
@@ -536,7 +588,14 @@ impl Engine {
 
     /// Emits the frames of the current scratch buffer (`buf_start` = timestamp of scratch frame 0)
     /// whose timestamps lie in `[lo, hi)` and inside the valid window.
-    fn emit_range(&mut self, buf_start: i64, lo: i64, hi: i64, silence: bool, out: &mut Vec<f64>) -> Step {
+    fn emit_range(
+        &mut self,
+        buf_start: i64,
+        lo: i64,
+        hi: i64,
+        silence: bool,
+        out: &mut Vec<f64>,
+    ) -> Step {
         let lo = lo.max(self.discard_until).max(self.origin);
         let mut hi = hi;
         if let Some(end) = self.end_ts
@@ -567,7 +626,8 @@ impl Engine {
     /// Output frame index of the next frame `next_frames` will return.
     pub(crate) fn returned_position(&self) -> u64 {
         let ch = self.channels.max(1);
-        self.position.saturating_sub((self.pending.len() / ch) as u64)
+        self.position
+            .saturating_sub((self.pending.len() / ch) as u64)
     }
 
     /// Sample-accurate seek. Returns the output frame position reached.
@@ -590,7 +650,10 @@ impl Engine {
 
         let res = self.reader.seek(
             SeekMode::Accurate,
-            SeekTo::Timestamp { ts: Timestamp::new(seek_ts), track_id: self.track_id },
+            SeekTo::Timestamp {
+                ts: Timestamp::new(seek_ts),
+                track_id: self.track_id,
+            },
         );
         match res {
             Ok(_) => {
@@ -615,7 +678,8 @@ impl Engine {
                 if target >= self.returned_position() {
                     let ch = self.channels.max(1);
                     let returned = current - (self.pending.len() / ch) as u64;
-                    let drop_pending = (target.saturating_sub(returned) as usize).min(self.pending.len() / ch);
+                    let drop_pending =
+                        (target.saturating_sub(returned) as usize).min(self.pending.len() / ch);
                     self.pending.drain(..drop_pending * ch);
                     self.discard_until = self.discard_until.max(target_ts);
                     if self.pending.is_empty() {
@@ -639,16 +703,13 @@ fn alac_bit_depth(mut cookie: &[u8]) -> Option<u32> {
             cookie = &cookie[12..];
         }
     }
-    (cookie.len() >= 24).then(|| u32::from(cookie[5])).filter(|b| (8..=32).contains(b))
+    (cookie.len() >= 24)
+        .then(|| u32::from(cookie[5]))
+        .filter(|b| (8..=32).contains(b))
 }
 
 enum Step {
     Frames(usize),
     Continue,
     Eof,
-}
-
-/// Wraps an error for worker events.
-pub(crate) fn arc(e: DecodeError) -> Arc<DecodeError> {
-    Arc::new(e)
 }

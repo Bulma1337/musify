@@ -35,7 +35,11 @@ enum Outcome {
     /// Request finished or was abandoned on purpose; plan again.
     Replan { progressed: bool },
     /// Retryable failure. `linear_end`: offset where a forward-only (200) body broke off.
-    Transient { error: FetchError, progressed: bool, linear_end: Option<u64> },
+    Transient {
+        error: FetchError,
+        progressed: bool,
+        linear_end: Option<u64>,
+    },
     /// Not retryable (e.g. 404, disk error).
     Fatal(FetchError),
 }
@@ -64,7 +68,12 @@ fn parse_content_range(value: &str) -> Option<(Option<u64>, Option<u64>)> {
 
 impl Downloader {
     pub(crate) fn new(inner: Arc<Inner>, entry: Arc<Entry>) -> Self {
-        Self { inner, entry, writer: None, unsaved: 0 }
+        Self {
+            inner,
+            entry,
+            writer: None,
+            unsaved: 0,
+        }
     }
 
     pub(crate) fn run(mut self) {
@@ -75,7 +84,8 @@ impl Downloader {
                 Plan::Stop => {
                     // Close the data file first: stopping may delete it (temporary streams).
                     self.writer = None;
-                    let (stopped, prefetch_ended, removed) = self.inner.downloader_try_stop(&self.entry);
+                    let (stopped, prefetch_ended, removed) =
+                        self.inner.downloader_try_stop(&self.entry);
                     if !stopped {
                         continue;
                     }
@@ -94,7 +104,11 @@ impl Downloader {
                         }
                         last_linear_end = None;
                     }
-                    Outcome::Transient { error, progressed, linear_end } => {
+                    Outcome::Transient {
+                        error,
+                        progressed,
+                        linear_end,
+                    } => {
                         if progressed {
                             failures = 0;
                         }
@@ -139,7 +153,10 @@ impl Downloader {
             if st.seekable != Some(false) || end == 0 || !st.ranges.covers(0, end) {
                 return false;
             }
-            log::debug!("source {}: stream ended at byte {end}, before its announced length", self.entry.key);
+            log::debug!(
+                "source {}: stream ended at byte {end}, before its announced length",
+                self.entry.key
+            );
             st.total_len = Some(end);
             st.ranges.truncate(end);
             st.mark_complete_if_full()
@@ -155,7 +172,11 @@ impl Downloader {
     }
 
     fn fail(&self, error: FetchError) {
-        log::warn!("source {}: download failed: {}", self.entry.key, error.message());
+        log::warn!(
+            "source {}: download failed: {}",
+            self.entry.key,
+            error.message()
+        );
         let mut st = self.entry.state.lock();
         st.dl_pos = None;
         st.error = Some(error);
@@ -188,12 +209,16 @@ impl Downloader {
                     return Plan::Stop;
                 }
                 // Park until a reader acknowledges the error (bumps the generation) or leaves.
-                self.entry.cond.wait_for(&mut st, Duration::from_millis(500));
+                self.entry
+                    .cond
+                    .wait_for(&mut st, Duration::from_millis(500));
                 continue;
             }
             if st.readers == 0 && self.inner.buffering_readers.load(Ordering::Relaxed) > 0 {
                 // Prefetch only: yield bandwidth to a stalled reader of another entry.
-                self.entry.cond.wait_for(&mut st, Duration::from_millis(100));
+                self.entry
+                    .cond
+                    .wait_for(&mut st, Duration::from_millis(100));
                 continue;
             }
             let total = st.total_len;
@@ -201,12 +226,19 @@ impl Downloader {
                 // Forward-only stream: always continue the contiguous prefix.
                 Some(st.ranges.contiguous_end_from(0)).filter(|s| total.is_none_or(|t| *s < t))
             } else if st.readers > 0 {
-                st.ranges.first_gap_from(st.want_pos, total).or_else(|| st.ranges.first_gap_from(0, total))
+                st.ranges
+                    .first_gap_from(st.want_pos, total)
+                    .or_else(|| st.ranges.first_gap_from(0, total))
             } else {
                 st.ranges.first_gap_from(0, total)
             };
             match start {
-                Some(start) => return Plan::Fetch { start, generation: st.generation },
+                Some(start) => {
+                    return Plan::Fetch {
+                        start,
+                        generation: st.generation,
+                    };
+                }
                 None => {
                     // Everything up to the known total is present.
                     if st.mark_complete_if_full() {
@@ -225,11 +257,17 @@ impl Downloader {
 
     fn writer(&mut self) -> std::io::Result<&mut File> {
         if self.writer.is_none() {
-            let f = OpenOptions::new().write(true).create(true).truncate(false).open(&self.entry.data_path)?;
+            let f = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(false)
+                .open(&self.entry.data_path)?;
             self.writer = Some(f);
         }
         // Just set above.
-        self.writer.as_mut().ok_or_else(|| std::io::Error::other("writer unavailable"))
+        self.writer
+            .as_mut()
+            .ok_or_else(|| std::io::Error::other("writer unavailable"))
     }
 
     fn fetch(&mut self, start: u64, mut generation: u64) -> Outcome {
@@ -240,7 +278,10 @@ impl Downloader {
         };
         let mut req = client.get(&spec.url);
         for (name, value) in &spec.headers {
-            match (HeaderName::from_bytes(name.as_bytes()), HeaderValue::from_str(value)) {
+            match (
+                HeaderName::from_bytes(name.as_bytes()),
+                HeaderValue::from_str(value),
+            ) {
                 (Ok(n), Ok(v)) => req = req.header(n, v),
                 _ => log::warn!("source {}: skipping invalid request header", self.entry.key),
             }
@@ -252,11 +293,19 @@ impl Downloader {
             Ok(r) => r,
             Err(e) => {
                 let error = FetchError::Network(describe_reqwest(e, &spec.url));
-                return Outcome::Transient { error, progressed: false, linear_end: None };
+                return Outcome::Transient {
+                    error,
+                    progressed: false,
+                    linear_end: None,
+                };
             }
         };
         let status = resp.status().as_u16();
-        let content_range = resp.headers().get(CONTENT_RANGE).and_then(|v| v.to_str().ok()).and_then(parse_content_range);
+        let content_range = resp
+            .headers()
+            .get(CONTENT_RANGE)
+            .and_then(|v| v.to_str().ok())
+            .and_then(parse_content_range);
         let (body_start, linear) = {
             let mut st = self.entry.state.lock();
             match status {
@@ -295,7 +344,11 @@ impl Downloader {
                     }
                 }
                 408 | 429 | 500..=599 => {
-                    return Outcome::Transient { error: FetchError::Http(status), progressed: false, linear_end: None };
+                    return Outcome::Transient {
+                        error: FetchError::Http(status),
+                        progressed: false,
+                        linear_end: None,
+                    };
                 }
                 _ => return Outcome::Fatal(FetchError::Http(status)),
             }
@@ -312,7 +365,11 @@ impl Downloader {
                 Err(e) => {
                     self.entry.state.lock().dl_pos = None;
                     let error = FetchError::Network(describe_io(&e, &spec.url));
-                    return Outcome::Transient { error, progressed, linear_end: linear.then_some(off) };
+                    return Outcome::Transient {
+                        error,
+                        progressed,
+                        linear_end: linear.then_some(off),
+                    };
                 }
             };
             if n == 0 {
@@ -322,8 +379,14 @@ impl Downloader {
                     None => st.total_len = Some(off),
                     Some(t) if off < t => {
                         drop(st);
-                        let error = FetchError::Network("connection closed before the end of the stream".into());
-                        return Outcome::Transient { error, progressed, linear_end: linear.then_some(off) };
+                        let error = FetchError::Network(
+                            "connection closed before the end of the stream".into(),
+                        );
+                        return Outcome::Transient {
+                            error,
+                            progressed,
+                            linear_end: linear.then_some(off),
+                        };
                     }
                     Some(_) => {}
                 }
@@ -340,7 +403,14 @@ impl Downloader {
             let (missing, end) = {
                 let st = self.entry.state.lock();
                 let end = st.total_len.map_or(chunk_end, |t| chunk_end.min(t));
-                (if off < end { st.ranges.missing_within(off, end) } else { Vec::new() }, end)
+                (
+                    if off < end {
+                        st.ranges.missing_within(off, end)
+                    } else {
+                        Vec::new()
+                    },
+                    end,
+                )
             };
             for &(a, b) in &missing {
                 let slice = &buf[(a - off) as usize..(b - off) as usize];
@@ -401,8 +471,13 @@ impl Downloader {
                 }
             }
             // Prefetch only: pause while a reader elsewhere is stalled.
-            while st.readers == 0 && st.users() > 0 && self.inner.buffering_readers.load(Ordering::Relaxed) > 0 {
-                self.entry.cond.wait_for(&mut st, Duration::from_millis(100));
+            while st.readers == 0
+                && st.users() > 0
+                && self.inner.buffering_readers.load(Ordering::Relaxed) > 0
+            {
+                self.entry
+                    .cond
+                    .wait_for(&mut st, Duration::from_millis(100));
             }
         }
     }
@@ -422,9 +497,18 @@ mod tests {
 
     #[test]
     fn content_range() {
-        assert_eq!(parse_content_range("bytes 0-99/1000"), Some((Some(0), Some(1000))));
-        assert_eq!(parse_content_range("bytes 100-199/*"), Some((Some(100), None)));
-        assert_eq!(parse_content_range("bytes */1000"), Some((None, Some(1000))));
+        assert_eq!(
+            parse_content_range("bytes 0-99/1000"),
+            Some((Some(0), Some(1000)))
+        );
+        assert_eq!(
+            parse_content_range("bytes 100-199/*"),
+            Some((Some(100), None))
+        );
+        assert_eq!(
+            parse_content_range("bytes */1000"),
+            Some((None, Some(1000)))
+        );
         assert_eq!(parse_content_range("items 0-1/2"), None);
         assert_eq!(parse_content_range("bytes x-1/2"), None);
     }

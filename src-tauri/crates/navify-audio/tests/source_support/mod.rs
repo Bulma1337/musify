@@ -60,7 +60,14 @@ pub struct ServerConfig {
 
 impl Default for ServerConfig {
     fn default() -> Self {
-        Self { ranges: true, content_length: true, throttle: None, drop_after: None, fail_first: 0, announce_len: None }
+        Self {
+            ranges: true,
+            content_length: true,
+            throttle: None,
+            drop_after: None,
+            fail_first: 0,
+            announce_len: None,
+        }
     }
 }
 
@@ -89,14 +96,20 @@ impl TestServer {
             thread::spawn(move || {
                 for stream in listener.incoming() {
                     let Ok(stream) = stream else { continue };
-                    let (data, requests, log, cfg) = (data.clone(), requests.clone(), log.clone(), cfg.clone());
+                    let (data, requests, log, cfg) =
+                        (data.clone(), requests.clone(), log.clone(), cfg.clone());
                     thread::spawn(move || {
                         let _ = handle(stream, &data, &requests, &log, &cfg);
                     });
                 }
             });
         }
-        Self { port, data, requests, log }
+        Self {
+            port,
+            data,
+            requests,
+            log,
+        }
     }
 
     pub fn url(&self, path_and_query: &str) -> String {
@@ -136,19 +149,31 @@ fn handle(
         }
     }
     let n = requests.fetch_add(1, Ordering::SeqCst);
-    log.lock().unwrap().push(RequestLog { target, range: range.clone() });
+    log.lock().unwrap().push(RequestLog {
+        target,
+        range: range.clone(),
+    });
     if n < cfg.fail_first {
-        stream.write_all(b"HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")?;
+        stream.write_all(
+            b"HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+        )?;
         return Ok(());
     }
 
     let len = data.len() as u64;
-    let parsed = range.as_deref().and_then(|r| r.strip_prefix("bytes=")).and_then(|r| {
-        let (a, b) = r.split_once('-')?;
-        let a: u64 = a.parse().ok()?;
-        let b: Option<u64> = if b.is_empty() { None } else { Some(b.parse().ok()?) };
-        Some((a, b))
-    });
+    let parsed = range
+        .as_deref()
+        .and_then(|r| r.strip_prefix("bytes="))
+        .and_then(|r| {
+            let (a, b) = r.split_once('-')?;
+            let a: u64 = a.parse().ok()?;
+            let b: Option<u64> = if b.is_empty() {
+                None
+            } else {
+                Some(b.parse().ok()?)
+            };
+            Some((a, b))
+        });
     let mut head = String::new();
     let (start, end) = match parsed {
         Some((a, b)) if cfg.ranges => {
@@ -173,7 +198,11 @@ fn handle(
         head.push_str("Accept-Ranges: bytes\r\n");
     }
     if cfg.content_length {
-        let announced = if start == 0 && end == len { cfg.announce_len.unwrap_or(len) } else { end - start };
+        let announced = if start == 0 && end == len {
+            cfg.announce_len.unwrap_or(len)
+        } else {
+            end - start
+        };
         head.push_str(&format!("Content-Length: {announced}\r\n"));
     }
     head.push_str("Content-Type: application/octet-stream\r\nConnection: close\r\n\r\n");
@@ -210,11 +239,16 @@ impl Events {
     }
 
     pub fn completed(&self, key: &str) -> bool {
-        self.all().iter().any(|e| matches!(e, SourceEvent::Completed { cache_key, .. } if cache_key == key))
+        self.all()
+            .iter()
+            .any(|e| matches!(e, SourceEvent::Completed { cache_key, .. } if cache_key == key))
     }
 
     pub fn wait_completed(&self, key: &str) {
-        assert!(wait_until(Duration::from_secs(20), || self.completed(key)), "entry {key} never completed");
+        assert!(
+            wait_until(Duration::from_secs(20), || self.completed(key)),
+            "entry {key} never completed"
+        );
     }
 }
 
@@ -231,7 +265,13 @@ pub fn wait_until(timeout: Duration, mut cond: impl FnMut() -> bool) -> bool {
 
 pub fn manager(dir: &Path, max_bytes: u64) -> (SourceManager, Events) {
     let (events, sink) = Events::new();
-    let mgr = SourceManager::new(CacheConfig { dir: dir.to_path_buf(), max_bytes }, sink);
+    let mgr = SourceManager::new(
+        CacheConfig {
+            dir: dir.to_path_buf(),
+            max_bytes,
+        },
+        sink,
+    );
     (mgr, events)
 }
 
@@ -247,7 +287,11 @@ pub fn http_location(url: String, key: &str) -> SourceLocation {
     }
 }
 
-pub fn transcoded_location(url: String, key: &str, time_offset: Option<TimeOffsetParam>) -> SourceLocation {
+pub fn transcoded_location(
+    url: String,
+    key: &str,
+    time_offset: Option<TimeOffsetParam>,
+) -> SourceLocation {
     SourceLocation::Http {
         url,
         headers: vec![],
@@ -291,12 +335,18 @@ pub fn seek(src: &mut dyn ByteSource, pos: SeekFrom) -> std::io::Result<u64> {
 
 pub fn hash_hex(key: &str) -> String {
     use sha2::Digest;
-    sha2::Sha256::digest(key.as_bytes()).iter().map(|b| format!("{b:02x}")).collect()
+    sha2::Sha256::digest(key.as_bytes())
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
 }
 
 pub fn dir_names(dir: &Path) -> Vec<String> {
     match std::fs::read_dir(dir) {
-        Ok(rd) => rd.flatten().map(|e| e.file_name().to_string_lossy().into_owned()).collect(),
+        Ok(rd) => rd
+            .flatten()
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .collect(),
         Err(_) => Vec::new(),
     }
 }

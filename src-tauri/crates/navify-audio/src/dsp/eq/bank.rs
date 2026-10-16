@@ -1,7 +1,6 @@
 //! The running EQ stage: preamp + filter bank, with smoothing for parameter changes and an
 //! old→new crossfade for structural changes (different filter count or kinds).
 
-use crate::api::FilterKind;
 use crate::dsp::biquad::{FilterSpec, StereoState};
 use crate::dsp::smooth::{CHUNK, Fade, Ramp, SmoothFilter};
 
@@ -40,10 +39,6 @@ impl Bank {
                 .iter()
                 .zip(specs)
                 .all(|(f, s)| f.filter.spec().kind == s.kind)
-    }
-
-    pub fn kinds(&self) -> impl Iterator<Item = FilterKind> + '_ {
-        self.filters.iter().map(|f| f.filter.spec().kind)
     }
 
     pub fn set_targets(&mut self, specs: &[FilterSpec], preamp_gain: f64) {
@@ -217,14 +212,5 @@ impl EqStage {
         }
         self.fade.snap();
         self.active.reset();
-    }
-
-    /// Kinds of the newest bank (for tests/diagnostics).
-    pub fn latest_kinds(&self) -> Vec<FilterKind> {
-        self.pending
-            .as_ref()
-            .unwrap_or(&self.active)
-            .kinds()
-            .collect()
     }
 }
