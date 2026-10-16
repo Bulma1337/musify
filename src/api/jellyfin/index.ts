@@ -41,7 +41,9 @@ async function probe(url: string): Promise<ServerProbe | null> {
   const base = url.replace(/\/+$/, "");
   let info: WirePublicInfo | null;
   try {
-    const response = await httpRequest(`${base}/System/Info/Public`, { headers: { Accept: "application/json" } });
+    const response = await httpRequest(`${base}/System/Info/Public`, {
+      headers: { Accept: "application/json" },
+    });
     // HTTP errors and non-JSON bodies just mean "not Jellyfin"; network and timeout errors propagate.
     if (!response.ok) return null;
     info = (await response.json()) as WirePublicInfo | null;

@@ -38,8 +38,11 @@ function readDevServer(): DevServer | null {
     const parsed = JSON.parse(readFileSync(file, "utf8")) as { jellyfin?: DevServer };
     if (parsed.jellyfin?.url && parsed.jellyfin.username) return parsed.jellyfin;
   }
-  const { NAVIFY_JELLYFIN_URL: url, NAVIFY_JELLYFIN_USER: username, NAVIFY_JELLYFIN_PASSWORD: password } =
-    process.env;
+  const {
+    NAVIFY_JELLYFIN_URL: url,
+    NAVIFY_JELLYFIN_USER: username,
+    NAVIFY_JELLYFIN_PASSWORD: password,
+  } = process.env;
   return url && username && password ? { url, username, password } : null;
 }
 
@@ -84,7 +87,10 @@ describe.skipIf(!available)("Jellyfin dev server", () => {
     expect(session.secret).toMatch(/^[0-9a-f]{32}$/);
     expect(session.server.userId).toMatch(/^[0-9a-f]{32}$/);
     await expect(
-      jellyfinFactory.login({ url: server.url, username: server.username, password: "definitely-wrong" }, found),
+      jellyfinFactory.login(
+        { url: server.url, username: server.username, password: "definitely-wrong" },
+        found,
+      ),
     ).rejects.toMatchObject({ kind: "auth" });
   });
 
@@ -107,11 +113,20 @@ describe.skipIf(!available)("Jellyfin dev server", () => {
   });
 
   it("runs the other album list types without errors", async () => {
-    for (const type of ["recentlyPlayed", "recentlyAdded", "mostPlayed", "random", "starred", "highestRated"] as const) {
+    for (const type of [
+      "recentlyPlayed",
+      "recentlyAdded",
+      "mostPlayed",
+      "random",
+      "starred",
+      "highestRated",
+    ] as const) {
       expect(Array.isArray(await provider.getAlbumList(type, { size: 5 })), type).toBe(true);
     }
     expect((await provider.getAlbumList("byGenre", { genre: "Jazz" })).length).toBeGreaterThan(0);
-    expect((await provider.getAlbumList("byYear", { fromYear: 2018, toYear: 2018 })).length).toBeGreaterThan(0);
+    expect((await provider.getAlbumList("byYear", { fromYear: 2018, toYear: 2018 })).length).toBeGreaterThan(
+      0,
+    );
   });
 
   it("browses artists, genres, search and tracks", async () => {
@@ -121,12 +136,18 @@ describe.skipIf(!available)("Jellyfin dev server", () => {
     expect(artist.albums.length).toBeGreaterThan(0);
     expect(await provider.getArtistInfo(artists[0]!.id)).not.toBeUndefined();
     expect((await provider.getGenres()).length).toBeGreaterThan(0);
-    expect((await provider.search("a", { artists: 5, albums: 5, tracks: 5 })).tracks.length).toBeGreaterThan(0);
+    expect((await provider.search("a", { artists: 5, albums: 5, tracks: 5 })).tracks.length).toBeGreaterThan(
+      0,
+    );
     expect((await provider.getRandomTracks({ size: 5 })).length).toBe(5);
-    expect(Array.isArray(await provider.getTopTracks({ id: artists[0]!.id, name: artists[0]!.name }))).toBe(true);
+    expect(Array.isArray(await provider.getTopTracks({ id: artists[0]!.id, name: artists[0]!.name }))).toBe(
+      true,
+    );
     expect((await provider.getSimilarTracks(albumTracks[0]!.id, 5)).length).toBeGreaterThan(0);
     expect((await provider.getTrack(albumTracks[0]!.id)).id).toBe(albumTracks[0]!.id);
-    await expect(provider.getAlbum("00000000000000000000000000000000")).rejects.toMatchObject({ name: "ProviderError" });
+    await expect(provider.getAlbum("00000000000000000000000000000000")).rejects.toMatchObject({
+      name: "ProviderError",
+    });
   });
 
   it("returns lyrics for a track that has them and null for the others", async () => {
@@ -200,7 +221,10 @@ describe.skipIf(!available)("Jellyfin dev server", () => {
 
   it("creates, reorders and deletes a playlist", async () => {
     const picks = albumTracks.slice(0, 5);
-    const playlist = await provider.createPlaylist(`navify-it-${Date.now()}`, picks.map((t) => t.id));
+    const playlist = await provider.createPlaylist(
+      `navify-it-${Date.now()}`,
+      picks.map((t) => t.id),
+    );
     try {
       const created = await provider.getPlaylist(playlist.id);
       expect(created.tracks.map((t) => t.id)).toEqual(picks.map((t) => t.id));
@@ -217,7 +241,10 @@ describe.skipIf(!available)("Jellyfin dev server", () => {
       expect((await provider.getPlaylist(playlist.id)).tracks).toHaveLength(5);
 
       await provider.updatePlaylist(playlist.id, { name: "navify-it-renamed", public: true });
-      expect(await provider.getPlaylist(playlist.id)).toMatchObject({ name: "navify-it-renamed", public: true });
+      expect(await provider.getPlaylist(playlist.id)).toMatchObject({
+        name: "navify-it-renamed",
+        public: true,
+      });
       expect((await provider.getPlaylists()).some((p) => p.id === playlist.id)).toBe(true);
     } finally {
       await provider.deletePlaylist(playlist.id);

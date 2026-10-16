@@ -75,7 +75,9 @@ function transcodeFormat(requested: string | undefined): { name: string; codec: 
   const name = (requested ?? "mp3").toLowerCase();
   const known = TRANSCODE_FORMATS[name];
   if (known) return { name, ...known };
-  return /^[a-z0-9]{1,10}$/.test(name) ? { name, codec: name, container: name } : { name: "mp3", ...TRANSCODE_FORMATS.mp3! };
+  return /^[a-z0-9]{1,10}$/.test(name)
+    ? { name, codec: name, container: name }
+    : { name: "mp3", ...TRANSCODE_FORMATS.mp3! };
 }
 
 function chunk<T>(list: readonly T[], size: number): T[][] {
@@ -195,7 +197,12 @@ export class JellyfinProvider implements MusicProvider {
     const offset = options.offset ?? 0;
     if (type === "recentlyPlayed" || type === "mostPlayed") return this.albumsFromPlays(type, limit, offset);
 
-    const params: Params = { includeItemTypes: "MusicAlbum", fields: ALBUM_FIELDS, limit, startIndex: offset };
+    const params: Params = {
+      includeItemTypes: "MusicAlbum",
+      fields: ALBUM_FIELDS,
+      limit,
+      startIndex: offset,
+    };
     const sort = ALBUM_SORTS[type];
     if (type === "starred") params.isFavorite = true;
     if (type === "byGenre") {
@@ -218,7 +225,11 @@ export class JellyfinProvider implements MusicProvider {
    * Jellyfin stores play data per track only (album items always report 0 plays), so these lists are
    * derived from the played tracks: grouped by album, ordered by last play or by summed play count.
    */
-  private async albumsFromPlays(type: "recentlyPlayed" | "mostPlayed", limit: number, offset: number): Promise<Album[]> {
+  private async albumsFromPlays(
+    type: "recentlyPlayed" | "mostPlayed",
+    limit: number,
+    offset: number,
+  ): Promise<Album[]> {
     const tracks = await this.items({
       includeItemTypes: "Audio",
       filters: "IsPlayed",
@@ -289,7 +300,8 @@ export class JellyfinProvider implements MusicProvider {
       this.client
         .getJson<WireQueryResult>(this.path("/Artists", id, "/Similar"), { userId: this.userId, limit: 20 })
         .catch((error: unknown) => {
-          if (error instanceof ProviderError && error.kind === "notFound") return { Items: [] } as WireQueryResult;
+          if (error instanceof ProviderError && error.kind === "notFound")
+            return { Items: [] } as WireQueryResult;
           throw error;
         }),
     ]);
@@ -405,11 +417,14 @@ export class JellyfinProvider implements MusicProvider {
           })
         : undefined,
       (limits.albums ?? 20) > 0
-        ? this.items({ ...common, includeItemTypes: "MusicAlbum", fields: ALBUM_FIELDS, limit: limits.albums ?? 20 })
+        ? this.items({
+            ...common,
+            includeItemTypes: "MusicAlbum",
+            fields: ALBUM_FIELDS,
+            limit: limits.albums ?? 20,
+          })
         : undefined,
-      (limits.tracks ?? 20) > 0
-        ? this.tracksQuery({ ...common, limit: limits.tracks ?? 20 })
-        : undefined,
+      (limits.tracks ?? 20) > 0 ? this.tracksQuery({ ...common, limit: limits.tracks ?? 20 }) : undefined,
     ]);
     return {
       artists: (artists?.Items ?? []).map((a) => mapArtist(this.sid, a)),
@@ -556,7 +571,10 @@ export class JellyfinProvider implements MusicProvider {
     if (sameEntries) {
       try {
         for (const move of planPlaylistMoves(current, target as string[])) {
-          await this.client.send("POST", this.path("/Playlists", id, `/Items/${encodeURIComponent(move.entryId)}/Move/${move.newIndex}`));
+          await this.client.send(
+            "POST",
+            this.path("/Playlists", id, `/Items/${encodeURIComponent(move.entryId)}/Move/${move.newIndex}`),
+          );
         }
         return;
       } catch {
@@ -608,7 +626,10 @@ export class JellyfinProvider implements MusicProvider {
     if (!transcoded) {
       const url = download
         ? this.client.url(this.path("/Items", track.id, "/Download"))
-        : this.client.url(this.path("/Audio", track.id, "/stream"), { static: true, mediaSourceId: track.id });
+        : this.client.url(this.path("/Audio", track.id, "/stream"), {
+            static: true,
+            mediaSourceId: track.id,
+          });
       const source: StreamSource = {
         url,
         headers,

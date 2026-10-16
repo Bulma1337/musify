@@ -13,7 +13,8 @@ beforeEach(() => {
   resetDeviceIdCache();
 });
 
-const HEADER_WITHOUT_TOKEN = /^MediaBrowser Client="Navify", Device="Navify Desktop", DeviceId="[0-9a-f]{32}", Version="0\.1\.0"$/;
+const HEADER_WITHOUT_TOKEN =
+  /^MediaBrowser Client="Navify", Device="Navify Desktop", DeviceId="[0-9a-f]{32}", Version="0\.1\.0"$/;
 
 describe("authorizationHeader", () => {
   it("quotes every value and appends the token last", () => {
@@ -102,7 +103,10 @@ describe("login", () => {
 
   it("uses a custom name and the persisted device id", async () => {
     mock.respond(() => ({ AccessToken: "t", User: { Id: "u" } }));
-    const result = await jellyfinFactory.login({ url: BASE, username: "bob", password: "pw", name: "Mine" }, found);
+    const result = await jellyfinFactory.login(
+      { url: BASE, username: "bob", password: "pw", name: "Mine" },
+      found,
+    );
     expect(result.server.name).toBe("Mine");
     const deviceId = await getDeviceId();
     expect(mock.calls[0]!.headers.get("authorization")).toContain(`DeviceId="${deviceId}"`);
@@ -110,7 +114,9 @@ describe("login", () => {
 
   it("maps a wrong password (401) to an auth error", async () => {
     mock.respond(() => status(401));
-    await expect(jellyfinFactory.login({ url: BASE, username: "bob", password: "x" }, found)).rejects.toMatchObject({
+    await expect(
+      jellyfinFactory.login({ url: BASE, username: "bob", password: "x" }, found),
+    ).rejects.toMatchObject({
       kind: "auth",
       code: 401,
     });
@@ -118,7 +124,9 @@ describe("login", () => {
 
   it("rejects a response without token", async () => {
     mock.respond(() => ({ User: { Id: "u" } }));
-    await expect(jellyfinFactory.login({ url: BASE, username: "bob", password: "x" }, found)).rejects.toMatchObject({
+    await expect(
+      jellyfinFactory.login({ url: BASE, username: "bob", password: "x" }, found),
+    ).rejects.toMatchObject({
       kind: "invalidResponse",
     });
   });

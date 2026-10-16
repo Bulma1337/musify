@@ -1,6 +1,15 @@
 import type { MusicProvider, Track } from "../provider";
 import { jellyfinFactory } from ".";
-import { mapAlbum, mapArtist, mapLyrics, mapPlaylist, mapTrack, msToTicks, normalizeContainer, ticksToMs } from "./mappers";
+import {
+  mapAlbum,
+  mapArtist,
+  mapLyrics,
+  mapPlaylist,
+  mapTrack,
+  msToTicks,
+  normalizeContainer,
+  ticksToMs,
+} from "./mappers";
 import { planPlaylistMoves } from "./provider";
 import { noContent, setupJellyfinMock, status, testServer, type JellyfinCall } from "./testing";
 import type { WireItem } from "./wire";
@@ -278,7 +287,9 @@ describe("browsing", () => {
 
   it("returns null artist info when there is nothing to show and tolerates a missing similar endpoint", async () => {
     const provider = await connectProvider();
-    mock.respond((call) => (call.path === "/Items/ar1" ? { Id: "ar1", Name: "A", Overview: "  " } : undefined));
+    mock.respond((call) =>
+      call.path === "/Items/ar1" ? { Id: "ar1", Name: "A", Overview: "  " } : undefined,
+    );
     expect(await provider.getArtistInfo("ar1")).toBeNull();
   });
 
@@ -296,7 +307,9 @@ describe("browsing", () => {
   it("resolves a top-track artist by name when there is no id", async () => {
     const provider = await connectProvider();
     mock.respond((call) =>
-      call.path === "/Artists" ? items({ Id: "x", Name: "Other" }, { Id: "ar9", Name: "a" }) : items(richTrack),
+      call.path === "/Artists"
+        ? items({ Id: "x", Name: "Other" }, { Id: "ar9", Name: "a" })
+        : items(richTrack),
     );
     await provider.getTopTracks({ name: "A" });
     expect(lastCall().params.get("artistIds")).toBe("ar9");
@@ -306,7 +319,9 @@ describe("browsing", () => {
 
   it("builds similar tracks from the instant mix without the seed track", async () => {
     const provider = await connectProvider();
-    mock.respond(() => items({ ...richTrack, Id: "t1" }, { ...richTrack, Id: "t2" }, { ...richTrack, Id: "t3" }));
+    mock.respond(() =>
+      items({ ...richTrack, Id: "t1" }, { ...richTrack, Id: "t2" }, { ...richTrack, Id: "t3" }),
+    );
     const tracks = await provider.getSimilarTracks("t1", 2);
     expect(lastCall().path).toBe("/Items/t1/InstantMix");
     expect(lastCall().params.get("limit")).toBe("3");
@@ -334,8 +349,13 @@ describe("browsing", () => {
 
   it("lists genres with counts", async () => {
     const provider = await connectProvider();
-    mock.respond(() => items({ Id: "g", Name: "Jazz", SongCount: 12, AlbumCount: 2 }, { Id: "h", Name: "Pop" }));
-    expect(await provider.getGenres()).toEqual([{ name: "Jazz", trackCount: 12, albumCount: 2 }, { name: "Pop" }]);
+    mock.respond(() =>
+      items({ Id: "g", Name: "Jazz", SongCount: 12, AlbumCount: 2 }, { Id: "h", Name: "Pop" }),
+    );
+    expect(await provider.getGenres()).toEqual([
+      { name: "Jazz", trackCount: 12, albumCount: 2 },
+      { name: "Pop" },
+    ]);
     expect(lastCall().path).toBe("/MusicGenres");
   });
 
@@ -390,7 +410,11 @@ describe("getAlbumList", () => {
     const provider = await connectProvider();
     mock.respond(() => items());
     await provider.getAlbumList("byGenre", { genre: "Hip-Hop", size: 9999, offset: 10 });
-    expect(Object.fromEntries(lastCall().params)).toMatchObject({ genres: "Hip-Hop", limit: "500", startIndex: "10" });
+    expect(Object.fromEntries(lastCall().params)).toMatchObject({
+      genres: "Hip-Hop",
+      limit: "500",
+      startIndex: "10",
+    });
     await provider.getAlbumList("byYear", { fromYear: 1990, toYear: 1993 });
     expect(Object.fromEntries(lastCall().params)).toMatchObject({
       years: "1990,1991,1992,1993",
@@ -434,7 +458,12 @@ describe("getAlbumList", () => {
     });
     mock.respond((call) =>
       call.params.get("includeItemTypes") === "Audio"
-        ? items(played("t1", "alA", 9), played("t2", "alB", 5), played("t3", "alB", 5), played("t4", "alC", 1))
+        ? items(
+            played("t1", "alA", 9),
+            played("t2", "alB", 5),
+            played("t3", "alB", 5),
+            played("t4", "alC", 1),
+          )
         : items({ Id: "alC", Name: "C" }, { Id: "alA", Name: "A" }),
     );
     const albums = await provider.getAlbumList("mostPlayed", { size: 2, offset: 1 });
@@ -480,14 +509,24 @@ describe("favorites", () => {
 });
 
 describe("playlists", () => {
-  const entry = (id: string, entryId = `e-${id}`): WireItem => ({ ...richTrack, Id: id, PlaylistItemId: entryId });
+  const entry = (id: string, entryId = `e-${id}`): WireItem => ({
+    ...richTrack,
+    Id: id,
+    PlaylistItemId: entryId,
+  });
   const asTracks = (...list: WireItem[]): Track[] => list.map((i) => mapTrack("srv1", i));
   const isMove = (c: JellyfinCall) => c.path.includes("/Move/");
 
   it("lists playlists", async () => {
     const provider = await connectProvider();
     mock.respond(() =>
-      items({ Id: "p1", Name: "Mix", ChildCount: 3, RunTimeTicks: 30_000_000, DateCreated: "2025-02-02T00:00:00Z" }),
+      items({
+        Id: "p1",
+        Name: "Mix",
+        ChildCount: 3,
+        RunTimeTicks: 30_000_000,
+        DateCreated: "2025-02-02T00:00:00Z",
+      }),
     );
     const list = await provider.getPlaylists();
     expect(lastCall().params.get("includeItemTypes")).toBe("Playlist");
@@ -509,7 +548,8 @@ describe("playlists", () => {
     const provider = await connectProvider();
     mock.respond((call) => {
       if (call.path === "/Playlists/p1/Items") return items(entry("t1"), entry("t1", "e-dup"));
-      if (call.path === "/Playlists/p1") return { OpenAccess: true, Shares: [{ UserId: "user1", CanEdit: false }] };
+      if (call.path === "/Playlists/p1")
+        return { OpenAccess: true, Shares: [{ UserId: "user1", CanEdit: false }] };
       return { Id: "p1", Name: "Mix", CanDelete: true };
     });
     const playlist = await provider.getPlaylist("p1");
@@ -547,11 +587,17 @@ describe("playlists", () => {
     const provider = await connectProvider();
     mock.respond(() => noContent());
     await provider.updatePlaylist("p1", { name: "New", public: true });
-    expect(lastCall()).toMatchObject({ method: "POST", path: "/Playlists/p1", body: { Name: "New", IsPublic: true } });
+    expect(lastCall()).toMatchObject({
+      method: "POST",
+      path: "/Playlists/p1",
+      body: { Name: "New", IsPublic: true },
+    });
     await provider.updatePlaylist("p1", { public: false });
     expect(lastCall().body).toEqual({ IsPublic: false });
     mock.calls.length = 0;
-    await expect(provider.updatePlaylist("p1", { comment: "x" })).rejects.toMatchObject({ kind: "unsupported" });
+    await expect(provider.updatePlaylist("p1", { comment: "x" })).rejects.toMatchObject({
+      kind: "unsupported",
+    });
     expect(mock.calls).toHaveLength(0);
   });
 
@@ -635,7 +681,9 @@ describe("playlists", () => {
     it("rebuilds directly when tracks carry no entry ids or the playlist changed meanwhile", async () => {
       const provider = await connectProvider();
       mock.respond((call) => (call.method === "GET" ? items(...current) : noContent()));
-      const withoutEntries = asTracks(current[1]!, current[0]!).map(({ playlistEntryId: _e, ...rest }) => rest);
+      const withoutEntries = asTracks(current[1]!, current[0]!).map(
+        ({ playlistEntryId: _e, ...rest }) => rest,
+      );
       await provider.reorderPlaylist("p1", withoutEntries as Track[]);
       expect(mock.calls.filter(isMove)).toHaveLength(0);
       expect(mock.calls.map((c) => c.method)).toEqual(["GET", "DELETE", "POST"]);
@@ -656,8 +704,12 @@ describe("planPlaylistMoves", () => {
 
   it("computes minimal moves for simple cases", () => {
     expect(planPlaylistMoves(["a", "b", "c"], ["a", "b", "c"])).toEqual([]);
-    expect(planPlaylistMoves(["a", "b", "c", "d"], ["b", "c", "d", "a"])).toEqual([{ entryId: "a", newIndex: 3 }]);
-    expect(planPlaylistMoves(["a", "b", "c", "d"], ["d", "a", "b", "c"])).toEqual([{ entryId: "d", newIndex: 0 }]);
+    expect(planPlaylistMoves(["a", "b", "c", "d"], ["b", "c", "d", "a"])).toEqual([
+      { entryId: "a", newIndex: 3 },
+    ]);
+    expect(planPlaylistMoves(["a", "b", "c", "d"], ["d", "a", "b", "c"])).toEqual([
+      { entryId: "d", newIndex: 0 },
+    ]);
     expect(planPlaylistMoves(["a", "b", "c", "d", "e"], ["e", "d", "c", "b", "a"])).toEqual([
       { entryId: "e", newIndex: 0 },
       { entryId: "d", newIndex: 1 },
@@ -723,7 +775,10 @@ describe("lyrics", () => {
 
   it("maps unsynced lyrics without times", async () => {
     const provider = await connectProvider();
-    mock.respond(() => ({ Metadata: {}, Lyrics: [{ Text: "One" }, { Text: "  " }, { Text: "Two", Start: null }] }));
+    mock.respond(() => ({
+      Metadata: {},
+      Lyrics: [{ Text: "One" }, { Text: "  " }, { Text: "Two", Start: null }],
+    }));
     expect(await provider.getLyrics(track)).toEqual({
       synced: false,
       offsetMs: 0,

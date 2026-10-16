@@ -110,7 +110,11 @@ export class JellyfinClient {
   }
 
   /** Performs the request; maps non-2xx statuses to `ProviderError`. */
-  async request(method: "GET" | "POST" | "DELETE", path: string, options: RequestOptions = {}): Promise<Response> {
+  async request(
+    method: "GET" | "POST" | "DELETE",
+    path: string,
+    options: RequestOptions = {},
+  ): Promise<Response> {
     const url = this.url(path, options.params);
     const headers: Record<string, string> = { Accept: "application/json", ...this.authHeaders };
     if (options.json !== undefined) headers["Content-Type"] = "application/json";
@@ -143,6 +147,8 @@ export async function parseJson<T>(response: Response, context: string): Promise
   try {
     return (await response.json()) as T;
   } catch (error) {
-    throw new ProviderError("invalidResponse", `Invalid JSON from ${context}`, response.status, { cause: error });
+    throw new ProviderError("invalidResponse", `Invalid JSON from ${context}`, response.status, {
+      cause: error,
+    });
   }
 }

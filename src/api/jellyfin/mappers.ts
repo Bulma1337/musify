@@ -19,7 +19,8 @@ import type { WireItem, WireLyricDto, WireLyricLine, WireMediaSource, WireNameId
 /** Jellyfin time unit: 1 tick = 100 ns, i.e. 10 000 ticks per millisecond. */
 const TICKS_PER_MS = 10_000;
 
-export const ticksToMs = (ticks: number | null | undefined): number => Math.round((ticks ?? 0) / TICKS_PER_MS);
+export const ticksToMs = (ticks: number | null | undefined): number =>
+  Math.round((ticks ?? 0) / TICKS_PER_MS);
 export const msToTicks = (ms: number): number => Math.round(Math.max(0, ms) * TICKS_PER_MS);
 
 // --- Cover references ------------------------------------------------------------------------------
@@ -65,7 +66,20 @@ function artistRefs(items: WireNameId[] | null | undefined, names: string[] | nu
 
 const joinNames = (refs: ArtistRef[]): string => refs.map((a) => a.name).join(", ");
 
-const KNOWN_CONTAINERS = ["flac", "mp3", "m4a", "ogg", "opus", "wav", "aiff", "wma", "ape", "wv", "dsf", "mka"];
+const KNOWN_CONTAINERS = [
+  "flac",
+  "mp3",
+  "m4a",
+  "ogg",
+  "opus",
+  "wav",
+  "aiff",
+  "wma",
+  "ape",
+  "wv",
+  "dsf",
+  "mka",
+];
 
 /** Jellyfin reports ffmpeg format lists such as "mov,mp4,m4a,3gp,3g2,mj2"; pick the audio suffix. */
 export function normalizeContainer(container: string | null | undefined): string | undefined {
@@ -170,7 +184,12 @@ export function mapAlbumDetail(serverId: string, item: WireItem, tracks: WireIte
 }
 
 export function mapArtist(serverId: string, item: WireItem): Artist {
-  const artist: Artist = { id: item.Id, serverId, name: item.Name ?? "", starred: Boolean(item.UserData?.IsFavorite) };
+  const artist: Artist = {
+    id: item.Id,
+    serverId,
+    name: item.Name ?? "",
+    starred: Boolean(item.UserData?.IsFavorite),
+  };
   const cover = ownCover(item);
   if (cover) artist.cover = cover;
   if (item.AlbumCount != null) artist.albumCount = item.AlbumCount;
