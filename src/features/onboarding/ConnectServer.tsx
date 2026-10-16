@@ -30,7 +30,9 @@ const SERVER_LABELS: Record<string, string> = {
 function serverLabel(probe: ServerProbe): string {
   const name =
     (probe.serverType && SERVER_LABELS[probe.serverType.toLowerCase()]) ?? probe.serverType ?? "Subsonic";
-  return probe.serverVersion ? `${name} ${probe.serverVersion}` : name;
+  // Navidrome reports e.g. "0.64.2 (10114574)"; the build hash in parentheses is noise for users.
+  const version = probe.serverVersion?.replace(/s*(.*)s*$/, "");
+  return version ? `${name} ${version}` : name;
 }
 
 /** First-run / add-server screen: address, credentials, automatic server detection. */
