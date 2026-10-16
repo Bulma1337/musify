@@ -1,0 +1,143 @@
+{
+  "equalizer": {
+    "title": "Equalizer",
+    "power": "Equalizer an oder aus",
+    "compare": "A/B",
+    "compareHint": "Gedrückt halten, um den Originalklang zu hören. Kurz tippen schaltet um, noch einmal tippen bringt dich zurück. Deine Kurve bleibt unverändert.",
+    "reset": "Zurücksetzen",
+    "notBitPerfect": "Solange Equalizer, Deep Bass oder Lautstärke-Ausgleich aktiv sind, wird der Klang bearbeitet und die Wiedergabe ist nicht bit-perfect.",
+    "modeLabel": "Equalizer-Modus",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "modes": {
+      "ten": "10 Bänder",
+      "thirtyOne": "31 Bänder",
+      "parametric": "Parametrisch"
+    },
+    "curve": {
+      "title": "Frequenzgang",
+      "ariaLabel": "Frequenzgang des Equalizers von 20 Hz bis 20 kHz",
+      "clipShort": "Clip",
+      "clip": "Das Signal erreicht den maximalen Pegel",
+      "clipHint": "Leuchtet, wenn die Ausgabe 0 dB erreicht. Senke die Vorverstärkung oder schalte die automatische Reserve ein.",
+      "point": "Filter {{n}}",
+      "parametricHint": "Punkt ziehen ändert Frequenz und Verstärkung, das Mausrad ändert Q, Doppelklick auf die Kurve fügt einen Filter hinzu."
+    },
+    "bands": {
+      "groupLabel": "Verstärkung der Bänder",
+      "hint": "±12 dB in Schritten von 0,5 dB. Doppelklick auf einen Regler setzt ihn zurück. Mit der Tastatur: Pfeiltasten (mit Umschalt größere Schritte), Bild auf und Bild ab."
+    },
+    "filterTypes": {
+      "peaking": "Peak",
+      "lowShelf": "Low-Shelf",
+      "highShelf": "High-Shelf",
+      "lowPass": "Tiefpass",
+      "highPass": "Hochpass",
+      "notch": "Notch"
+    },
+    "parametric": {
+      "active": "An",
+      "activeLabel": "Filter {{n}} an",
+      "type": "Typ",
+      "typeLabel": "Typ von Filter {{n}}",
+      "frequency": "Frequenz (Hz)",
+      "frequencyLabel": "Frequenz von Filter {{n}} in Hz",
+      "gain": "Verstärkung (dB)",
+      "gainLabel": "Verstärkung von Filter {{n}} in dB",
+      "qLabel": "Q von Filter {{n}}",
+      "remove": "Filter {{n}} entfernen",
+      "empty": "Noch keine Filter. Füge einen hinzu, um den Klang zu formen.",
+      "add": "Filter hinzufügen",
+      "count": "{{count}} von {{max}} Filtern",
+      "limitReached": "Die maximale Anzahl an Filtern ist erreicht."
+    },
+    "preamp": {
+      "title": "Vorverstärkung",
+      "label": "Vorverstärkung",
+      "auto": "Automatische Reserve",
+      "autoHint": "Senkt den Pegel um die stärkste Anhebung deiner Kurve ab, damit Anhebungen den Ausgang nie übersteuern.",
+      "effective": "Wirksame Vorverstärkung"
+    },
+    "bass": {
+      "title": "Deep Bass",
+      "enable": "Deep Bass",
+      "hint": "Fügt Gewicht im Tiefbass und erzeugte Obertöne hinzu, damit Bässe auch auf kleinen Lautsprechern und Kopfhörern hörbar bleiben.",
+      "boost": "Anhebung",
+      "frequency": "Frequenz",
+      "harmonics": "Obertöne"
+    },
+    "more": {
+      "title": "Weitere Optionen",
+      "loudness": "Lautstärke-Ausgleich",
+      "loudnessHint": "Hebt Bässe und Höhen bei geringer Lautstärke an, weil das Ohr dafür dann weniger empfindlich ist.",
+      "limiter": "Begrenzer",
+      "limiterHint": "Hält Spitzen unter -1 dBTP. Nötig, wenn du ohne automatische Reserve anhebst. Ausgeschaltet bleibt die Wiedergabe bit-perfect."
+    },
+    "presets": {
+      "label": "Voreinstellung",
+      "customCurve": "Eigene Kurve",
+      "mine": "Meine Voreinstellungen",
+      "builtIn": "Mitgelieferte Voreinstellungen",
+      "modified": "geändert",
+      "update": "Änderungen in dieser Voreinstellung speichern",
+      "updated": "„{{name}}“ aktualisiert",
+      "saveAs": "Als neue Voreinstellung speichern",
+      "save": "Speichern",
+      "saved": "„{{name}}“ gespeichert",
+      "name": "Name",
+      "rename": "Voreinstellung umbenennen",
+      "renameConfirm": "Umbenennen",
+      "delete": "Voreinstellung löschen",
+      "deleteTitle": "„{{name}}“ löschen?",
+      "deleteHint": "Die Voreinstellung wird von diesem Gerät entfernt. Dein aktueller Klang bleibt unverändert."
+    },
+    "presetNames": {
+      "flat": "Neutral",
+      "deepBass": "Deep Bass",
+      "bassBooster": "Bass-Booster",
+      "bassReducer": "Bass absenken",
+      "vShape": "V-Kurve",
+      "headphoneTarget": "Kopfhörer-Zielkurve",
+      "vocal": "Gesang",
+      "acoustic": "Akustik",
+      "classical": "Klassik",
+      "electronic": "Elektronik",
+      "hipHop": "Hip-Hop",
+      "rock": "Rock",
+      "metal": "Metal",
+      "pop": "Pop",
+      "jazz": "Jazz",
+      "dance": "Dance",
+      "loudness": "Loudness",
+      "trebleBooster": "Höhen anheben",
+      "trebleReducer": "Höhen absenken",
+      "lateNight": "Spätabend (leise)",
+      "smallSpeakers": "Kleine Lautsprecher",
+      "speech": "Podcast und Sprache"
+    },
+    "share": {
+      "title": "Voreinstellung teilen",
+      "description": "Kopiere den Text, um deinen aktuellen Klang weiterzugeben. Zum Importieren füge einen Voreinstellungs-Text ein und wähle „Importieren“.",
+      "textLabel": "Text der Voreinstellung",
+      "copy": "Kopieren",
+      "copied": "In die Zwischenablage kopiert",
+      "copyFailed": "Kopieren nicht möglich. Markiere den Text und kopiere ihn von Hand.",
+      "import": "Importieren",
+      "imported_one": "{{count}} Voreinstellung importiert",
+      "imported_other": "{{count}} Voreinstellungen importiert",
+      "invalid": "Dieser Text ist keine gültige Voreinstellung.",
+      "importedName": "Importierte Voreinstellung"
+    },
+    "autoEq": {
+      "title": "AutoEQ-Profil importieren",
+      "description": "Füge den Inhalt einer ParametricEQ.txt ein oder wähle die Datei. Die Filter erscheinen im parametrischen Modus.",
+      "textLabel": "Text des Profils",
+      "fileLabel": "Profil-Datei",
+      "pickFile": "Datei wählen",
+      "import": "Importieren",
+      "imported": "Profil importiert",
+      "failed": "Import fehlgeschlagen: {{message}}",
+      "readFailed": "Die Datei konnte nicht gelesen werden."
+    }
+  }
+}

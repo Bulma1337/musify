@@ -1,0 +1,143 @@
+{
+  "equalizer": {
+    "title": "Equalizer",
+    "power": "Equalizer on or off",
+    "compare": "A/B",
+    "compareHint": "Hold to hear the original sound, tap to switch and tap again to come back. Your curve stays untouched.",
+    "reset": "Reset",
+    "notBitPerfect": "While the equalizer, Deep Bass or loudness compensation is on, the sound is processed and playback is not bit-perfect.",
+    "modeLabel": "Equalizer mode",
+    "cancel": "Cancel",
+    "close": "Close",
+    "modes": {
+      "ten": "10 bands",
+      "thirtyOne": "31 bands",
+      "parametric": "Parametric"
+    },
+    "curve": {
+      "title": "Frequency response",
+      "ariaLabel": "Frequency response of the equalizer from 20 Hz to 20 kHz",
+      "clipShort": "Clip",
+      "clip": "The signal reaches the maximum level",
+      "clipHint": "Lights up when the output reaches 0 dB. Lower the preamp or turn on auto headroom.",
+      "point": "Filter {{n}}",
+      "parametricHint": "Drag a point to change frequency and gain, use the mouse wheel for Q, double-click the curve to add a filter."
+    },
+    "bands": {
+      "groupLabel": "Band gains",
+      "hint": "±12 dB in 0.5 dB steps. Double-click a slider to reset it. With the keyboard use the arrow keys (Shift for bigger steps), Page up and Page down."
+    },
+    "filterTypes": {
+      "peaking": "Peak",
+      "lowShelf": "Low shelf",
+      "highShelf": "High shelf",
+      "lowPass": "Low pass",
+      "highPass": "High pass",
+      "notch": "Notch"
+    },
+    "parametric": {
+      "active": "On",
+      "activeLabel": "Filter {{n}} on",
+      "type": "Type",
+      "typeLabel": "Filter {{n}} type",
+      "frequency": "Frequency (Hz)",
+      "frequencyLabel": "Filter {{n}} frequency in Hz",
+      "gain": "Gain (dB)",
+      "gainLabel": "Filter {{n}} gain in dB",
+      "qLabel": "Filter {{n}} Q",
+      "remove": "Remove filter {{n}}",
+      "empty": "No filters yet. Add one to shape the sound.",
+      "add": "Add filter",
+      "count": "{{count}} of {{max}} filters",
+      "limitReached": "The maximum number of filters is in use."
+    },
+    "preamp": {
+      "title": "Preamp",
+      "label": "Preamp",
+      "auto": "Automatic headroom",
+      "autoHint": "Lowers the level by the highest boost of your curve, so boosting never overloads the output.",
+      "effective": "Effective preamp"
+    },
+    "bass": {
+      "title": "Deep Bass",
+      "enable": "Deep Bass",
+      "hint": "Adds low-end weight and generated harmonics, so bass stays audible on small speakers and headphones.",
+      "boost": "Boost",
+      "frequency": "Frequency",
+      "harmonics": "Harmonics"
+    },
+    "more": {
+      "title": "More",
+      "loudness": "Loudness compensation",
+      "loudnessHint": "Raises bass and treble when the volume is low, because the ear is less sensitive to them then.",
+      "limiter": "Limiter",
+      "limiterHint": "Keeps peaks below -1 dBTP. Needed when you boost without automatic headroom. Off keeps playback bit-perfect."
+    },
+    "presets": {
+      "label": "Preset",
+      "customCurve": "Custom curve",
+      "mine": "My presets",
+      "builtIn": "Built-in presets",
+      "modified": "changed",
+      "update": "Save changes to this preset",
+      "updated": "Updated \"{{name}}\"",
+      "saveAs": "Save as new preset",
+      "save": "Save",
+      "saved": "Saved \"{{name}}\"",
+      "name": "Name",
+      "rename": "Rename preset",
+      "renameConfirm": "Rename",
+      "delete": "Delete preset",
+      "deleteTitle": "Delete \"{{name}}\"?",
+      "deleteHint": "The preset is removed from this device. Your current sound stays as it is."
+    },
+    "presetNames": {
+      "flat": "Flat",
+      "deepBass": "Deep Bass",
+      "bassBooster": "Bass booster",
+      "bassReducer": "Bass reducer",
+      "vShape": "V shape",
+      "headphoneTarget": "Headphone target curve",
+      "vocal": "Vocal",
+      "acoustic": "Acoustic",
+      "classical": "Classical",
+      "electronic": "Electronic",
+      "hipHop": "Hip-hop",
+      "rock": "Rock",
+      "metal": "Metal",
+      "pop": "Pop",
+      "jazz": "Jazz",
+      "dance": "Dance",
+      "loudness": "Loudness",
+      "trebleBooster": "Treble booster",
+      "trebleReducer": "Treble reducer",
+      "lateNight": "Late night (soft)",
+      "smallSpeakers": "Small speakers",
+      "speech": "Podcast and speech"
+    },
+    "share": {
+      "title": "Share preset",
+      "description": "Copy the text to share your current sound. To import, paste a preset text and press Import.",
+      "textLabel": "Preset text",
+      "copy": "Copy",
+      "copied": "Copied to the clipboard",
+      "copyFailed": "Could not copy. Select the text and copy it by hand.",
+      "import": "Import",
+      "imported_one": "Imported {{count}} preset",
+      "imported_other": "Imported {{count}} presets",
+      "invalid": "This text is not a valid preset.",
+      "importedName": "Imported preset"
+    },
+    "autoEq": {
+      "title": "Import AutoEQ profile",
+      "description": "Paste the contents of a ParametricEQ.txt or pick the file. The filters appear in the parametric mode.",
+      "textLabel": "Profile text",
+      "fileLabel": "Profile file",
+      "pickFile": "Choose file",
+      "import": "Import",
+      "imported": "Profile imported",
+      "failed": "Import failed: {{message}}",
+      "readFailed": "The file could not be read."
+    }
+  }
+}

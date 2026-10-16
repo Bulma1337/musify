@@ -1,0 +1,100 @@
+{
+  "settings": {
+    "title": "Einstellungen",
+    "off": "Aus",
+    "alwaysOn": "Immer aktiv",
+    "quality": {
+      "title": "Audioqualität",
+      "description": "Lege fest, wie viele Daten dein Server sendet. Höhere Qualität klingt besser und braucht mehr Bandbreite und Speicherplatz.",
+      "streaming": "Streaming-Qualität",
+      "downloads": "Download-Qualität",
+      "options": {
+        "original": "Original",
+        "high": "Hoch",
+        "normal": "Normal",
+        "low": "Niedrig"
+      },
+      "hints": {
+        "original": "Die Datei genau so, wie sie auf deinem Server liegt, verlustfrei, wenn die Datei verlustfrei ist. Bester Klang, meiste Daten.",
+        "high": "Dein Server wandelt in Opus mit bis zu 320 kbit/s um. Für die meiste Musik kaum vom Original zu unterscheiden.",
+        "normal": "Dein Server wandelt in Opus mit bis zu 192 kbit/s um. Ein guter Mittelweg für mobile Daten.",
+        "low": "Dein Server wandelt in Opus mit bis zu 96 kbit/s um. Spart die meisten Daten."
+      }
+    },
+    "playback": {
+      "title": "Wiedergabe",
+      "description": "Übergänge, Lautstärke und Stereobild.",
+      "crossfade": "Überblenden",
+      "crossfadeHint": "Blendet das Ende eines Titels in den Anfang des nächsten über.",
+      "skipSameAlbum": "Innerhalb eines Albums nicht überblenden",
+      "skipSameAlbumHint": "Titel, die auf einem Album aufeinander folgen, laufen stattdessen ohne Lücke.",
+      "gapless": "Lückenlose Wiedergabe",
+      "gaplessHint": "Folgt ein Titel direkt auf den anderen, startet er ohne hörbare Pause. Live-Alben und Mixe laufen so, wie sie aufgenommen wurden.",
+      "normalization": "Lautstärke angleichen",
+      "normalizationModes": {
+        "off": "Aus",
+        "track": "Titel",
+        "album": "Album",
+        "auto": "Automatisch"
+      },
+      "normalizationHints": {
+        "off": "Jeder Titel spielt mit seiner eigenen Lautstärke. Das ist die unverfälschteste Einstellung.",
+        "track": "Gleicht die Lautstärke von Titel zu Titel an.",
+        "album": "Behält die Lautstärkeunterschiede innerhalb eines Albums und gleicht zwischen Alben an.",
+        "auto": "Nutzt die Album-Anpassung, solange ein Album läuft, und sonst die Titel-Anpassung."
+      },
+      "target": "Ziel-Lautstärke",
+      "targetHint": "Wie laut die angeglichene Musik insgesamt sein soll.",
+      "targets": {
+        "loud": "Laut",
+        "normal": "Normal",
+        "quiet": "Leise"
+      },
+      "preventClipping": "Übersteuern verhindern",
+      "preventClippingHint": "Senkt die Verstärkung eines Titels, wenn eine Anhebung Verzerrungen verursachen würde.",
+      "analyzeUntagged": "Titel ohne Lautstärke-Tags messen",
+      "analyzeUntaggedHint": "Titel ohne Lautstärke-Angaben werden während der Wiedergabe gemessen.",
+      "mono": "Mono",
+      "monoHint": "Spielt auf beiden Kanälen dasselbe Signal.",
+      "balance": "Balance",
+      "balanceHint": "Verschiebt den Klang zwischen linkem und rechtem Lautsprecher.",
+      "center": "Mitte",
+      "left": "Links {{percent}} %",
+      "right": "Rechts {{percent}} %",
+      "width": "Stereobreite",
+      "widthHint": "100 % ist unverändert. Kleinere Werte rücken den Klang zur Mitte, größere machen ihn breiter.",
+      "equalizer": "Equalizer",
+      "equalizerHint": "Forme den Klang mit grafischen oder parametrischen Filtern, Voreinstellungen und Deep Bass.",
+      "openEqualizer": "Equalizer öffnen"
+    },
+    "output": {
+      "title": "Ausgabe",
+      "description": "Wohin der Klang geht und wie er dorthin kommt.",
+      "device": "Ausgabegerät",
+      "deviceHint": "Das Gerät, über das Navify abspielt. Der Systemstandard folgt deiner Auswahl in den Systemeinstellungen.",
+      "unavailable": "Nicht verfügbares Gerät",
+      "exclusive": "Exklusiver Modus",
+      "exclusiveHint": "Übernimmt das Gerät, damit der System-Mixer das Signal nicht verändern kann. Bit-perfekte Ausgabe braucht den exklusiven Modus, einen ausgeschalteten Equalizer samt aller Klangeffekte und eine Lautstärke von 100 %. Andere Programme bleiben währenddessen stumm."
+    },
+    "display": {
+      "title": "Anzeige",
+      "description": "Farben, Größe und Sprache der App.",
+      "accent": "Akzentfarbe",
+      "accentHint": "Wird für Schaltflächen, Regler und Hervorhebungen verwendet.",
+      "accentDynamicHint": "Der Akzent folgt dem Cover des Titels, der gerade spielt.",
+      "accents": {
+        "purple": "Lila",
+        "blue": "Blau",
+        "red": "Rot",
+        "dynamic": "Dynamisch"
+      },
+      "zoom": "Zoom",
+      "zoomHint": "Macht alles in der App kleiner oder größer.",
+      "language": "Sprache",
+      "languages": {
+        "de": "Deutsch",
+        "en": "English"
+      }
+    }
+  }
+}

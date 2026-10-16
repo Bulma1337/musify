@@ -5,6 +5,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { Toaster } from "@/components/ui/Toaster";
 import { inTauri } from "@/lib/platform";
 import { startEngineBridge } from "@/player/bridge";
+import { useAppearance } from "@/settings/appearance";
 import { startEngineSettingsSync } from "@/settings/engineSync";
 import { LIBRARY_COLLAPSED_WIDTH, useLayout } from "./layoutStore";
 import { LibrarySidebar } from "./LibrarySidebar";
@@ -92,6 +93,7 @@ export function AppShell() {
     useLayout();
   useZoom();
   useGlobalShortcuts();
+  useAppearance();
   useEffect(() => startEngineBridge(), []);
   useEffect(() => startEngineSettingsSync(), []);
 
