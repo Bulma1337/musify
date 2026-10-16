@@ -1,6 +1,6 @@
 # Navify – notes for Claude
 
-Spotify-style desktop music player for Subsonic/OpenSubsonic (Navidrome first) and Jellyfin.
+Desktop music player with a familiar three-panel streaming layout for Subsonic/OpenSubsonic (Navidrome first) and Jellyfin.
 Tauri 2 shell, React 19 + TypeScript frontend, native Rust audio engine. Will be open-sourced.
 
 ## Priorities
@@ -8,7 +8,7 @@ Tauri 2 shell, React 19 + TypeScript frontend, native Rust audio engine. Will be
 - **Audio quality is the top priority.** f64 DSP, high-quality resampling, gapless, bit-perfect exclusive mode,
   true-peak limiting. Anything that touches the sound path needs a measurement test.
 - Fast and lightweight: virtualize long lists, keep the UI thread free, never block the audio threads.
-- Spotify-like layout and behaviour, but no Spotify assets, logos or trademarks.
+- Familiar layout, but an independent identity: follow docs/BRAND.md (no third-party names, logos, colors, fonts or copied UI texts).
 
 ## Layout
 

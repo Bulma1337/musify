@@ -28,7 +28,7 @@
     "back": "Zurück",
     "forward": "Vor",
     "home": "Startseite",
-    "searchPlaceholder": "Was möchtest du wiedergeben?",
+    "searchPlaceholder": "Songs, Alben oder Künstler*innen suchen",
     "clearSearch": "Suche leeren"
   },
   "library": {
@@ -40,19 +40,19 @@
     "albums": "Alben",
     "artists": "Künstler*innen",
     "clearFilter": "Filter entfernen",
-    "search": "In der Bibliothek suchen",
-    "searchPlaceholder": "In der Bibliothek suchen",
+    "search": "Bibliothek durchsuchen",
+    "searchPlaceholder": "Bibliothek durchsuchen",
     "sortBy": "Sortieren nach",
     "sortRecent": "Zuletzt hinzugefügt",
     "sortAlphabetical": "Alphabetisch",
     "sortCreator": "Ersteller*in",
-    "likedSongs": "Lieblingssongs",
-    "likedSubtitle_one": "Playlist • {{count}} Song",
-    "likedSubtitle_other": "Playlist • {{count}} Songs",
+    "likedSongs": "Favoriten",
+    "likedSubtitle_one": "Sammlung • {{count}} Titel",
+    "likedSubtitle_other": "Sammlung • {{count}} Titel",
     "playlistBy": "Playlist • {{owner}}",
     "albumBy": "Album • {{artist}}",
     "artist": "Künstler*in",
-    "newPlaylistName": "Meine Playlist Nr. {{n}}"
+    "newPlaylistName": "Neue Playlist {{n}}"
   },
   "player": {
     "play": "Wiedergabe",
@@ -73,7 +73,7 @@
     "unmute": "Stummschaltung aufheben",
     "lyrics": "Songtext",
     "queue": "Warteschlange",
-    "devices": "Mit einem Gerät verbinden",
+    "devices": "Ausgabegerät wählen",
     "miniplayer": "Miniplayer öffnen",
     "fullscreen": "Vollbild"
   },
@@ -82,7 +82,7 @@
     "album": "Album",
     "added": "Hinzugefügt am",
     "duration": "Dauer",
-    "explicit": "Unangemessene Inhalte",
+    "explicit": "Explizite Inhalte",
     "disc": "CD {{n}}"
   },
   "menu": {
@@ -91,23 +91,23 @@
     "addToPlaylist": "Zur Playlist hinzufügen",
     "newPlaylist": "Neue Playlist",
     "newPlaylistName": "Neue Playlist",
-    "addToLiked": "Zu Lieblingssongs hinzufügen",
-    "removeFromLiked": "Aus Lieblingssongs entfernen",
-    "goToArtist": "Zum/zur Künstler*in",
-    "goToAlbum": "Zum Album",
+    "addToLiked": "Zu Favoriten hinzufügen",
+    "removeFromLiked": "Aus Favoriten entfernen",
+    "goToArtist": "Künstlerseite öffnen",
+    "goToAlbum": "Album öffnen",
     "more": "Weitere Optionen",
     "addedToQueue": "Zur Warteschlange hinzugefügt",
     "playingNext": "Wird als Nächstes wiedergegeben",
     "addedToPlaylist": "Zu „{{name}}“ hinzugefügt",
     "playlistCreated": "Playlist „{{name}}“ erstellt",
-    "addedToLiked": "Zu Lieblingssongs hinzugefügt",
-    "removedFromLiked": "Aus Lieblingssongs entfernt"
+    "addedToLiked": "Zu Favoriten hinzugefügt",
+    "removedFromLiked": "Aus Favoriten entfernt"
   },
   "nowPlaying": {
     "title": "Aktueller Titel",
     "nothing": "Gerade läuft nichts",
-    "aboutArtist": "Informationen zum*zur Künstler*in",
-    "credits": "Songinfos",
+    "aboutArtist": "Künstlerprofil",
+    "credits": "Details & Qualität",
     "album": "Album",
     "year": "Jahr",
     "genre": "Genre",
@@ -117,19 +117,19 @@
     "bitRate": "Bitrate",
     "replayGain": "ReplayGain (Track)",
     "lastPlayed": "Zuletzt gehört",
-    "nextInQueue": "Nächster Titel in der Warteschlange"
+    "nextInQueue": "Als Nächstes"
   },
   "queue": {
     "title": "Warteschlange",
     "history": "Zuletzt gehört",
     "nowPlaying": "Aktueller Titel",
-    "nextInQueue": "Nächster Titel in der Warteschlange",
-    "nextFrom": "Nächster Titel von: {{name}}",
+    "nextInQueue": "Von dir eingereiht",
+    "nextFrom": "Als Nächstes aus: {{name}}",
     "empty": "Füge Songs hinzu, um deine Warteschlange zu füllen.",
     "historyEmpty": "Du hast in dieser Sitzung noch nichts gehört."
   },
   "devices": {
-    "title": "Connect",
+    "title": "Ausgabe",
     "thisComputer": "Dieser Computer",
     "systemDefault": "Systemstandard"
   },

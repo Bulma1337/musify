@@ -11,7 +11,7 @@ function isTyping(target: EventTarget | null): boolean {
 }
 
 /**
- * App-wide keyboard shortcuts (Spotify-like):
+ * App-wide keyboard shortcuts:
  * Space play/pause · Ctrl+→/← next/previous · Ctrl+↑/↓ volume · Ctrl+S shuffle · Ctrl+R repeat
  * Ctrl+K / Ctrl+L search · Ctrl+= / Ctrl+- / Ctrl+0 zoom
  */

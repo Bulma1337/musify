@@ -1,7 +1,7 @@
 [package]
 name = "navify"
 version = "0.1.0"
-description = "Navify – a fast Spotify-style desktop player for Navidrome, Subsonic and Jellyfin"
+description = "Navify – a fast, lightweight desktop music player for Navidrome, Subsonic and Jellyfin"
 authors = ["Navify contributors"]
 repository = "https://github.com/Bulma1337/navify"
 edition = "2024"

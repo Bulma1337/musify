@@ -146,7 +146,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
 
   previous() {
     const s = get();
-    // Like Spotify: restart the track unless we are within the first 3 seconds.
+    // Restart the current track unless we are within its first 3 seconds (common player behaviour).
     if (s.positionMs > 3000 || s.orderIndex === 0) {
       set({ positionMs: 0 });
       return;

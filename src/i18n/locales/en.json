@@ -28,11 +28,11 @@
     "back": "Back",
     "forward": "Forward",
     "home": "Home",
-    "searchPlaceholder": "What do you want to play?",
+    "searchPlaceholder": "Search songs, albums or artists",
     "clearSearch": "Clear search"
   },
   "library": {
-    "title": "Your Library",
+    "title": "Library",
     "create": "Create playlist",
     "expand": "Expand library",
     "collapse": "Collapse library",
@@ -40,19 +40,19 @@
     "albums": "Albums",
     "artists": "Artists",
     "clearFilter": "Clear filter",
-    "search": "Search in your library",
-    "searchPlaceholder": "Search in your library",
+    "search": "Search library",
+    "searchPlaceholder": "Search library",
     "sortBy": "Sort by",
     "sortRecent": "Recently added",
     "sortAlphabetical": "Alphabetical",
     "sortCreator": "Creator",
-    "likedSongs": "Liked Songs",
-    "likedSubtitle_one": "Playlist • {{count}} song",
-    "likedSubtitle_other": "Playlist • {{count}} songs",
+    "likedSongs": "Favorites",
+    "likedSubtitle_one": "Collection • {{count}} track",
+    "likedSubtitle_other": "Collection • {{count}} tracks",
     "playlistBy": "Playlist • {{owner}}",
     "albumBy": "Album • {{artist}}",
     "artist": "Artist",
-    "newPlaylistName": "My Playlist #{{n}}"
+    "newPlaylistName": "New playlist {{n}}"
   },
   "player": {
     "play": "Play",
@@ -73,7 +73,7 @@
     "unmute": "Unmute",
     "lyrics": "Lyrics",
     "queue": "Queue",
-    "devices": "Connect to a device",
+    "devices": "Choose output device",
     "miniplayer": "Open mini player",
     "fullscreen": "Full screen"
   },
@@ -82,7 +82,7 @@
     "album": "Album",
     "added": "Date added",
     "duration": "Duration",
-    "explicit": "Explicit",
+    "explicit": "Explicit content",
     "disc": "Disc {{n}}"
   },
   "menu": {
@@ -91,23 +91,23 @@
     "addToPlaylist": "Add to playlist",
     "newPlaylist": "New playlist",
     "newPlaylistName": "New playlist",
-    "addToLiked": "Save to your Liked Songs",
-    "removeFromLiked": "Remove from your Liked Songs",
-    "goToArtist": "Go to artist",
-    "goToAlbum": "Go to album",
+    "addToLiked": "Add to favorites",
+    "removeFromLiked": "Remove from favorites",
+    "goToArtist": "Open artist page",
+    "goToAlbum": "Open album",
     "more": "More options",
     "addedToQueue": "Added to queue",
     "playingNext": "Playing next",
     "addedToPlaylist": "Added to “{{name}}”",
     "playlistCreated": "Created playlist “{{name}}”",
-    "addedToLiked": "Added to Liked Songs",
-    "removedFromLiked": "Removed from Liked Songs"
+    "addedToLiked": "Added to favorites",
+    "removedFromLiked": "Removed from favorites"
   },
   "nowPlaying": {
     "title": "Now playing",
     "nothing": "Nothing playing",
-    "aboutArtist": "About the artist",
-    "credits": "Credits",
+    "aboutArtist": "Artist profile",
+    "credits": "Details & quality",
     "album": "Album",
     "year": "Year",
     "genre": "Genre",
@@ -117,19 +117,19 @@
     "bitRate": "Bit rate",
     "replayGain": "ReplayGain (track)",
     "lastPlayed": "Last played",
-    "nextInQueue": "Next in queue"
+    "nextInQueue": "Up next"
   },
   "queue": {
     "title": "Queue",
     "history": "Recently played",
     "nowPlaying": "Now playing",
-    "nextInQueue": "Next in queue",
-    "nextFrom": "Next from: {{name}}",
+    "nextInQueue": "Queued by you",
+    "nextFrom": "Up next from: {{name}}",
     "empty": "Add songs to fill your queue.",
     "historyEmpty": "You haven't played anything in this session yet."
   },
   "devices": {
-    "title": "Connect",
+    "title": "Output",
     "thisComputer": "This computer",
     "systemDefault": "System default"
   },

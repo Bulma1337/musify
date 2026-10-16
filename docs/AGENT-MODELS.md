@@ -13,7 +13,7 @@ und dem Risiko einer Aufgabe, nicht nach Gewohnheit.
 | S1    | Haiku · niedrig         | Mechanisches: Umbenennen, Boilerplate, Format-Fixes, Icons/Assets, i18n-Keys anlegen, Übersetzung DE↔EN                                                            |
 | S2    | Sonnet · niedrig–mittel | Recherche und Faktencheck (APIs, Crate-Versionen), Codebase-Suche, Doku/README, einfache Unit-Tests nach klarer Spezifikation                                      |
 | S3    | Sonnet · mittel         | Standard-UI-Seiten und -Komponenten, Adapter-Endpunkte nach Faktenblatt, Einstellungsabschnitte                                                                    |
-| S4    | Sonnet · hoch           | Komplexe UI (Drag & Drop mit Virtualisierung, Lyrics-Sync, EQ-Kurveneditor), Download-Manager, SQLite-Schema und Statistik-SQL, Jellyfin-Adapter, Wrapped          |
+| S4    | Sonnet · hoch           | Komplexe UI (Drag & Drop mit Virtualisierung, Lyrics-Sync, EQ-Kurveneditor), Download-Manager, SQLite-Schema und Statistik-SQL, Jellyfin-Adapter, Rückblick        |
 | S5    | Opus · hoch             | Audio-Engine-Kern (Threads, Gapless, Crossfade, Seek), DSP- und EQ-Mathematik, Architekturentscheidungen, Nebenläufigkeits- und Audio-Glitch-Bugs, Security-Review |
 | S6    | Opus · xhigh            | Nur Eskalation: kritischer Bug nach gescheitertem S5-Versuch, Abschluss-Architekturreview vor einem Release                                                        |
 
@@ -77,7 +77,7 @@ Legende: **Selbstständig** heißt, das Paket kann nach Erfüllung der Abhängig
 | Downloads: Manager (Rust) und Oberfläche           | Adapter, DB           | ja                       | S4    |
 | Miniplayer, Tray, Autostart, Benachrichtigungen    | Player-Store          | ja                       | S3    |
 | Statistik-SQL, automatische Playlists              | DB-Schema             | ja                       | S4    |
-| Wrapped-Folien, Jahrespaletten, PNG-Export         | Statistik             | ja                       | S4    |
+| Rückblick-Folien, Jahrespaletten, PNG-Export       | Statistik             | ja                       | S4    |
 | Einstellungsseite (Abschnitte)                     | jeweilige Features    | ja                       | S3    |
 | Übersetzung Englisch, fehlende Keys                | –                     | ja                       | S1    |
 
@@ -97,5 +97,5 @@ Sobald die jeweilige Schnittstelle in `main` liegt:
 - **Subsonic-Adapter** und **Jellyfin-Adapter**, nach `src/api/provider.ts`
 - **Engine-DSP** und **EQ-Oberfläche**, nach `EqConfig` in `audio/api.rs`
 - **DSP-Module**, **HTTP-Cache**, **Decoder** und **Ausgabe**, nach `audio/api.rs`
-- **Lyrics**, **Statistik/Wrapped** und **Downloads**, nach DB-Schema und Player-Store
+- **Lyrics**, **Statistik/Rückblick** und **Downloads**, nach DB-Schema und Player-Store
 - **Übersetzungen** jederzeit

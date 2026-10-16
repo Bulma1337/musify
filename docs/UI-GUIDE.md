@@ -1,6 +1,6 @@
 # UI guide
 
-How pages and components in Navify are built. Read this before adding a page.
+How pages and components in Navify are built. Read this and [BRAND.md](BRAND.md) before adding a page.
 
 ## Building blocks
 

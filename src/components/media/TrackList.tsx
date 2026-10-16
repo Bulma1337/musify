@@ -211,7 +211,7 @@ const TrackRow = memo(function TrackRow({
 });
 
 /**
- * Virtualized track table (album, playlist, liked songs, search). Rows render only when visible, so
+ * Virtualized track table (album, playlist, favorites, search). Rows render only when visible, so
  * lists with thousands of tracks stay fast. Selection: click, Ctrl/Cmd toggles, Shift selects a range.
  */
 export function TrackList({

@@ -47,7 +47,7 @@ export const useLayout = create<LayoutState>()(
       zoom: 1,
 
       setLibraryWidth: (width) => {
-        // Dragging below the minimum collapses the library, like Spotify.
+        // Dragging well below the minimum collapses the library to its icon rail.
         if (width < LIBRARY_MIN_WIDTH - 80) set({ libraryCollapsed: true });
         else
           set({ libraryCollapsed: false, libraryWidth: clamp(width, LIBRARY_MIN_WIDTH, LIBRARY_MAX_WIDTH) });

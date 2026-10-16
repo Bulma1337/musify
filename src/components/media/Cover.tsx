@@ -32,7 +32,7 @@ export function Cover({ cover, size, fallback = "album", round, className, eager
       className={cn(
         "relative aspect-square shrink-0 overflow-hidden bg-highlight shadow-[0_8px_24px_rgb(0_0_0/0.5)]",
         round ? "rounded-full" : "rounded-[4px]",
-        fallback === "liked" && "bg-gradient-to-br from-[#450af5] via-accent to-[#c4efd9]",
+        fallback === "liked" && "bg-gradient-to-br from-accent-press via-accent to-accent-hover",
         className,
       )}
     >
