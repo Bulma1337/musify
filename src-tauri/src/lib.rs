@@ -1,6 +1,7 @@
 use tauri::Manager;
 
 mod audio;
+mod db;
 mod secrets;
 
 /// Basic build information shown in Settings → About.
@@ -64,6 +65,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
             app.manage(audio::AudioState::new(app.handle()));
+            app.manage(db::DbState(db::open_app_db(app.handle())));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

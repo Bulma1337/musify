@@ -32,6 +32,7 @@ log = "0.4"
 keyring = "4"
 navify-audio = { path = "crates/navify-audio" }
 crossbeam-channel = "0.5"
+rusqlite = { version = "0.40", features = ["bundled"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"
