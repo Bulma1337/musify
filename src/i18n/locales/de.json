@@ -4,7 +4,10 @@
     "tagline": "Deine Musik. Dein Server.",
     "connecting": "Verbinde mit {{server}} …",
     "retry": "Erneut versuchen",
-    "signOut": "Anderen Server verwenden"
+    "signOut": "Anderen Server verwenden",
+    "crashTitle": "Da ist etwas schiefgelaufen",
+    "crashText": "Diese Ansicht konnte nicht angezeigt werden. Nach dem Neuladen geht es normalerweise weiter, deine Warteschlange bleibt erhalten.",
+    "reload": "Neu laden"
   },
   "common": {
     "showPassword": "Passwort anzeigen",
@@ -77,7 +80,9 @@
     "miniplayer": "Miniplayer öffnen",
     "fullscreen": "Vollbild",
     "playbackError": "Wiedergabefehler: {{message}}",
-    "deviceLost": "Das Ausgabegerät wurde getrennt. Die Wiedergabe läuft über das Standardgerät weiter."
+    "deviceLost": "Das Ausgabegerät wurde getrennt. Die Wiedergabe läuft über das Standardgerät weiter.",
+    "shuffleSmart": "Shuffle+ aktivieren (mit Empfehlungen)",
+    "recommended": "Empfehlung"
   },
   "track": {
     "title": "Titel",

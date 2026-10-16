@@ -3,7 +3,7 @@ import type { Track } from "@/api/provider";
 import { useSession } from "@/api/session";
 import { toastError } from "@/components/ui/toast";
 import i18n from "@/i18n";
-import { currentStreamQuality } from "@/settings/store";
+import { currentStreamQuality, useSettings } from "@/settings/store";
 import { audioEngine } from "./engine";
 import type { EngineEvent, OutputFormat, SourceFormat, TrackSource } from "./engineTypes";
 import { peekNext, usePlayer, type PlayerState, type QueueItem } from "./store";
@@ -66,6 +66,29 @@ export function startEngineBridge(): () => void {
   let repeatCounter = 0;
   let nextId: string | null = null;
   let lastProgressReport = 0;
+  /** Queue key the engine has loaded (after a restart nothing is loaded until the first play). */
+  let loadedKey: string | null = null;
+  let autoplayPending = false;
+
+  /** Autoplay: when nothing follows, continue with similar tracks (or random ones of the genre). */
+  async function autoplay(state: PlayerState) {
+    const provider = useSession.getState().provider;
+    const track = state.current?.track;
+    if (!provider || !track || autoplayPending || !useSettings.getState().autoplay) return;
+    if (peekNext(state) || state.repeat !== "off") return;
+    autoplayPending = true;
+    try {
+      let tracks = provider.capabilities.similarTracks ? await provider.getSimilarTracks(track.id, 25) : [];
+      if (tracks.length === 0) {
+        tracks = await provider.getRandomTracks({ size: 25, genre: track.genres[0] });
+      }
+      usePlayer.getState().appendRecommendations(tracks);
+    } catch {
+      // No autoplay this time; playback simply ends.
+    } finally {
+      autoplayPending = false;
+    }
+  }
   /** Tracks that started recently, by engine id (for scrobbling when they end). */
   const started = new Map<string, Track>();
 
@@ -104,6 +127,7 @@ export function startEngineBridge(): () => void {
 
   function play(state: PlayerState) {
     if (!state.current) return;
+    loadedKey = state.current.key;
     const source = toSource(state.current.key, state.current.track, state);
     if (!source) return;
     nextId = null;
@@ -121,6 +145,7 @@ export function startEngineBridge(): () => void {
     switch (event.type) {
       case "trackStarted": {
         const key = baseKey(event.id);
+        loadedKey = key;
         const item = state.current?.key === key ? state.current : peekNext(state);
         if (item && item.key === key) started.set(event.id, item.track);
         apply(() => {
@@ -153,7 +178,10 @@ export function startEngineBridge(): () => void {
         apply(() => {
           if (event.state === "playing") usePlayer.getState().setPlaying(true);
           else if (event.state === "paused") usePlayer.getState().setPlaying(false);
-          else if (event.state === "stopped") usePlayer.getState().finished();
+          else if (event.state === "stopped") {
+            loadedKey = null;
+            usePlayer.getState().finished();
+          }
         });
         break;
       case "buffering":
@@ -161,6 +189,7 @@ export function startEngineBridge(): () => void {
         break;
       case "needNext":
         syncNext(state, true);
+        void autoplay(state);
         break;
       case "trackEnded": {
         const track = started.get(event.id);
@@ -197,6 +226,11 @@ export function startEngineBridge(): () => void {
       engine.send({ type: "seek", positionMs: Math.round(state.positionMs) });
     }
     if (state.isPlaying !== prev.isPlaying && state.current) {
+      if (state.isPlaying && loadedKey !== state.current.key) {
+        // Restored queue after a restart (or a finished queue): load the track at its position.
+        play(state);
+        return;
+      }
       engine.send({ type: state.isPlaying ? "resume" : "pause" });
     }
     if (state.volume !== prev.volume || state.muted !== prev.muted) {

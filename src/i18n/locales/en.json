@@ -4,7 +4,10 @@
     "tagline": "Your music. Your server.",
     "connecting": "Connecting to {{server}} …",
     "retry": "Try again",
-    "signOut": "Use a different server"
+    "signOut": "Use a different server",
+    "crashTitle": "Something went wrong",
+    "crashText": "This view could not be shown. Reloading usually fixes it; your queue is kept.",
+    "reload": "Reload"
   },
   "common": {
     "showPassword": "Show password",
@@ -77,7 +80,9 @@
     "miniplayer": "Open mini player",
     "fullscreen": "Full screen",
     "playbackError": "Playback error: {{message}}",
-    "deviceLost": "The output device was disconnected. Playback continues on the default device."
+    "deviceLost": "The output device was disconnected. Playback continues on the default device.",
+    "shuffleSmart": "Enable Shuffle+ (with recommendations)",
+    "recommended": "Recommendation"
   },
   "track": {
     "title": "Title",

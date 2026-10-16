@@ -27,6 +27,8 @@ import { cn } from "@/lib/cn";
 import { formatDuration } from "@/lib/format";
 import { isLossless, qualityLabel } from "@/player/quality";
 import { usePlayer } from "@/player/store";
+import { cycleShuffle } from "@/player/actions";
+import { useSession } from "@/api/session";
 import { useLayout } from "./layoutStore";
 
 function NowPlayingInfo() {
@@ -89,20 +91,33 @@ function NowPlayingInfo() {
 function Transport() {
   const { t } = useTranslation();
   const { current, isPlaying, positionMs, durationMs, shuffle, repeat } = usePlayer();
-  const { togglePlay, next, previous, seek, setShuffle, cycleRepeat } = usePlayer.getState();
+  const { togglePlay, next, previous, seek, cycleRepeat } = usePlayer.getState();
+  const provider = useSession((s) => s.provider);
   const disabled = !current;
   const fraction = durationMs > 0 ? positionMs / durationMs : 0;
+  const shuffleLabel =
+    shuffle === "off"
+      ? t("player.shuffleOn")
+      : shuffle === "shuffle"
+        ? t("player.shuffleSmart")
+        : t("player.shuffleOff");
 
   return (
     <div className="flex w-[40%] max-w-[722px] flex-col items-center gap-1">
       <div className="flex items-center gap-4">
         <IconButton
-          label={shuffle === "off" ? t("player.shuffleOn") : t("player.shuffleOff")}
+          label={shuffleLabel}
           active={shuffle !== "off"}
           disabled={disabled}
-          onClick={() => setShuffle(shuffle === "off" ? "shuffle" : "off")}
+          onClick={() => void cycleShuffle(provider)}
+          className="relative"
         >
           <Shuffle size={18} />
+          {shuffle === "smart" && (
+            <span className="absolute -top-0.5 -right-1 text-[11px] leading-none font-extrabold text-accent">
+              +
+            </span>
+          )}
         </IconButton>
         <IconButton label={t("player.previous")} disabled={disabled} onClick={previous}>
           <SkipBack size={18} fill="currentColor" />
