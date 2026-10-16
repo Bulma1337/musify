@@ -10,30 +10,13 @@ import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { Switch } from "@/components/ui/Switch";
 import { TextField } from "@/components/ui/TextField";
+import { serverLabel } from "./serverLabel";
 
 type Detection =
   | { state: "idle" }
   | { state: "checking" }
   | { state: "found"; probe: ServerProbe }
   | { state: "failed"; message: string };
-
-const SERVER_LABELS: Record<string, string> = {
-  navidrome: "Navidrome",
-  gonic: "Gonic",
-  airsonic: "Airsonic",
-  "airsonic-advanced": "Airsonic-Advanced",
-  ampache: "Ampache",
-  lms: "LMS",
-  jellyfin: "Jellyfin",
-};
-
-function serverLabel(probe: ServerProbe): string {
-  const name =
-    (probe.serverType && SERVER_LABELS[probe.serverType.toLowerCase()]) ?? probe.serverType ?? "Subsonic";
-  // Navidrome reports e.g. "0.64.2 (10114574)"; the build hash in parentheses is noise for users.
-  const version = probe.serverVersion?.replace(/s*(.*)s*$/, "");
-  return version ? `${name} ${version}` : name;
-}
 
 /** First-run / add-server screen: address, credentials, automatic server detection. */
 export function ConnectServer() {
