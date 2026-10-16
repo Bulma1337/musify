@@ -1,0 +1,20 @@
+{
+  "search": {
+    "browseAll": "Browse everything",
+    "filters": "Narrow results",
+    "all": "All",
+    "tracks": "Songs",
+    "albums": "Albums",
+    "artists": "Artists",
+    "topResult": "Top result",
+    "typeTrack": "Song",
+    "typeAlbum": "Album",
+    "typeArtist": "Artist",
+    "context": "Search: {{query}}",
+    "noResultsTitle": "Nothing found for “{{query}}”",
+    "noResultsHint": "Check the spelling or try a different search term.",
+    "noGenres": "Your server has no genres yet.",
+    "albumsCount_one": "{{count}} album",
+    "albumsCount_other": "{{count}} albums"
+  }
+}

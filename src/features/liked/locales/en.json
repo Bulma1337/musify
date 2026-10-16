@@ -1,0 +1,10 @@
+{
+  "liked": {
+    "kind": "Collection",
+    "title": "Favorites",
+    "trackCount_one": "{{count}} track",
+    "trackCount_other": "{{count}} tracks",
+    "emptyTitle": "No favorites yet",
+    "emptyHint": "Tap the heart on any track and it will show up here."
+  }
+}
