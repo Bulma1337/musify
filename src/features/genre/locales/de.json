@@ -1,0 +1,9 @@
+{
+  "genre": {
+    "kind": "Genre",
+    "playShuffled": "Zufällig abspielen",
+    "albums": "Beliebte Alben",
+    "tracks": "Titel",
+    "empty": "In diesem Genre ist noch nichts."
+  }
+}

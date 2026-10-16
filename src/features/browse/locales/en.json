@@ -1,0 +1,16 @@
+{
+  "browse": {
+    "recentlyPlayed": "Recently played",
+    "recentlyAdded": "New on your server",
+    "mostPlayed": "Most played",
+    "random": "Random albums",
+    "starred": "Saved albums",
+    "alphabeticalByName": "Albums A to Z",
+    "alphabeticalByArtist": "Albums by artist",
+    "highestRated": "Top-rated albums",
+    "byYear": "Albums by year",
+    "byGenre": "Albums by genre",
+    "unknownType": "This overview does not exist.",
+    "empty": "Nothing in this list yet."
+  }
+}
