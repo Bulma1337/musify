@@ -1,7 +1,14 @@
 {
   "app": {
     "name": "Navify",
-    "tagline": "Your music. Your server."
+    "tagline": "Your music. Your server.",
+    "connecting": "Connecting to {{server}} …",
+    "retry": "Try again",
+    "signOut": "Use a different server"
+  },
+  "common": {
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "window": {
     "minimize": "Minimize",
@@ -20,5 +27,29 @@
   },
   "nowPlaying": {
     "nothing": "Nothing playing"
+  },
+  "onboarding": {
+    "title": "Connect to your music server",
+    "subtitle": "Navidrome, Subsonic, Gonic, Ampache or Jellyfin",
+    "url": "Server address",
+    "urlHint": "For example https://music.example.com or 192.168.1.10:4533",
+    "detecting": "Looking for a server …",
+    "detected": "Found {{server}}",
+    "username": "Username",
+    "password": "Password",
+    "passwordHint": "With Navidrome you can also leave the username empty and use an API key.",
+    "allowInsecure": "Allow self-signed certificates",
+    "connect": "Connect",
+    "secureStorage": "Your password is stored encrypted in the system credential store, never in plain text."
+  },
+  "errors": {
+    "auth": "Wrong username or password.",
+    "network": "Can't reach the server. Check the address and your connection.",
+    "timeout": "The server took too long to respond.",
+    "notFound": "No supported music server was found at this address.",
+    "unsupported": "This server type isn't supported yet.",
+    "invalidResponse": "The server sent an unexpected response.",
+    "server": "The server reported an error (code {{code}}).",
+    "unknown": "Something went wrong."
   }
 }

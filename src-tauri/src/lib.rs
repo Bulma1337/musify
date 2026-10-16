@@ -1,5 +1,7 @@
 use tauri::Manager;
 
+mod secrets;
+
 /// Basic build information shown in Settings → About.
 #[derive(serde::Serialize)]
 struct AppInfo {
@@ -59,7 +61,12 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_process::init())
-        .invoke_handler(tauri::generate_handler![app_info])
+        .invoke_handler(tauri::generate_handler![
+            app_info,
+            secrets::secret_set,
+            secrets::secret_get,
+            secrets::secret_delete
+        ])
         .run(tauri::generate_context!())
         .expect("error while running Navify");
 }

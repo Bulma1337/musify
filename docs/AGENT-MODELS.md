@@ -41,7 +41,7 @@ Legende: **Selbstständig** heißt, das Paket kann nach Erfüllung der Abhängig
 | Subsonic-Adapter-Tests mit MSW und aufgezeichneten Antworten          | Adapter      | ja                       | S2    |
 | Jellyfin-Adapter                                                      | provider.ts  | ja, parallel zu Subsonic | S4    |
 | Login-/Server-Dialog, Keyring-Anbindung                               | provider.ts  | ja                       | S3    |
-| Lokale Testserver (Navidrome, Jellyfin) und Testbibliothek per ffmpeg | M0           | ja                       | S1    |
+| Lokale Testserver (Navidrome, Jellyfin) und Testbibliothek per ffmpeg | M0           | ja                       | S3    |
 
 ### Audio-Engine (Rust)
 
