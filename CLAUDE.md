@@ -39,3 +39,16 @@ Tauri 2 shell, React 19 + TypeScript frontend, native Rust audio engine. Will be
 
 - Repo: github.com/Bulma1337/navify. One branch + PR per milestone (`m<N>-<topic>`), squash-merge when green.
 - The updater private key lives in `%USERPROFILE%\.navify-keys\` and in the repo secrets – never commit it.
+
+## Stay inside the project folder
+
+The user runs with bypass permissions, which only cover `C:\Users\PC\Documents\Navify`. Every access outside it
+(and direct writes into `.git/`) triggers a confirmation dialog. So:
+
+- Git worktrees go to `.worktrees/<name>` (ignored), never to sibling folders.
+- Local test servers live in `devservers/` (ignored; start with `devservers/start-all.ps1`, credentials in
+  `devservers/test-servers.json`). Screenshots and other dev output go to `.dev/` (`node scripts/screenshots.mjs`).
+- Cargo commands use the project-local cargo home: `$env:CARGO_HOME = "C:\Users\PC\Documents\Navify\.dev\cargo-home"`.
+  Read crate sources from `.dev/cargo-home/registry/src`, never from `%USERPROFILE%\.cargo`.
+- No temp files in `%TEMP%`; use `.dev/` or a crate's `target/`. Use git commands, not file edits, for anything in `.git/`.
+- Subagent briefs must repeat these rules.
