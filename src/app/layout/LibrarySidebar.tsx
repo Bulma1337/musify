@@ -1,36 +1,25 @@
-import { useMemo, useState } from "react";
-import { NavLink, useNavigate } from "react-router";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { DropdownMenu } from "radix-ui";
-import { ArrowDownUp, Check, Library, Plus, Search, Volume2, X } from "lucide-react";
-import type { CoverRef } from "@/api/provider";
-import { usePlaylists, useStarred } from "@/api/queries";
+import { ArrowDownUp, Check, FolderPlus, Library, ListMusic, Plus, Search, X } from "lucide-react";
+import { usePlaylists, useSetStarred, useStarred } from "@/api/queries";
 import { useProvider } from "@/api/session";
 import { describeError } from "@/api/errors";
-import { Cover } from "@/components/media/Cover";
 import { menuContent, menuItem } from "@/components/media/TrackMenu";
 import { IconButton } from "@/components/ui/Button";
-import { toastError } from "@/components/ui/toast";
+import { toast, toastError } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
-import { usePlayer } from "@/player/store";
+import type { DraggedTracks } from "@/lib/dnd";
+import { FolderRow } from "@/features/library/FolderRow";
+import { LibraryItem } from "@/features/library/LibraryItem";
+import { buildRows, type LibraryEntry } from "@/features/library/libraryModel";
+import { useLibrary, useLibraryPrefs } from "@/features/library/libraryStore";
 import { useLayout } from "./layoutStore";
 
 type Filter = "playlists" | "albums" | "artists";
 type Sort = "recent" | "alphabetical" | "creator";
-
-interface LibraryEntry {
-  key: string;
-  kind: "liked" | "playlist" | "album" | "artist";
-  id?: string;
-  title: string;
-  subtitle: string;
-  cover?: CoverRef;
-  to: string;
-  /** For sorting by "recently added". */
-  date?: string;
-  creator?: string;
-}
 
 function useLibraryEntries(): LibraryEntry[] {
   const { t } = useTranslation();
@@ -58,6 +47,7 @@ function useLibraryEntries(): LibraryEntry[] {
         to: `/playlist/${p.id}`,
         date: p.changedAt ?? p.createdAt,
         creator: p.owner,
+        readOnly: p.readOnly,
       });
     }
     for (const a of starred.data?.albums ?? []) {
@@ -96,46 +86,6 @@ const FILTER_KINDS: Record<Filter, LibraryEntry["kind"][]> = {
   artists: ["artist"],
 };
 
-function LibraryItem({ entry, collapsed }: { entry: LibraryEntry; collapsed: boolean }) {
-  const playing = usePlayer(
-    (s) =>
-      s.isPlaying &&
-      !!s.context &&
-      ((entry.kind === "liked" && s.context.type === "liked") ||
-        (s.context.type === entry.kind && s.context.id === entry.id)),
-  );
-
-  return (
-    <NavLink
-      to={entry.to}
-      title={collapsed ? entry.title : undefined}
-      className={({ isActive }) =>
-        cn(
-          "flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-highlight",
-          isActive && "bg-highlight hover:bg-press",
-        )
-      }
-    >
-      <Cover
-        cover={entry.cover}
-        size={48}
-        round={entry.kind === "artist"}
-        fallback={entry.kind === "liked" ? "liked" : entry.kind}
-        className="w-12 shadow-none"
-      />
-      {!collapsed && (
-        <>
-          <div className="min-w-0 flex-1">
-            <p className={cn("truncate", playing && "text-accent")}>{entry.title}</p>
-            <p className="truncate text-sm text-subdued">{entry.subtitle}</p>
-          </div>
-          {playing && <Volume2 size={16} className="shrink-0 text-accent" />}
-        </>
-      )}
-    </NavLink>
-  );
-}
-
 /** Left sidebar ("Bibliothek"): playlists, saved albums and artists with filters, search and sorting. */
 export function LibrarySidebar() {
   const { t } = useTranslation();
@@ -149,6 +99,12 @@ export function LibrarySidebar() {
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [sort, setSort] = useState<Sort>("recent");
+  const [editingFolder, setEditingFolder] = useState<string | null>(null);
+  // Radix hands focus back to the "+" button after its menu closes; that would steal it from the rename field.
+  const keepFocusOut = useRef(false);
+  const serverId = provider.server.id;
+  const prefs = useLibraryPrefs(serverId);
+  const { mutateAsync: setStarred } = useSetStarred();
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -166,6 +122,50 @@ export function LibrarySidebar() {
     });
     return [...liked, ...rest];
   }, [entries, filter, query, sort]);
+
+  // Filtering or searching shows matching entries flat; otherwise the folder tree (or the icon rail).
+  const flat = !!filter || query.trim() !== "";
+  const rows = useMemo(
+    () => buildRows(visible, prefs, flat ? "flat" : collapsed ? "rail" : "tree"),
+    [visible, prefs, flat, collapsed],
+  );
+
+  const startNewFolder = useCallback(
+    (entryKey?: string) => {
+      const library = useLibrary.getState();
+      const id = library.createFolder(serverId, t("libraryExtras.newFolderName"));
+      if (entryKey) library.moveToFolder(serverId, entryKey, id);
+      // Make the new folder visible: it is hidden by filters, searches and the collapsed rail.
+      setFilter(null);
+      setQuery("");
+      setSearchOpen(false);
+      const layout = useLayout.getState();
+      if (layout.libraryCollapsed) layout.toggleLibrary();
+      setEditingFolder(id);
+    },
+    [serverId, t],
+  );
+
+  const dropTracks = useCallback(
+    async (entry: LibraryEntry, dragged: DraggedTracks) => {
+      const ids = dragged.trackIds;
+      try {
+        if (entry.kind === "liked") {
+          await Promise.all(ids.map((id) => setStarred({ kind: "track", id, starred: true })));
+        } else if (entry.kind === "playlist" && entry.id) {
+          await provider.addToPlaylist(entry.id, ids);
+          void client.invalidateQueries({ queryKey: [serverId, "playlist", entry.id] });
+          void client.invalidateQueries({ queryKey: [serverId, "playlists"] });
+        } else {
+          return;
+        }
+        toast(t("libraryExtras.addedToPlaylist", { count: ids.length, name: entry.title }));
+      } catch (error) {
+        toastError(describeError(t, error));
+      }
+    },
+    [client, provider, serverId, setStarred, t],
+  );
 
   async function createPlaylist() {
     try {
@@ -209,13 +209,38 @@ export function LibrarySidebar() {
           {!collapsed && <span className="truncate text-text">{t("library.title")}</span>}
         </button>
         {!collapsed && <div className="flex-1" />}
-        <IconButton
-          label={t("library.create")}
-          onClick={() => void createPlaylist()}
-          className="bg-highlight"
-        >
-          <Plus size={18} />
-        </IconButton>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <IconButton label={t("libraryExtras.create")} className="bg-highlight">
+              <Plus size={18} />
+            </IconButton>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              align="start"
+              className={menuContent}
+              onCloseAutoFocus={(event) => {
+                if (keepFocusOut.current) {
+                  event.preventDefault();
+                  keepFocusOut.current = false;
+                }
+              }}
+            >
+              <DropdownMenu.Item className={menuItem} onSelect={() => void createPlaylist()}>
+                <ListMusic size={16} /> {t("library.create")}
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                className={menuItem}
+                onSelect={() => {
+                  keepFocusOut.current = true;
+                  startNewFolder();
+                }}
+              >
+                <FolderPlus size={16} /> {t("libraryExtras.createFolder")}
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
       </div>
 
       {!collapsed && (
@@ -278,9 +303,31 @@ export function LibrarySidebar() {
       )}
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 pb-2" aria-label={t("library.title")}>
-        {visible.map((entry) => (
-          <LibraryItem key={entry.key} entry={entry} collapsed={collapsed} />
-        ))}
+        {rows.map((row) =>
+          row.type === "folder" ? (
+            <FolderRow
+              key={`folder:${row.folder.id}`}
+              folder={row.folder}
+              serverId={serverId}
+              count={row.count}
+              rail={collapsed}
+              editing={editingFolder === row.folder.id}
+              onEdit={setEditingFolder}
+            />
+          ) : (
+            <LibraryItem
+              key={row.entry.key}
+              entry={row.entry}
+              serverId={serverId}
+              collapsed={collapsed}
+              depth={row.depth}
+              pinned={row.pinned}
+              folderId={row.folderId}
+              onDropTracks={dropTracks}
+              onNewFolder={startNewFolder}
+            />
+          ),
+        )}
       </nav>
     </aside>
   );
