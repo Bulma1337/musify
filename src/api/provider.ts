@@ -40,7 +40,7 @@ export interface Capabilities {
   syncedLyrics: boolean;
   /** Word-level (karaoke) timing is available. */
   wordSyncedLyrics: boolean;
-  /** Similar songs / instant mix for autoplay and smart shuffle. */
+  /** Similar songs / instant mix for autoplay and "Shuffle+". */
   similarTracks: boolean;
   /** Artist biography and images. */
   artistInfo: boolean;
@@ -340,7 +340,7 @@ export interface MusicProvider {
     limits?: { artists?: number; albums?: number; tracks?: number; offset?: number },
   ): Promise<SearchResult>;
 
-  // --- Favorites ("Lieblingssongs", saved albums, followed artists) ---------------------------
+  // --- Favorites (favorite tracks, saved albums, followed artists) ----------------------------
   getStarred(): Promise<{ tracks: Track[]; albums: Album[]; artists: Artist[] }>;
   setStarred(kind: StarrableKind, id: string, starred: boolean): Promise<void>;
   setRating?(trackId: string, rating: number | null): Promise<void>;

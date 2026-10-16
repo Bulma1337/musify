@@ -1,0 +1,9 @@
+{
+  "genre": {
+    "kind": "Genre",
+    "playShuffled": "Shuffle play",
+    "albums": "Popular albums",
+    "tracks": "Tracks",
+    "empty": "Nothing in this genre yet."
+  }
+}

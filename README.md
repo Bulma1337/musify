@@ -13,7 +13,7 @@ for your own <b>Navidrome</b>, <b>Subsonic/OpenSubsonic</b> and <b>Jellyfin</b> 
 - Native Rust audio engine: lossless and hi-res playback, true gapless, crossfade, ReplayGain, bit-perfect exclusive mode
 - Professional equalizer: 10/31-band graphic and parametric modes, preamp, limiter, bass enhancer, spectrum analyzer, AutoEQ import
 - Synced lyrics from your server, local `.lrc` files or LRCLIB
-- Offline downloads, playlists with drag-and-drop reordering, smart shuffle, queue, mini player
+- Offline downloads, playlists with drag-and-drop reordering, shuffle with recommendations, queue, mini player
 - Listening stats, automatic playlists and a yearly recap
 - Windows installer with automatic updates
 

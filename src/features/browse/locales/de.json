@@ -1,0 +1,16 @@
+{
+  "browse": {
+    "recentlyPlayed": "Zuletzt gehört",
+    "recentlyAdded": "Neu auf deinem Server",
+    "mostPlayed": "Am häufigsten gehört",
+    "random": "Zufällige Alben",
+    "starred": "Gespeicherte Alben",
+    "alphabeticalByName": "Alben von A bis Z",
+    "alphabeticalByArtist": "Alben nach Künstler",
+    "highestRated": "Bestbewertete Alben",
+    "byYear": "Alben nach Jahr",
+    "byGenre": "Alben nach Genre",
+    "unknownType": "Diese Übersicht gibt es nicht.",
+    "empty": "In dieser Liste ist noch nichts."
+  }
+}

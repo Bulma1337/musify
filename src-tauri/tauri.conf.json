@@ -53,7 +53,7 @@
     "publisher": "Navify contributors",
     "homepage": "https://github.com/Bulma1337/navify",
     "category": "Music",
-    "shortDescription": "Spotify-style player for Navidrome, Subsonic and Jellyfin",
+    "shortDescription": "Music player for Navidrome, Subsonic and Jellyfin",
     "copyright": "© Navify contributors",
     "icon": [
       "icons/32x32.png",

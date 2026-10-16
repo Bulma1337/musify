@@ -1,0 +1,18 @@
+{
+  "home": {
+    "greeting": {
+      "morning": "Guten Morgen",
+      "day": "Guten Tag",
+      "evening": "Guten Abend"
+    },
+    "quickAccess": "Schnellzugriff",
+    "recentlyPlayed": "Zuletzt gehört",
+    "recentlyAdded": "Neu auf deinem Server",
+    "mostPlayed": "Am häufigsten gehört",
+    "random": "Zufällige Alben",
+    "starred": "Gespeicherte Alben",
+    "playlists": "Deine Playlists",
+    "emptyTitle": "Hier ist noch nichts los",
+    "emptyText": "Sobald Musik auf deinem Server liegt und du etwas gehört hast, erscheint sie hier."
+  }
+}

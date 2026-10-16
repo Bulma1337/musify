@@ -8,7 +8,15 @@
   },
   "common": {
     "showPassword": "Passwort anzeigen",
-    "hidePassword": "Passwort verbergen"
+    "hidePassword": "Passwort verbergen",
+    "showAll": "Alle anzeigen",
+    "loading": "Wird geladen …",
+    "songs_one": "{{count}} Song",
+    "songs_other": "{{count}} Songs"
+  },
+  "format": {
+    "hoursMinutes": "{{h}} Std. {{m}} Min.",
+    "minutesSeconds": "{{m}} Min. {{s}} Sek."
   },
   "window": {
     "minimize": "Minimieren",
@@ -20,13 +28,110 @@
     "back": "Zurück",
     "forward": "Vor",
     "home": "Startseite",
-    "searchPlaceholder": "Was möchtest du wiedergeben?"
+    "searchPlaceholder": "Songs, Alben oder Künstler*innen suchen",
+    "clearSearch": "Suche leeren"
   },
   "library": {
-    "title": "Bibliothek"
+    "title": "Bibliothek",
+    "create": "Playlist erstellen",
+    "expand": "Bibliothek ausklappen",
+    "collapse": "Bibliothek einklappen",
+    "playlists": "Playlists",
+    "albums": "Alben",
+    "artists": "Künstler*innen",
+    "clearFilter": "Filter entfernen",
+    "search": "Bibliothek durchsuchen",
+    "searchPlaceholder": "Bibliothek durchsuchen",
+    "sortBy": "Sortieren nach",
+    "sortRecent": "Zuletzt hinzugefügt",
+    "sortAlphabetical": "Alphabetisch",
+    "sortCreator": "Ersteller*in",
+    "likedSongs": "Favoriten",
+    "likedSubtitle_one": "Sammlung • {{count}} Titel",
+    "likedSubtitle_other": "Sammlung • {{count}} Titel",
+    "playlistBy": "Playlist • {{owner}}",
+    "albumBy": "Album • {{artist}}",
+    "artist": "Künstler*in",
+    "newPlaylistName": "Neue Playlist {{n}}"
+  },
+  "player": {
+    "play": "Wiedergabe",
+    "pause": "Pause",
+    "playTrack": "{{title}} wiedergeben",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "shuffleOn": "Zufallswiedergabe aktivieren",
+    "shuffleOff": "Zufallswiedergabe deaktivieren",
+    "repeat": {
+      "off": "Wiederholen aktivieren",
+      "all": "Einen Song wiederholen",
+      "one": "Wiederholen deaktivieren"
+    },
+    "progress": "Wiedergabeposition",
+    "volume": "Lautstärke",
+    "mute": "Stummschalten",
+    "unmute": "Stummschaltung aufheben",
+    "lyrics": "Songtext",
+    "queue": "Warteschlange",
+    "devices": "Ausgabegerät wählen",
+    "miniplayer": "Miniplayer öffnen",
+    "fullscreen": "Vollbild"
+  },
+  "track": {
+    "title": "Titel",
+    "album": "Album",
+    "added": "Hinzugefügt am",
+    "duration": "Dauer",
+    "explicit": "Explizite Inhalte",
+    "disc": "CD {{n}}"
+  },
+  "menu": {
+    "addToQueue": "Zur Warteschlange hinzufügen",
+    "playNext": "Als Nächstes wiedergeben",
+    "addToPlaylist": "Zur Playlist hinzufügen",
+    "newPlaylist": "Neue Playlist",
+    "newPlaylistName": "Neue Playlist",
+    "addToLiked": "Zu Favoriten hinzufügen",
+    "removeFromLiked": "Aus Favoriten entfernen",
+    "goToArtist": "Künstlerseite öffnen",
+    "goToAlbum": "Album öffnen",
+    "more": "Weitere Optionen",
+    "addedToQueue": "Zur Warteschlange hinzugefügt",
+    "playingNext": "Wird als Nächstes wiedergegeben",
+    "addedToPlaylist": "Zu „{{name}}“ hinzugefügt",
+    "playlistCreated": "Playlist „{{name}}“ erstellt",
+    "addedToLiked": "Zu Favoriten hinzugefügt",
+    "removedFromLiked": "Aus Favoriten entfernt"
   },
   "nowPlaying": {
-    "nothing": "Gerade läuft nichts"
+    "title": "Aktueller Titel",
+    "nothing": "Gerade läuft nichts",
+    "aboutArtist": "Künstlerprofil",
+    "credits": "Details & Qualität",
+    "album": "Album",
+    "year": "Jahr",
+    "genre": "Genre",
+    "format": "Format",
+    "sampleRate": "Abtastrate",
+    "bitDepth": "Bittiefe",
+    "bitRate": "Bitrate",
+    "replayGain": "ReplayGain (Track)",
+    "lastPlayed": "Zuletzt gehört",
+    "nextInQueue": "Als Nächstes"
+  },
+  "queue": {
+    "title": "Warteschlange",
+    "history": "Zuletzt gehört",
+    "nowPlaying": "Aktueller Titel",
+    "nextInQueue": "Von dir eingereiht",
+    "nextFrom": "Als Nächstes aus: {{name}}",
+    "empty": "Füge Songs hinzu, um deine Warteschlange zu füllen.",
+    "historyEmpty": "Du hast in dieser Sitzung noch nichts gehört."
+  },
+  "devices": {
+    "title": "Ausgabe",
+    "thisComputer": "Dieser Computer",
+    "systemDefault": "Systemstandard"
   },
   "onboarding": {
     "title": "Mit deinem Musikserver verbinden",

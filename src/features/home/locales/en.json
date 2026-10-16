@@ -1,0 +1,18 @@
+{
+  "home": {
+    "greeting": {
+      "morning": "Good morning",
+      "day": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "quickAccess": "Quick access",
+    "recentlyPlayed": "Recently played",
+    "recentlyAdded": "New on your server",
+    "mostPlayed": "Most played",
+    "random": "Random albums",
+    "starred": "Saved albums",
+    "playlists": "Your playlists",
+    "emptyTitle": "Nothing here yet",
+    "emptyText": "Once your server has music and you have listened to something, it shows up here."
+  }
+}

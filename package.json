@@ -68,5 +68,5 @@
     "vite": "^8.0.16",
     "vitest": "^5.0.5"
   },
-  "description": "Fast Spotify-style desktop player for Navidrome, Subsonic and Jellyfin"
+  "description": "Fast, lightweight desktop music player for Navidrome, Subsonic and Jellyfin"
 }

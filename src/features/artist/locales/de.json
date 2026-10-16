@@ -1,0 +1,28 @@
+{
+  "artist": {
+    "kind": "Künstler*in",
+    "follow": "Folgen",
+    "following": "Gefolgt",
+    "followed": "Du folgst jetzt diesem Act",
+    "unfollowed": "Du folgst diesem Act nicht mehr",
+    "popular": "Beliebt",
+    "showMore": "Mehr anzeigen",
+    "showLess": "Weniger anzeigen",
+    "discography": "Diskografie",
+    "filterPopular": "Beliebte Releases",
+    "filterAlbums": "Alben",
+    "filterSingles": "Singles und EPs",
+    "filters": "Releases filtern",
+    "typeAlbum": "Album",
+    "typeSingle": "Single",
+    "typeEp": "EP",
+    "typeCompilation": "Compilation",
+    "typeLive": "Live",
+    "noReleases": "In dieser Kategorie gibt es keine Releases.",
+    "fansAlsoLike": "Fans mögen auch",
+    "about": "Über",
+    "readMore": "Mehr lesen",
+    "readLess": "Weniger lesen",
+    "notFound": "Diese Künstlerseite wurde nicht gefunden."
+  }
+}

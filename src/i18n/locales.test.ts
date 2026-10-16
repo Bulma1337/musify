@@ -1,5 +1,4 @@
-import de from "./locales/de.json";
-import en from "./locales/en.json";
+import { collectMessages } from "./index";
 
 /** Flattens nested translation objects into dotted keys. */
 function keys(obj: object, prefix = ""): string[] {
@@ -9,7 +8,7 @@ function keys(obj: object, prefix = ""): string[] {
 }
 
 describe("locales", () => {
-  it("German and English define the same keys", () => {
-    expect(keys(en).sort()).toEqual(keys(de).sort());
+  it("German and English define the same keys (shared and feature files)", () => {
+    expect(keys(collectMessages("en")).sort()).toEqual(keys(collectMessages("de")).sort());
   });
 });

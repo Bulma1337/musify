@@ -1,0 +1,26 @@
+{
+  "album": {
+    "kindAlbum": "Album",
+    "kindSingle": "Single",
+    "kindEp": "EP",
+    "kindCompilation": "Compilation",
+    "kindLive": "Livealbum",
+    "tracks_one": "{{count}} Titel",
+    "tracks_other": "{{count}} Titel",
+    "shuffle": "Zufällig abspielen",
+    "save": "Album speichern",
+    "unsave": "Album aus der Bibliothek entfernen",
+    "saved": "Album gespeichert",
+    "unsaved": "Album entfernt",
+    "more": "Weitere Optionen",
+    "addToQueue": "Zur Warteschlange hinzufügen",
+    "playNext": "Als Nächstes wiedergeben",
+    "goToArtist": "Zur Künstlerseite",
+    "addedToQueue": "Zur Warteschlange hinzugefügt",
+    "playingNext": "Wird als Nächstes gespielt",
+    "released": "Erschienen: {{date}}",
+    "moreFrom": "Mehr von {{artist}}",
+    "notFound": "Dieses Album wurde nicht gefunden.",
+    "empty": "Dieses Album enthält keine Titel."
+  }
+}

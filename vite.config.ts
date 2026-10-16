@@ -80,7 +80,7 @@ export default defineConfig({
     strictPort: true,
     host: host || false,
     hmr: host ? { protocol: "ws", host, port: 1421 } : undefined,
-    watch: { ignored: ["**/src-tauri/**"] },
+    watch: { ignored: ["**/src-tauri/**", "**/.worktrees/**", "**/.dev/**", "**/devservers/**"] },
   },
   build: {
     target: "chrome120",
@@ -92,5 +92,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    // The persistent module cache does not notice new files matched by import.meta.glob (feature locales).
+    fsModuleCache: false,
   },
 });

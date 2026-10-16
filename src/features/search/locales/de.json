@@ -1,0 +1,20 @@
+{
+  "search": {
+    "browseAll": "Alles durchsuchen",
+    "filters": "Ergebnisse eingrenzen",
+    "all": "Alle",
+    "tracks": "Titel",
+    "albums": "Alben",
+    "artists": "Künstler*innen",
+    "topResult": "Top-Ergebnis",
+    "typeTrack": "Titel",
+    "typeAlbum": "Album",
+    "typeArtist": "Künstler*in",
+    "context": "Suche: {{query}}",
+    "noResultsTitle": "Nichts gefunden für „{{query}}“",
+    "noResultsHint": "Prüfe die Schreibweise oder probiere einen anderen Suchbegriff.",
+    "noGenres": "Auf deinem Server gibt es noch keine Genres.",
+    "albumsCount_one": "{{count}} Album",
+    "albumsCount_other": "{{count}} Alben"
+  }
+}

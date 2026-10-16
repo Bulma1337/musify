@@ -8,7 +8,15 @@
   },
   "common": {
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "showAll": "Show all",
+    "loading": "Loading …",
+    "songs_one": "{{count}} song",
+    "songs_other": "{{count}} songs"
+  },
+  "format": {
+    "hoursMinutes": "{{h}} hr {{m}} min",
+    "minutesSeconds": "{{m}} min {{s}} sec"
   },
   "window": {
     "minimize": "Minimize",
@@ -20,13 +28,110 @@
     "back": "Back",
     "forward": "Forward",
     "home": "Home",
-    "searchPlaceholder": "What do you want to play?"
+    "searchPlaceholder": "Search songs, albums or artists",
+    "clearSearch": "Clear search"
   },
   "library": {
-    "title": "Your Library"
+    "title": "Library",
+    "create": "Create playlist",
+    "expand": "Expand library",
+    "collapse": "Collapse library",
+    "playlists": "Playlists",
+    "albums": "Albums",
+    "artists": "Artists",
+    "clearFilter": "Clear filter",
+    "search": "Search library",
+    "searchPlaceholder": "Search library",
+    "sortBy": "Sort by",
+    "sortRecent": "Recently added",
+    "sortAlphabetical": "Alphabetical",
+    "sortCreator": "Creator",
+    "likedSongs": "Favorites",
+    "likedSubtitle_one": "Collection • {{count}} track",
+    "likedSubtitle_other": "Collection • {{count}} tracks",
+    "playlistBy": "Playlist • {{owner}}",
+    "albumBy": "Album • {{artist}}",
+    "artist": "Artist",
+    "newPlaylistName": "New playlist {{n}}"
+  },
+  "player": {
+    "play": "Play",
+    "pause": "Pause",
+    "playTrack": "Play {{title}}",
+    "previous": "Previous",
+    "next": "Next",
+    "shuffleOn": "Enable shuffle",
+    "shuffleOff": "Disable shuffle",
+    "repeat": {
+      "off": "Enable repeat",
+      "all": "Enable repeat one",
+      "one": "Disable repeat"
+    },
+    "progress": "Playback position",
+    "volume": "Volume",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "lyrics": "Lyrics",
+    "queue": "Queue",
+    "devices": "Choose output device",
+    "miniplayer": "Open mini player",
+    "fullscreen": "Full screen"
+  },
+  "track": {
+    "title": "Title",
+    "album": "Album",
+    "added": "Date added",
+    "duration": "Duration",
+    "explicit": "Explicit content",
+    "disc": "Disc {{n}}"
+  },
+  "menu": {
+    "addToQueue": "Add to queue",
+    "playNext": "Play next",
+    "addToPlaylist": "Add to playlist",
+    "newPlaylist": "New playlist",
+    "newPlaylistName": "New playlist",
+    "addToLiked": "Add to favorites",
+    "removeFromLiked": "Remove from favorites",
+    "goToArtist": "Open artist page",
+    "goToAlbum": "Open album",
+    "more": "More options",
+    "addedToQueue": "Added to queue",
+    "playingNext": "Playing next",
+    "addedToPlaylist": "Added to “{{name}}”",
+    "playlistCreated": "Created playlist “{{name}}”",
+    "addedToLiked": "Added to favorites",
+    "removedFromLiked": "Removed from favorites"
   },
   "nowPlaying": {
-    "nothing": "Nothing playing"
+    "title": "Now playing",
+    "nothing": "Nothing playing",
+    "aboutArtist": "Artist profile",
+    "credits": "Details & quality",
+    "album": "Album",
+    "year": "Year",
+    "genre": "Genre",
+    "format": "Format",
+    "sampleRate": "Sample rate",
+    "bitDepth": "Bit depth",
+    "bitRate": "Bit rate",
+    "replayGain": "ReplayGain (track)",
+    "lastPlayed": "Last played",
+    "nextInQueue": "Up next"
+  },
+  "queue": {
+    "title": "Queue",
+    "history": "Recently played",
+    "nowPlaying": "Now playing",
+    "nextInQueue": "Queued by you",
+    "nextFrom": "Up next from: {{name}}",
+    "empty": "Add songs to fill your queue.",
+    "historyEmpty": "You haven't played anything in this session yet."
+  },
+  "devices": {
+    "title": "Output",
+    "thisComputer": "This computer",
+    "systemDefault": "System default"
   },
   "onboarding": {
     "title": "Connect to your music server",
