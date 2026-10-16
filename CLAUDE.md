@@ -42,13 +42,17 @@ Tauri 2 shell, React 19 + TypeScript frontend, native Rust audio engine. Will be
 
 ## Stay inside the project folder
 
-The user runs with bypass permissions, which only cover `C:\Users\PC\Documents\Navify`. Every access outside it
-(and direct writes into `.git/`) triggers a confirmation dialog. So:
+The user runs with bypass permissions, which only cover `C:\Users\PC\Documents\Navify`. Every access outside it,
+direct writes into `.git/`, **and any shell command containing `cd` / `Set-Location` / `Push-Location` or an
+`$env:…=` assignment** triggers a confirmation dialog. So:
 
+- Never change directory in a command. Use absolute paths: `git -C <path>`, `cargo … --manifest-path <path>`,
+  `npm --prefix <path>`, absolute file arguments. The shell's working directory is already the project root.
 - Git worktrees go to `.worktrees/<name>` (ignored), never to sibling folders.
 - Local test servers live in `devservers/` (ignored; start with `devservers/start-all.ps1`, credentials in
   `devservers/test-servers.json`). Screenshots and other dev output go to `.dev/` (`node scripts/screenshots.mjs`).
-- Cargo commands use the project-local cargo home: `$env:CARGO_HOME = "C:\Users\PC\Documents\Navify\.dev\cargo-home"`.
-  Read crate sources from `.dev/cargo-home/registry/src`, never from `%USERPROFILE%\.cargo`.
+- Cargo builds use the default cargo home (no env changes). To read a crate's source, use the read-only copy in
+  `.dev/cargo-home/registry/src` (refresh with `cargo fetch` and `CARGO_HOME` set via the tool environment only if
+  versions change), never `%USERPROFILE%\.cargo`.
 - No temp files in `%TEMP%`; use `.dev/` or a crate's `target/`. Use git commands, not file edits, for anything in `.git/`.
 - Subagent briefs must repeat these rules.
