@@ -29,7 +29,7 @@ export function TextField({
   const effectiveType = revealable && revealed ? "text" : type;
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn("flex flex-col gap-1.5", className)}>
       <label htmlFor={inputId} className="text-sm font-bold">
         {label}
       </label>
@@ -39,7 +39,7 @@ export function TextField({
           type={effectiveType}
           aria-invalid={error ? true : undefined}
           className={cn(
-            "h-12 w-full rounded-md border bg-surface px-3.5 text-[15px] text-text outline-none transition-colors placeholder:text-muted",
+            "h-11 w-full rounded-md border bg-surface px-3.5 text-[15px] text-text outline-none transition-colors placeholder:text-muted",
             "hover:border-subdued focus:border-text focus:shadow-[0_0_0_1px_var(--color-text)]",
             error ? "border-danger" : "border-muted",
             revealable && "pr-12",

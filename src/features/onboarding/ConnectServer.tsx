@@ -114,12 +114,12 @@ export function ConnectServer() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--color-accent-soft),transparent_60%)]" />
       <form
         onSubmit={onSubmit}
-        className="relative m-auto flex w-full max-w-[440px] flex-col gap-6 px-6 py-10"
+        className="relative m-auto flex w-full max-w-[440px] flex-col gap-4 px-6 py-8"
         noValidate
       >
-        <div className="flex flex-col items-center gap-4 text-center">
-          <img src="/navify.svg" alt="" className="size-16" draggable={false} />
-          <h1 className="text-[32px] leading-tight font-extrabold tracking-tight">{t("onboarding.title")}</h1>
+        <div className="mb-2 flex flex-col items-center gap-3 text-center">
+          <img src="/navify.svg" alt="" className="size-12" draggable={false} />
+          <h1 className="text-[28px] leading-tight font-extrabold tracking-tight">{t("onboarding.title")}</h1>
           <p className="text-subdued">{t("onboarding.subtitle")}</p>
         </div>
 

@@ -108,7 +108,7 @@ export function App() {
     <div className="flex h-full flex-col">
       <TitleBar />
       {content}
-      <footer className="h-[72px] shrink-0" />
+      {status === "ready" && <footer className="h-[72px] shrink-0" />}
     </div>
   );
 }
