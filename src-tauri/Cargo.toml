@@ -1,3 +1,6 @@
+[workspace]
+members = ["crates/navify-audio"]
+
 [package]
 name = "navify"
 version = "0.1.0"
