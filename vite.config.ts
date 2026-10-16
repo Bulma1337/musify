@@ -92,5 +92,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    // The persistent module cache does not notice new files matched by import.meta.glob (feature locales).
+    fsModuleCache: false,
   },
 });
