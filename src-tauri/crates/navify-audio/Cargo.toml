@@ -29,6 +29,8 @@ sha2 = "0.11"
 # Same TLS stack as the app (rustls + ring), blocking client on dedicated download threads.
 reqwest = { version = "0.13", default-features = false, features = ["blocking", "http2", "rustls-no-provider"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+# OS trust store verification for the explicitly configured (ring) rustls client; same version reqwest uses.
+rustls-platform-verifier = "0.7"
 
 [target.'cfg(windows)'.dependencies]
 wasapi = "0.26"

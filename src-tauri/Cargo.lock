@@ -2653,6 +2653,7 @@ dependencies = [
  "rtrb",
  "rubato",
  "rustls",
+ "rustls-platform-verifier",
  "serde",
  "sha2 0.11.1",
  "symphonia",
