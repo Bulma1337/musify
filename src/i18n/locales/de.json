@@ -28,7 +28,7 @@
     "back": "Zurück",
     "forward": "Vor",
     "home": "Startseite",
-    "searchPlaceholder": "Songs, Alben oder Künstler*innen suchen",
+    "searchPlaceholder": "Songs, Alben oder Künstler suchen",
     "clearSearch": "Suche leeren"
   },
   "library": {
@@ -38,20 +38,20 @@
     "collapse": "Bibliothek einklappen",
     "playlists": "Playlists",
     "albums": "Alben",
-    "artists": "Künstler*innen",
+    "artists": "Künstler",
     "clearFilter": "Filter entfernen",
     "search": "Bibliothek durchsuchen",
     "searchPlaceholder": "Bibliothek durchsuchen",
     "sortBy": "Sortieren nach",
     "sortRecent": "Zuletzt hinzugefügt",
     "sortAlphabetical": "Alphabetisch",
-    "sortCreator": "Ersteller*in",
+    "sortCreator": "Ersteller",
     "likedSongs": "Favoriten",
     "likedSubtitle_one": "Sammlung • {{count}} Titel",
     "likedSubtitle_other": "Sammlung • {{count}} Titel",
     "playlistBy": "Playlist • {{owner}}",
     "albumBy": "Album • {{artist}}",
-    "artist": "Künstler*in",
+    "artist": "Künstler",
     "newPlaylistName": "Neue Playlist {{n}}"
   },
   "player": {
