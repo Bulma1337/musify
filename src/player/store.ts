@@ -56,6 +56,17 @@ interface PlayerState {
   seekNonce: number;
 
   playTracks(tracks: Track[], startIndex: number, context: PlayContext): void;
+  /**
+   * Replaces the queue with `tracks` (in order, no shuffle) at `index` and `positionMs`, e.g. a queue
+   * saved on the server by another device. Starts playing only with `play`.
+   */
+  restoreQueue(input: {
+    tracks: Track[];
+    index: number;
+    positionMs: number;
+    context: PlayContext;
+    play: boolean;
+  }): void;
   togglePlay(): void;
   setPlaying(playing: boolean): void;
   /** User skips forward (always advances, also with repeat-one). */
@@ -174,6 +185,29 @@ export const usePlayer = create<PlayerState>()(
           durationMs: items[start]?.track.durationMs ?? 0,
           shuffle,
           startNonce: get().startNonce + 1,
+        });
+      },
+
+      restoreQueue({ tracks, index, positionMs, context, play }) {
+        if (tracks.length === 0) return;
+        const items = tracks.map((t) => makeItem(t));
+        const start = Math.min(Math.max(index, 0), items.length - 1);
+        const current = items[start] ?? null;
+        const durationMs = current?.track.durationMs ?? 0;
+        set({
+          context,
+          contextItems: items,
+          order: items.map((_, i) => i),
+          orderIndex: start,
+          manualQueue: [],
+          current,
+          history: pushHistory(get()),
+          isPlaying: play,
+          positionMs: Math.min(Math.max(positionMs, 0), durationMs > 0 ? durationMs : positionMs),
+          durationMs,
+          shuffle: "off",
+          // Playing right away goes through a fresh start at the restored position.
+          ...(play ? { startNonce: get().startNonce + 1 } : {}),
         });
       },
 

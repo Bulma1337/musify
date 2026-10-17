@@ -303,6 +303,8 @@ export type PlaybackEvent =
 
 export interface SavedPlayQueue {
   trackIds: string[];
+  /** The queued tracks themselves (when loading; saving only needs the ids). */
+  tracks?: Track[];
   currentId?: string;
   positionMs: number;
   changedAt?: string;

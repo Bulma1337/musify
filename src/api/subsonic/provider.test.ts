@@ -515,8 +515,9 @@ describe("misc endpoints", () => {
         },
       }),
     );
-    expect(await provider.getPlayQueue?.()).toEqual({
+    expect(await provider.getPlayQueue?.()).toMatchObject({
       trackIds: ["a", "b"],
+      tracks: [{ id: "a" }, { id: "b" }],
       currentId: "b",
       positionMs: 99,
       changedAt: "2025-01-01T00:00:00Z",

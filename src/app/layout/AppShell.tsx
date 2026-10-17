@@ -1,3 +1,4 @@
+import { resumeAtStartup, startQueueSync } from "@/player/resume";
 import { FullscreenPlayer } from "./FullscreenPlayer";
 import { MiniPlayer } from "./MiniPlayer";
 import { normalizeWindowAtStartup, usePlayerView } from "./playerView";
@@ -101,6 +102,10 @@ export function AppShell() {
   useAppearance();
   useEffect(() => startEngineBridge(), []);
   useEffect(() => startEngineSettingsSync(), []);
+  useEffect(() => {
+    void resumeAtStartup();
+    return startQueueSync();
+  }, []);
   useEffect(() => {
     void normalizeWindowAtStartup();
   }, []);

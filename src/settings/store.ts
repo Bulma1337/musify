@@ -46,6 +46,13 @@ interface SettingsState {
   shuffleAlgorithm: "balanced" | "random";
   /** Continue with similar tracks when the queue ends. */
   autoplay: boolean;
+  /**
+   * Continue exactly where playback stopped (after closing the app or on another device) if that was
+   * at most this many minutes ago; 0 = never resume playing by itself.
+   */
+  resumeWindowMin: number;
+  /** Save the play queue on the server so other devices (and this one) can continue it. */
+  syncPlayQueue: boolean;
   streamingQuality: QualityPreset;
   downloadQuality: QualityPreset;
   /** Size limit of the audio streaming cache in GB: one of `CACHE_LIMITS_GB`. */
@@ -75,6 +82,8 @@ export const useSettings = create<SettingsState>()(
     (set) => ({
       shuffleAlgorithm: "balanced",
       autoplay: true,
+      resumeWindowMin: 10,
+      syncPlayQueue: true,
       streamingQuality: "original",
       downloadQuality: "original",
       cacheLimitGb: 2,

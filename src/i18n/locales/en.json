@@ -89,7 +89,12 @@
     "miniBack": "Back to the app",
     "miniPin": "Always on top",
     "miniUnpin": "Don't keep on top",
-    "miniMinimize": "Minimize"
+    "miniMinimize": "Minimize",
+    "resumedQueue": "Continued queue",
+    "resumedFrom": "Continuing where you left off on “{{client}}”.",
+    "loadedFrom": "Took over the queue from “{{client}}”.",
+    "resumed": "Continuing where you left off.",
+    "loaded": "Took over the queue from the server."
   },
   "track": {
     "title": "Title",

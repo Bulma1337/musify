@@ -89,7 +89,12 @@
     "miniBack": "Zurück zur App",
     "miniPin": "Immer im Vordergrund",
     "miniUnpin": "Nicht mehr im Vordergrund",
-    "miniMinimize": "Minimieren"
+    "miniMinimize": "Minimieren",
+    "resumedQueue": "Fortgesetzte Warteschlange",
+    "resumedFrom": "Es geht weiter, wo du auf „{{client}}“ aufgehört hast.",
+    "loadedFrom": "Warteschlange von „{{client}}“ übernommen.",
+    "resumed": "Es geht weiter, wo du aufgehört hast.",
+    "loaded": "Warteschlange vom Server übernommen."
   },
   "track": {
     "title": "Titel",
