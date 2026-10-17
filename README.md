@@ -10,7 +10,7 @@ for your own <b>Navidrome</b>, <b>Subsonic/OpenSubsonic</b> and <b>Jellyfin</b> 
 ## Features
 
 - **Familiar layout**: library, main view, now-playing panel and player bar; full-screen player and a miniplayer.
-- **Native audio engine** (Rust, 64-bit float processing): lossless and hi-res playback up to 32 bit / 768 kHz, sample-exact gapless playback, equal-power crossfade, ReplayGain / loudness normalization, true-peak limiter.
+- **Native audio engine** (Rust, 64-bit float processing): lossless and hi-res playback (tested up to 32 bit / 384 kHz), sample-exact gapless playback, equal-power crossfade, ReplayGain / loudness normalization, true-peak limiter.
 - **Exclusive mode** (Windows WASAPI): each track at its native sample rate and bit depth, bit-perfect when no processing is active; best-rate fallback when the device can't do the native rate.
 - **Equalizer**: 10- and 31-band graphic EQ that follows its sliders within half a decibel, parametric EQ, preamp with automatic headroom, Deep Bass, presets, AutoEQ import, live spectrum.
 - **Synced lyrics** from your server, `.lrc` files next to downloads, or LRCLIB (can be switched off).
