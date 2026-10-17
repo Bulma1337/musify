@@ -4,6 +4,7 @@ mod audio;
 mod db;
 mod downloads;
 mod secrets;
+mod stats;
 
 /// Basic build information shown in Settings → About.
 #[derive(serde::Serialize)]
@@ -85,6 +86,11 @@ pub fn run() {
             audio::audio_devices,
             audio::audio_eq_response,
             audio::audio_parse_autoeq,
+            stats::history_record,
+            stats::stats_summary,
+            stats::stats_tracks,
+            stats::stats_years,
+            stats::save_png,
             audio::audio_cache_info,
             audio::audio_cache_set_limit,
             audio::audio_cache_clear,

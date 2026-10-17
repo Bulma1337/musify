@@ -1,0 +1,161 @@
+{
+  "recap": {
+    "title": "Recap {{year}}",
+    "notFound": "This recap does not exist.",
+    "locked": "Your recap for {{year}} opens on December 1.",
+    "empty": "There is no listening history for {{year}} yet.",
+    "backHome": "Back to home",
+    "previewNote": "Preview: your recap becomes final on December 31.",
+    "close": "Close",
+    "previous": "Previous",
+    "next": "Next",
+    "slideOf": "Slide {{current}} of {{total}}",
+    "restart": "Start over",
+    "plays_one": "{{count}} play",
+    "plays_other": "{{count}} plays",
+    "banner": {
+      "previewKicker": "Preview",
+      "finalKicker": "Your year in music",
+      "title": "Your {{year}} recap",
+      "previewText": "Take a look now. Songs you play until December 31 still count.",
+      "finalText": "Top songs, artists, your listener type and more.",
+      "open": "Open"
+    },
+    "archive": {
+      "final": "Archive",
+      "preview": "Preview",
+      "locked": "From December 1"
+    },
+    "share": {
+      "minutesLabel": "minutes of music",
+      "topSong": "Song of the year",
+      "topArtists": "Top artists",
+      "topSongs": "Top songs",
+      "topGenre": "Top genre",
+      "personality": "Listener type",
+      "footer": "Navify",
+      "story": "Save as story (9:16)",
+      "square": "Save as picture (1:1)",
+      "saved": "Image saved",
+      "failed": "The image could not be created"
+    },
+    "playlist": {
+      "play": "Play top songs {{year}}",
+      "save": "Save top songs {{year}} as playlist",
+      "empty": "No songs found"
+    },
+    "personality": {
+      "nightOwl": {
+        "name": "Night owl",
+        "text": "Most of your music plays while others are asleep."
+      },
+      "earlyBird": {
+        "name": "Early bird",
+        "text": "Your day starts with music: the morning is your prime listening time."
+      },
+      "explorer": {
+        "name": "Explorer",
+        "text": "You keep trying new things: a large part of your songs was new to you this year."
+      },
+      "loyalist": {
+        "name": "Loyal fan",
+        "text": "When you love a song, you stay with it. Your favorites come back again and again."
+      },
+      "genreHopper": {
+        "name": "Genre hopper",
+        "text": "You listen across styles. Boxes are not your thing."
+      },
+      "weekendListener": {
+        "name": "Weekend listener",
+        "text": "The weekend is when your music plays the most."
+      },
+      "allRounder": {
+        "name": "All-rounder",
+        "text": "Nicely balanced: you listen at all times of day and across many styles."
+      }
+    },
+    "slides": {
+      "intro": {
+        "kicker": "Your year in music",
+        "text": "A look back at what played for you."
+      },
+      "minutes": {
+        "kicker": "You listened for",
+        "unit": "minutes of music",
+        "detail": "That is {{days}} d {{hours}} h in a row.",
+        "plays": "plays",
+        "tracks": "different tracks",
+        "days": "days with music"
+      },
+      "topSong": {
+        "kicker": "Your song of the year",
+        "plays_one": "played {{count}} time",
+        "plays_other": "played {{count}} times"
+      },
+      "topSongs": {
+        "kicker": "Your top 5",
+        "headline": "Your most played songs"
+      },
+      "topArtists": {
+        "kicker": "Your top artists",
+        "headline": "{{artist}} defined your year"
+      },
+      "topAlbums": {
+        "kicker": "Your top albums",
+        "headline": "The albums you kept coming back to"
+      },
+      "genres": {
+        "kicker": "Your sound",
+        "headline": "{{genre}} shaped your sound"
+      },
+      "personality": {
+        "kicker": "Your listener type",
+        "factNight": "{{percent}}% of your listening happens at night",
+        "factMorning": "{{percent}}% of your listening happens in the morning",
+        "factExplore": "{{percent}}% of your songs were new to you",
+        "factRepeat": "{{value}} plays per song on average",
+        "factGenres": "{{count}} genres with a real share",
+        "factWeekend": "{{percent}}% of your listening is on weekends",
+        "factAllRounder": "{{count}} genres in your mix"
+      },
+      "timeOfDay": {
+        "kicker": "Your time of day",
+        "part": {
+          "night": "At night",
+          "morning": "In the morning",
+          "afternoon": "In the afternoon",
+          "evening": "In the evening"
+        },
+        "detail": "{{percent}}% of your listening falls into this part of the day. Busiest hour: {{hour}}:00.",
+        "chart": "Listening by hour of day"
+      },
+      "streak": {
+        "kicker": "Your longest streak",
+        "unit_one": "day in a row",
+        "unit_other": "days in a row",
+        "range": "From {{from}} to {{to}}"
+      },
+      "discoveries": {
+        "kicker": "New to you",
+        "unit_one": "new song",
+        "unit_other": "new songs",
+        "artists_one": "from {{count}} new artist",
+        "artists_other": "from {{count}} new artists",
+        "best": "Your favorite newcomer"
+      },
+      "months": {
+        "kicker": "Your year in listening",
+        "headline": "{{month}} was your biggest month: {{minutes}} minutes",
+        "chart": "Listening time by month"
+      },
+      "summary": {
+        "kicker": "Your year at a glance",
+        "song": "Song of the year",
+        "minutes": "Minutes",
+        "artist": "Top artist",
+        "genre": "Top genre",
+        "personality": "Listener type"
+      }
+    }
+  }
+}

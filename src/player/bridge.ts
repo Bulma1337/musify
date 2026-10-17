@@ -5,6 +5,7 @@ import { toastError } from "@/components/ui/toast";
 import { useDownloads } from "@/features/downloads/store";
 import i18n from "@/i18n";
 import { currentStreamQuality, useSettings } from "@/settings/store";
+import { recordPlay } from "@/features/stats/recorder";
 import { audioEngine } from "./engine";
 import type { EngineEvent, OutputFormat, SourceFormat, SourceLocation, TrackSource } from "./engineTypes";
 import { peekNext, usePlayer, type PlayerState, type QueueItem } from "./store";
@@ -105,8 +106,11 @@ export function startEngineBridge(): () => void {
       autoplayPending = false;
     }
   }
-  /** Tracks that started recently, by engine id (for scrobbling when they end). */
-  const started = new Map<string, Track>();
+  /** Tracks that started recently, by engine id (for scrobbling and the listening history when they end). */
+  const started = new Map<
+    string,
+    { track: Track; startedAt: number; context: { type?: string; id?: string } }
+  >();
 
   const apply = (fn: () => void) => {
     applying = true;
@@ -163,7 +167,14 @@ export function startEngineBridge(): () => void {
         const key = baseKey(event.id);
         loadedKey = key;
         const item = state.current?.key === key ? state.current : peekNext(state);
-        if (item && item.key === key) started.set(event.id, item.track);
+        if (item && item.key === key) {
+          const context = usePlayer.getState().context;
+          started.set(event.id, {
+            track: item.track,
+            startedAt: Date.now(),
+            context: { type: context?.type, id: context?.id },
+          });
+        }
         apply(() => {
           if (state.current?.key !== key || event.id.includes("#")) usePlayer.getState().advanceTo(key);
           usePlayer.getState().setProgress(0, event.durationMs ?? item?.track.durationMs);
@@ -208,12 +219,21 @@ export function startEngineBridge(): () => void {
         void autoplay(state);
         break;
       case "trackEnded": {
-        const track = started.get(event.id);
+        const entry = started.get(event.id);
         started.delete(event.id);
-        if (track) reportPlayback({ type: "stop", trackId: track.id, positionMs: event.playedMs });
-        if (track && shouldScrobble(event.playedMs, track.durationMs)) {
-          reportPlayback({ type: "scrobble", trackId: track.id, playedAt: new Date() });
-        }
+        if (!entry) break;
+        const { track } = entry;
+        const counted = shouldScrobble(event.playedMs, track.durationMs);
+        reportPlayback({ type: "stop", trackId: track.id, positionMs: event.playedMs });
+        if (counted) reportPlayback({ type: "scrobble", trackId: track.id, playedAt: new Date() });
+        // Local listening history; never throws and never waits, so playback is not affected.
+        recordPlay(track, {
+          startedAt: entry.startedAt,
+          playedMs: event.playedMs,
+          completed: event.completed,
+          counted,
+          context: entry.context,
+        });
         break;
       }
       case "error":
