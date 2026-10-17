@@ -85,6 +85,18 @@ const storage: StateStorage = {
   removeItem: (name) => writePersisted("settings.json", name, null),
 };
 
+/**
+ * Older saved settings. v2: crossfade applies within albums too. Version 1 kept album tracks gapless
+ * by default, so crossfade seemed not to work when listening to an album.
+ */
+export function migrateSettings(persisted: unknown, version: number): SettingsState {
+  const state = (persisted ?? {}) as Partial<SettingsState>;
+  if (version < 2 && state.crossfade) {
+    state.crossfade = { ...state.crossfade, skipSameAlbum: false };
+  }
+  return state as SettingsState;
+}
+
 export const useSettings = create<SettingsState>()(
   persist(
     (set) => ({
@@ -100,7 +112,7 @@ export const useSettings = create<SettingsState>()(
       downloadQuality: "original",
       cacheLimitGb: 2,
       normalization: { mode: "off", target: "normal", preventClipping: true, analyzeUntagged: true },
-      crossfade: { durationMs: 0, skipSameAlbum: true },
+      crossfade: { durationMs: 0, skipSameAlbum: false },
       dsp: DEFAULT_DSP,
       output: { deviceId: null, exclusive: false },
       eqPresetId: null,
@@ -112,8 +124,9 @@ export const useSettings = create<SettingsState>()(
     }),
     {
       name: "musify.settings",
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => storage),
+      migrate: migrateSettings,
       partialize: ({ set: _set, updateDsp: _update, ...data }) => data,
     },
   ),
