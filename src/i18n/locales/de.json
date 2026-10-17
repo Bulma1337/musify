@@ -82,7 +82,14 @@
     "playbackError": "Wiedergabefehler: {{message}}",
     "deviceLost": "Das Ausgabegerät wurde getrennt. Die Wiedergabe läuft über das Standardgerät weiter.",
     "shuffleSmart": "Shuffle+ aktivieren (mit Empfehlungen)",
-    "recommended": "Empfehlung"
+    "recommended": "Empfehlung",
+    "fullscreenExit": "Vollbild verlassen",
+    "playingFrom": "Läuft aus: {{name}}",
+    "nothingPlaying": "Gerade läuft nichts",
+    "miniBack": "Zurück zur App",
+    "miniPin": "Immer im Vordergrund",
+    "miniUnpin": "Nicht mehr im Vordergrund",
+    "miniMinimize": "Minimieren"
   },
   "track": {
     "title": "Titel",

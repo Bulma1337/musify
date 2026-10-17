@@ -203,12 +203,14 @@ function PlainLines({ lyrics }: { lyrics: Lyrics }) {
   );
 }
 
-function LyricsContent({ track }: { track: Track }) {
+/**
+ * The lyrics of `track` as a scrolling, auto-following view that fills its (relatively positioned)
+ * parent: synced lines with seek on click, or plain text, or an empty/instrumental state. Used by
+ * the lyrics page, the full-screen player and the miniplayer.
+ */
+export function LyricsLines({ track }: { track: Track }) {
   const { t } = useTranslation();
-  const { lyrics, source, instrumental, isLoading } = useLyrics(track);
-  const rgb = useCoverColor(track.cover);
-  const { close } = useLyricsRoute();
-
+  const { lyrics, instrumental, isLoading } = useLyrics(track);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false);
   const timer = useRef<number | undefined>(undefined);
@@ -223,18 +225,9 @@ function LyricsContent({ track }: { track: Track }) {
   }, []);
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [close]);
-
   const synced = lyrics?.synced === true;
-  let body: ReactNode;
   if (isLoading) {
-    body = (
+    return (
       <div className="grid h-full place-items-center text-text/70" aria-live="polite">
         <div className="flex flex-col items-center gap-3">
           <Spinner size={28} />
@@ -242,16 +235,18 @@ function LyricsContent({ track }: { track: Track }) {
         </div>
       </div>
     );
-  } else if (!lyrics) {
-    body = (
+  }
+  if (!lyrics) {
+    return (
       <EmptyState
         icon={<MicVocal size={40} className="text-text/60" />}
         title={instrumental ? t("lyrics.instrumental") : t("lyrics.none")}
         hint={instrumental ? undefined : t("lyrics.noneHint")}
       />
     );
-  } else {
-    body = (
+  }
+  return (
+    <>
       <div
         ref={scrollerRef}
         tabIndex={-1}
@@ -278,9 +273,34 @@ function LyricsContent({ track }: { track: Track }) {
           )}
         </div>
       </div>
-    );
-  }
+      {synced && paused && (
+        <button
+          type="button"
+          onClick={resumeAutoScroll}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-text px-4 py-2 text-sm font-bold text-black shadow-lg hover:scale-105"
+        >
+          {t("lyrics.backToCurrent")}
+        </button>
+      )}
+    </>
+  );
+}
 
+function LyricsContent({ track }: { track: Track }) {
+  const { t } = useTranslation();
+  const { lyrics, source } = useLyrics(track);
+  const rgb = useCoverColor(track.cover);
+  const { close } = useLyricsRoute();
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [close]);
+
+  const synced = lyrics?.synced === true;
   return (
     <div
       className="absolute inset-0 flex flex-col overflow-hidden"
@@ -301,16 +321,7 @@ function LyricsContent({ track }: { track: Track }) {
         </div>
       </header>
       <div className="relative min-h-0 flex-1">
-        {body}
-        {synced && paused && (
-          <button
-            type="button"
-            onClick={resumeAutoScroll}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-text px-4 py-2 text-sm font-bold text-black shadow-lg hover:scale-105"
-          >
-            {t("lyrics.backToCurrent")}
-          </button>
-        )}
+        <LyricsLines track={track} />
       </div>
       {lyrics && source && (
         <p className="shrink-0 px-8 py-2 text-center text-xs text-text/60 wrap-anywhere">

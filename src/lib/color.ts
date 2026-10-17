@@ -6,6 +6,11 @@ export interface Rgb {
   b: number;
 }
 
+/** `rgb(...)` of `rgb` scaled towards black by `factor` (1 = unchanged). */
+export function darkenCss(rgb: Rgb, factor: number): string {
+  return `rgb(${Math.round(rgb.r * factor)} ${Math.round(rgb.g * factor)} ${Math.round(rgb.b * factor)})`;
+}
+
 const cache = new Map<string, Promise<Rgb | null>>();
 
 function rgbToHsl({ r, g, b }: Rgb): [number, number, number] {

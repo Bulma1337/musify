@@ -82,7 +82,14 @@
     "playbackError": "Playback error: {{message}}",
     "deviceLost": "The output device was disconnected. Playback continues on the default device.",
     "shuffleSmart": "Enable Shuffle+ (with recommendations)",
-    "recommended": "Recommendation"
+    "recommended": "Recommendation",
+    "fullscreenExit": "Exit full screen",
+    "playingFrom": "Playing from: {{name}}",
+    "nothingPlaying": "Nothing is playing",
+    "miniBack": "Back to the app",
+    "miniPin": "Always on top",
+    "miniUnpin": "Don't keep on top",
+    "miniMinimize": "Minimize"
   },
   "track": {
     "title": "Title",
