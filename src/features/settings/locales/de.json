@@ -106,6 +106,17 @@
       },
       "onlineLyrics": "Songtexte aus dem Internet ergänzen",
       "onlineLyricsHint": "Hat dein Server keinen Songtext, sucht die App bei LRCLIB (lrclib.net) danach. Dafür werden Titel, Künstler, Album und Länge dorthin übertragen."
+    },
+    "system": {
+      "title": "System",
+      "description": "Start mit Windows, Fenster und Benachrichtigungen.",
+      "autostart": "Mit Windows starten",
+      "autostartHint": "Startet minimiert im Infobereich, damit Medientasten sofort funktionieren.",
+      "closeToTray": "Beim Schließen im Infobereich weiterlaufen",
+      "closeToTrayHint": "Das Fenster wird nur ausgeblendet, die Musik läuft weiter. Beenden über das Symbol im Infobereich.",
+      "notify": "Benachrichtigung bei Titelwechsel",
+      "notifyHint": "Zeigt den neuen Titel an, wenn die App nicht im Vordergrund ist.",
+      "desktopOnly": "Diese Einstellungen gibt es nur in der Desktop-App."
     }
   }
 }

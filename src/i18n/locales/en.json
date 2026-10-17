@@ -199,5 +199,9 @@
     "signOutBody": "Musify deletes the saved credentials for this server and clears the queue. Downloaded tracks stay on this computer.",
     "signOutConfirm": "Sign out",
     "cancel": "Cancel"
+  },
+  "tray": {
+    "open": "Open Musify",
+    "quit": "Quit"
   }
 }

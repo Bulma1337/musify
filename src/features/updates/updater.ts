@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Update } from "@tauri-apps/plugin-updater";
+import { registerShutdownTask } from "@/app/windowClose";
 import { inTauri } from "@/lib/platform";
 
 /**
@@ -89,20 +90,13 @@ export function startUpdateChecks(enabled: () => boolean): () => void {
   if (!inTauri) return () => {};
   const first = setTimeout(() => enabled() && void checkForUpdate(), FIRST_CHECK_DELAY_MS);
   const every = setInterval(() => enabled() && void checkForUpdate(), CHECK_EVERY_MS);
-  let unlisten: (() => void) | undefined;
-  void import("@tauri-apps/api/window").then(({ getCurrentWindow }) =>
-    getCurrentWindow()
-      .onCloseRequested(async () => {
-        // A downloaded update is installed when the app closes (the installer runs silently).
-        if (pending && useUpdates.getState().status === "ready") await installUpdate();
-      })
-      .then((off) => {
-        unlisten = off;
-      }),
-  );
+  // A downloaded update is installed when the app closes (the installer runs silently).
+  const unregister = registerShutdownTask(async () => {
+    if (pending && useUpdates.getState().status === "ready") await installUpdate();
+  });
   return () => {
     clearTimeout(first);
     clearInterval(every);
-    unlisten?.();
+    unregister();
   };
 }

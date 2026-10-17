@@ -7,6 +7,7 @@ mod media;
 mod migrate;
 mod secrets;
 mod stats;
+mod tray;
 
 /// Basic build information shown in Settings → About.
 #[derive(serde::Serialize)]
@@ -26,15 +27,6 @@ fn app_info(app: tauri::AppHandle) -> AppInfo {
     }
 }
 
-/// Brings the main window to the front, e.g. when a second instance is started.
-fn focus_main_window(app: &tauri::AppHandle) {
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.unminimize();
-        let _ = window.show();
-        let _ = window.set_focus();
-    }
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     migrate::move_old_data();
@@ -45,7 +37,7 @@ pub fn run() {
         // Must be registered first so a second launch only focuses the running instance.
         builder = builder
             .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-                focus_main_window(app);
+                tray::show_main_window(app);
             }))
             .plugin(tauri_plugin_window_state::Builder::default().build())
             .plugin(tauri_plugin_updater::Builder::new().build())
@@ -77,6 +69,13 @@ pub fn run() {
             app.manage(db::DbState(db::open_app_db(app.handle())));
             app.manage(downloads::DownloadsState::new(app.handle()));
             app.manage(media::MediaState::start(app.handle()));
+            app.manage(tray::create(app.handle())?);
+            // Started by autostart: stay in the tray until the user opens the window.
+            if std::env::args().any(|a| a == "--minimized")
+                && let Some(window) = app.get_webview_window("main")
+            {
+                let _ = window.hide();
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -93,6 +92,7 @@ pub fn run() {
             media::media_track,
             media::media_playback,
             media::media_clear,
+            tray::tray_update,
             stats::history_record,
             stats::stats_summary,
             stats::stats_tracks,

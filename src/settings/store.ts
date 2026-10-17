@@ -57,6 +57,10 @@ interface SettingsState {
   autoUpdate: boolean;
   /** Look up missing lyrics on LRCLIB (sends title, artist and album there). */
   onlineLyrics: boolean;
+  /** Closing the window hides it to the tray; playback continues. */
+  closeToTray: boolean;
+  /** Desktop notification when a new track starts while the app is in the background. */
+  notifyTrackChange: boolean;
   streamingQuality: QualityPreset;
   downloadQuality: QualityPreset;
   /** Size limit of the audio streaming cache in GB: one of `CACHE_LIMITS_GB`. */
@@ -90,6 +94,8 @@ export const useSettings = create<SettingsState>()(
       syncPlayQueue: true,
       autoUpdate: true,
       onlineLyrics: true,
+      closeToTray: false,
+      notifyTrackChange: false,
       streamingQuality: "original",
       downloadQuality: "original",
       cacheLimitGb: 2,

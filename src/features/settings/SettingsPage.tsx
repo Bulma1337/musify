@@ -11,6 +11,7 @@ import { useLanguage } from "@/settings/language";
 import { useSettings, type AccentColor, type QualityPreset } from "@/settings/store";
 import { StorageSettings } from "@/features/downloads/StorageSettings";
 import { AboutSection } from "@/features/updates/AboutSection";
+import { SystemSection } from "./SystemSection";
 import { Segmented, SettingRow, SettingsSection, type SegmentedOption } from "./controls";
 import { RangeSlider } from "./RangeSlider";
 
@@ -403,6 +404,7 @@ export function SettingsPage() {
           <StorageSettings />
         </div>
         <DisplaySection />
+        <SystemSection />
         <AboutSection />
       </div>
     </div>

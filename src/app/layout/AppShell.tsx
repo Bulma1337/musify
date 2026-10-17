@@ -1,6 +1,8 @@
 import { startUpdateChecks } from "@/features/updates/updater";
 import { useSettings } from "@/settings/store";
 import { startMediaSession } from "@/player/mediaSession";
+import { startSystemIntegration } from "@/app/systemIntegration";
+import { startCloseHandling } from "@/app/windowClose";
 import { resumeAtStartup, startQueueSync } from "@/player/resume";
 import { NARROW_WINDOW_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { FullscreenPlayer } from "./FullscreenPlayer";
@@ -121,6 +123,8 @@ export function AppShell() {
   }, []);
   useEffect(() => startUpdateChecks(() => useSettings.getState().autoUpdate), []);
   useEffect(() => startMediaSession(), []);
+  useEffect(() => startCloseHandling(), []);
+  useEffect(() => startSystemIntegration(), []);
   useEffect(() => {
     void normalizeWindowAtStartup();
   }, []);
