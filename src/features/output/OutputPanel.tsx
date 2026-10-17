@@ -13,6 +13,7 @@ import { useSettings } from "@/settings/store";
 import {
   activeProcessing,
   bitPerfectBlockers,
+  exclusiveSummary,
   formatOutputFormat,
   formatSampleRate,
   formatSourceFormat,
@@ -73,8 +74,27 @@ function SignalPath() {
         <ArrowDown size={16} className="self-center text-muted" aria-hidden="true" />
         <Stage label={t("output.destination")} muted={!output}>
           {output ? formatOutputFormat(output) : t("output.nothingPlaying")}
+          {output?.resampled && output.sourceRate ? (
+            <span className="block text-xs text-subdued" data-testid="resampled-note">
+              {t("output.resampledFrom", {
+                from: formatSampleRate(output.sourceRate),
+                to: formatSampleRate(output.sampleRate),
+              })}
+            </span>
+          ) : null}
         </Stage>
       </div>
+
+      {output && !output.exclusive && (output.sourceRate ?? 0) > output.sampleRate && (
+        <p className="mt-3 text-[13px] text-subdued" data-testid="mixer-limit">
+          {t("output.mixerLimits", { rate: formatSampleRate(output.sampleRate) })}
+        </p>
+      )}
+      {output?.exclusiveFallback && (
+        <p className="mt-3 text-[13px] text-warning">
+          {t("output.exclusiveFailed", { reason: output.exclusiveFallback })}
+        </p>
+      )}
 
       {output && !output.bitPerfect && blockers.length > 0 && (
         <div className="mt-3 text-[13px] text-subdued">
@@ -131,7 +151,10 @@ function DeviceRow({
 }
 
 function deviceDetail(device: DeviceInfo): string {
-  return `${formatSampleRate(device.defaultSampleRate)} · ${device.maxChannels} ch`;
+  const parts = [`${formatSampleRate(device.defaultSampleRate)} · ${device.maxChannels} ch`];
+  const exclusive = exclusiveSummary(device.exclusiveCaps);
+  if (exclusive) parts.push(exclusive);
+  return parts.join(" · ");
 }
 
 /** Right panel: choose the output device, exclusive mode and see the live signal path. */

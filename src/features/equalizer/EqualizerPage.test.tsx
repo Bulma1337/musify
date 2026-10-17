@@ -190,7 +190,10 @@ describe("EqualizerPage", () => {
     it("converts the curve when switching between 10 and 31 bands and back", () => {
       useSettings.getState().updateDsp((dsp) => ({
         ...dsp,
-        eq: { ...dsp.eq, mode: { type: "graphic", bands: "ten", gainsDb: [4, 3, 2, 1, 0, -1, -2, -3, -4, -5] } },
+        eq: {
+          ...dsp.eq,
+          mode: { type: "graphic", bands: "ten", gainsDb: [4, 3, 2, 1, 0, -1, -2, -3, -4, -5] },
+        },
       }));
       renderEqualizer();
       fireEvent.click(screen.getByRole("tab", { name: "31 bands" }));

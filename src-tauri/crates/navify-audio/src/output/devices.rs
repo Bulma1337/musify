@@ -88,6 +88,7 @@ pub(crate) fn list_devices() -> Vec<DeviceInfo> {
                 default_sample_rate: default_config.as_ref().map_or(0, |c| c.sample_rate()),
                 max_channels,
                 supports_exclusive: false,
+                exclusive_caps: None,
                 id,
             })
         })
@@ -99,9 +100,10 @@ pub(crate) fn list_devices() -> Vec<DeviceInfo> {
             .iter()
             .map(|d| wasapi_endpoint_id(&d.id).unwrap_or_default())
             .collect();
-        let supported = super::wasapi_exclusive::probe_exclusive_support(endpoints);
-        for (info, ok) in out.iter_mut().zip(supported) {
-            info.supports_exclusive = ok;
+        let caps = super::wasapi_exclusive::probe_exclusive_caps(endpoints);
+        for (info, caps) in out.iter_mut().zip(caps) {
+            info.supports_exclusive = caps.as_ref().is_some_and(|c| !c.is_empty());
+            info.exclusive_caps = caps.filter(|c| !c.is_empty());
         }
     }
 

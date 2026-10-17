@@ -26,6 +26,9 @@ const SWITCH_FADE_MS: f64 = 10.0;
 const GAIN_SMOOTH_MS: f64 = 50.0;
 /// Interval between position reports.
 const POSITION_INTERVAL_MS: f64 = 100.0;
+/// DSP ring-out (EQ, bass filters) still played after a track ended before the pipeline counts
+/// as drained.
+const DRAIN_TAIL_MS: f64 = 10.0;
 
 /// A decoded track handed to the mixer.
 pub(crate) struct MixSlot {
@@ -38,6 +41,17 @@ pub(crate) struct MixSlot {
 pub(crate) enum MixerMsg {
     /// Make `slot` the current track (manual transition). The previous current fades out.
     Play(MixSlot),
+    /// Make `slot` the current track of a freshly opened (silent) pipeline, announced with
+    /// `transition`; `fade_in` only when it starts inside the track (no fade at a track start, so
+    /// its first samples stay bit-exact).
+    Start {
+        slot: MixSlot,
+        transition: Transition,
+        fade_in: bool,
+    },
+    /// Report `MixerEvent::Drained(token)` once nothing is playing any more and the output ring
+    /// has been read empty.
+    NotifyDrained(u64),
     SetNext(Option<MixSlot>),
     /// Worker opened the track: absolute frame of the first ring sample and the total length.
     Ready {
@@ -85,6 +99,8 @@ pub(crate) enum MixerEvent {
     Buffering(bool),
     /// The current track ended with nothing queued.
     Idle,
+    /// Answer to `MixerMsg::NotifyDrained`.
+    Drained(u64),
 }
 
 /// Shared between mixer and analyzer: linear pre-limiter peak (f32 bits) and the tap switch.
@@ -231,7 +247,7 @@ struct Crossfade {
 
 pub(crate) struct Mixer {
     chain: DspChain,
-    out: Producer<f32>,
+    out: Producer<f64>,
     out_capacity_frames: usize,
     target_fill_frames: usize,
     tap: Producer<f32>,
@@ -247,6 +263,11 @@ pub(crate) struct Mixer {
     skip_same_album: bool,
     buffering: bool,
     idle_reported: bool,
+    drain_token: Option<u64>,
+    /// Frames mixed since the last block that had a track (current or fading out) in it.
+    idle_frames: u64,
+    /// Filter ring-out allowed after the last audible sample before reporting `Drained`.
+    tail_frames: usize,
 
     block: Vec<f64>,
     switch_step: f64,
@@ -260,7 +281,7 @@ impl Mixer {
     pub fn new(
         sample_rate: u32,
         chain: DspChain,
-        out: Producer<f32>,
+        out: Producer<f64>,
         tap: Producer<f32>,
         meters: Arc<Meters>,
         msgs: Receiver<MixerMsg>,
@@ -288,6 +309,9 @@ impl Mixer {
             skip_same_album: true,
             buffering: false,
             idle_reported: true,
+            drain_token: None,
+            idle_frames: 0,
+            tail_frames: (rate * DRAIN_TAIL_MS / 1000.0) as usize,
             block: vec![0.0; BLOCK_FRAMES * ENGINE_CHANNELS],
             switch_step: 1.0 / (rate * SWITCH_FADE_MS / 1000.0),
             gain_step: 1.0 / (rate * GAIN_SMOOTH_MS / 1000.0),
@@ -306,6 +330,17 @@ impl Mixer {
             }
             let free_frames = self.out.slots() / ENGINE_CHANNELS;
             let filled = self.out_capacity_frames - free_frames;
+            // Drained: everything still queued for the device was mixed from nothing (after the
+            // DSP latency and a short filter tail), i.e. the last audible sample has been read.
+            if let Some(token) = self.drain_token
+                && self.current.is_none()
+                && self.outgoing.is_none()
+                && self.idle_frames
+                    >= (filled + self.chain.latency_frames() + self.tail_frames) as u64
+            {
+                self.drain_token = None;
+                self.emit(MixerEvent::Drained(token));
+            }
             if filled < self.target_fill_frames && free_frames >= BLOCK_FRAMES {
                 self.process_block();
             } else {
@@ -360,6 +395,24 @@ impl Mixer {
                 self.current = Some(Slot::new(slot, Transition::Manual, self.switch_step));
                 self.idle_reported = false;
             }
+            MixerMsg::Start {
+                slot,
+                transition,
+                fade_in,
+            } => {
+                self.fade_out_current();
+                let mut slot = Slot::new(slot, transition, self.switch_step);
+                if fade_in {
+                    slot.env = 0.0;
+                    slot.env_step = self.switch_step;
+                } else {
+                    slot.env = 1.0;
+                    slot.env_step = 0.0;
+                }
+                self.current = Some(slot);
+                self.idle_reported = false;
+            }
+            MixerMsg::NotifyDrained(token) => self.drain_token = Some(token),
             MixerMsg::SetNext(slot) => {
                 self.crossfade = None;
                 self.next = slot.map(|s| Slot::new(s, Transition::Gapless, self.switch_step));
@@ -423,6 +476,11 @@ impl Mixer {
 
     fn process_block(&mut self) {
         let frames = BLOCK_FRAMES;
+        if self.current.is_some() || self.outgoing.is_some() {
+            self.idle_frames = 0;
+        } else {
+            self.idle_frames += frames as u64;
+        }
         self.block.fill(0.0);
         let mut block = std::mem::take(&mut self.block);
 
@@ -580,7 +638,7 @@ impl Mixer {
         if let Ok(mut chunk) = self.out.write_chunk_uninit(block.len()) {
             let (a, b) = chunk.as_mut_slices();
             for (dst, src) in a.iter_mut().chain(b.iter_mut()).zip(block.iter()) {
-                dst.write(*src as f32);
+                dst.write(*src);
             }
             // SAFETY: every slot of the chunk was written above (block.len() == chunk length).
             unsafe { chunk.commit_all() };

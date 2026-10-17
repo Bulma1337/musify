@@ -31,7 +31,8 @@ export function PresetBar() {
   const custom = customPresets.find((p) => p.id === presetId);
   const builtIn = getBuiltInPreset(presetId);
   const modified = custom ? isPresetModified(custom, dsp) : false;
-  const currentName = custom?.name ?? (builtIn ? t(`equalizer.presetNames.${builtIn.id}`) : t("equalizer.presets.customCurve"));
+  const currentName =
+    custom?.name ?? (builtIn ? t(`equalizer.presetNames.${builtIn.id}`) : t("equalizer.presets.customCurve"));
   const selectValue = custom || builtIn ? (presetId ?? "") : "";
 
   const close = (open: boolean) => {

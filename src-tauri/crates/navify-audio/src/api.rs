@@ -361,6 +361,122 @@ pub struct DeviceInfo {
     pub max_channels: u16,
     /// Exclusive (bit-perfect) mode is possible on this device.
     pub supports_exclusive: bool,
+    /// What the driver accepts in exclusive mode (`None` = not probed / not available).
+    #[serde(default)]
+    pub exclusive_caps: Option<ExclusiveCaps>,
+}
+
+/// Sample layout of a device stream.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DeviceSampleFormat {
+    Int16,
+    /// Packed 3-byte samples.
+    Int24,
+    /// 24 valid bits in a 32-bit container.
+    Int24In32,
+    Int32,
+    Float32,
+    Float64,
+    /// Anything else (8-bit, unsigned, 64-bit integer).
+    Other,
+}
+
+impl DeviceSampleFormat {
+    /// Significant bits per sample (the mantissa width + 1 for floats).
+    pub fn valid_bits(self) -> u32 {
+        match self {
+            DeviceSampleFormat::Int16 => 16,
+            DeviceSampleFormat::Int24 | DeviceSampleFormat::Int24In32 => 24,
+            DeviceSampleFormat::Int32 => 32,
+            DeviceSampleFormat::Float32 => 24,
+            DeviceSampleFormat::Float64 => 53,
+            DeviceSampleFormat::Other => 8,
+        }
+    }
+
+    pub fn is_float(self) -> bool {
+        matches!(
+            self,
+            DeviceSampleFormat::Float32 | DeviceSampleFormat::Float64
+        )
+    }
+
+    /// Container size in bits (what the UI shows as "32 bit").
+    pub fn container_bits(self) -> u32 {
+        match self {
+            DeviceSampleFormat::Int16 => 16,
+            DeviceSampleFormat::Int24 => 24,
+            DeviceSampleFormat::Int24In32
+            | DeviceSampleFormat::Int32
+            | DeviceSampleFormat::Float32 => 32,
+            DeviceSampleFormat::Float64 => 64,
+            DeviceSampleFormat::Other => 8,
+        }
+    }
+
+    /// Every sample of a source with this resolution reaches the device unchanged.
+    ///
+    /// Integer sources need an integer format with at least as many bits; float sources need a
+    /// float format at least as wide. Lossy sources (no bit depth) count as carried by float or
+    /// ≥ 24-bit integer formats: their decoded output has no fixed grid, and rounding to 24 bits
+    /// lies far below the codec's own noise.
+    pub fn carries(self, source_bits: Option<u32>, source_float: bool) -> bool {
+        match source_bits {
+            Some(bits) if !source_float => !self.is_float() && self.valid_bits() >= bits,
+            Some(bits) => self.is_float() && self.container_bits() >= bits,
+            None => {
+                self.is_float() || (self != DeviceSampleFormat::Other && self.valid_bits() >= 24)
+            }
+        }
+    }
+}
+
+/// Exclusive-mode support of one device: every probed rate with the formats the driver accepts.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExclusiveCaps {
+    /// Ascending by rate; rates without any accepted format are left out.
+    pub modes: Vec<ExclusiveMode>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExclusiveMode {
+    pub sample_rate: u32,
+    /// In the engine's order of preference.
+    pub formats: Vec<DeviceSampleFormat>,
+}
+
+impl ExclusiveCaps {
+    pub fn is_empty(&self) -> bool {
+        self.modes.is_empty()
+    }
+
+    pub fn rates(&self) -> impl Iterator<Item = u32> + '_ {
+        self.modes.iter().map(|m| m.sample_rate)
+    }
+
+    pub fn formats_at(&self, rate: u32) -> &[DeviceSampleFormat] {
+        self.modes
+            .iter()
+            .find(|m| m.sample_rate == rate)
+            .map_or(&[], |m| &m.formats)
+    }
+
+    pub fn max_rate(&self) -> Option<u32> {
+        self.rates().max()
+    }
+
+    /// Highest integer resolution (valid bits) at any rate.
+    pub fn max_int_bits(&self) -> Option<u32> {
+        self.modes
+            .iter()
+            .flat_map(|m| &m.formats)
+            .filter(|f| !f.is_float() && **f != DeviceSampleFormat::Other)
+            .map(|f| f.valid_bits())
+            .max()
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -368,7 +484,9 @@ pub struct DeviceInfo {
 pub struct OutputConfig {
     /// `None` = follow the system default device.
     pub device_id: Option<String>,
-    /// Request exclusive mode. Only used while the DSP is bypassed and volume is 100 %.
+    /// Request exclusive mode: the device is opened at each track's native rate (or the best rate
+    /// it supports). DSP and volume still work; the output is bit-perfect only while they are
+    /// neutral.
     pub exclusive: bool,
 }
 
@@ -377,11 +495,25 @@ pub struct OutputConfig {
 #[serde(rename_all = "camelCase")]
 pub struct OutputFormat {
     pub device_name: String,
+    /// Device rate. In shared mode this is the system mixer's rate.
     pub sample_rate: u32,
     pub channels: u16,
     pub exclusive: bool,
-    /// Samples reach the device unchanged (exclusive, native rate, no DSP, volume 100 %).
+    /// Samples reach the device unchanged: exclusive, native rate, a sample format that holds the
+    /// source exactly, DSP bypassed, volume 100 %, no normalization gain.
     pub bit_perfect: bool,
+    /// Sample format of the stream (`None` = unknown). In shared mode the system mixer's format.
+    #[serde(default)]
+    pub sample_format: Option<DeviceSampleFormat>,
+    /// Native rate of the current track (`None` = nothing loaded).
+    #[serde(default)]
+    pub source_rate: Option<u32>,
+    /// The current track is resampled from `source_rate` to `sample_rate`.
+    #[serde(default)]
+    pub resampled: bool,
+    /// Exclusive mode was requested but the device runs in shared mode; why.
+    #[serde(default)]
+    pub exclusive_fallback: Option<String>,
 }
 
 /// Properties of the decoded source, for the quality badge ("FLAC 24/96").
@@ -394,6 +526,9 @@ pub struct SourceFormat {
     pub channels: u16,
     pub bitrate_kbps: Option<u32>,
     pub lossless: bool,
+    /// Floating-point PCM (e.g. 32-bit float WAV).
+    #[serde(default)]
+    pub float: bool,
 }
 
 // ------------------------------------------------------------------------------------------------

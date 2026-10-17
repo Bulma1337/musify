@@ -48,7 +48,8 @@ export const router = createHashRouter([
       },
       {
         path: "equalizer",
-        lazy: () => import("@/features/equalizer/EqualizerPage").then((m) => ({ Component: m.EqualizerPage })),
+        lazy: () =>
+          import("@/features/equalizer/EqualizerPage").then((m) => ({ Component: m.EqualizerPage })),
       },
     ],
   },

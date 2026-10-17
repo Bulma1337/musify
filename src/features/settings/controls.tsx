@@ -28,7 +28,11 @@ export function Segmented<T extends string | number>({
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     const step =
-      e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+      e.key === "ArrowRight" || e.key === "ArrowDown"
+        ? 1
+        : e.key === "ArrowLeft" || e.key === "ArrowUp"
+          ? -1
+          : 0;
     if (step === 0) return;
     e.preventDefault();
     const index = options.findIndex((o) => o.value === value);

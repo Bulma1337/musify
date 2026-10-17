@@ -1,10 +1,4 @@
-import type {
-  EqConfig,
-  EqResponse,
-  FilterKind,
-  GraphicBands,
-  ParametricFilter,
-} from "@/player/engineTypes";
+import type { EqConfig, EqResponse, FilterKind, GraphicBands, ParametricFilter } from "@/player/engineTypes";
 
 /**
  * Frequency response of an EQ configuration, computed in TypeScript.
@@ -336,15 +330,12 @@ function maxBoostDb(coeffs: Biquad[], specs: FilterSpec[], fs: number): number {
  * Response of `eq` at `points` log-spaced frequencies, including the effective preamp (manual preamp
  * minus auto headroom), like the engine's `audio_eq_response`.
  */
-export function computeEqResponse(
-  eq: EqConfig,
-  points: number,
-  fs: number = EQ_SAMPLE_RATE,
-): EqResponse {
+export function computeEqResponse(eq: EqConfig, points: number, fs: number = EQ_SAMPLE_RATE): EqResponse {
   const specs = eqFilterSpecs(eq, fs);
   const coeffs = specs.map((s) => designBiquad(s, fs));
   const maxBoost = coeffs.length > 0 ? maxBoostDb(coeffs, specs, fs) : 0;
-  const manual = eq.enabled && Number.isFinite(eq.preampDb) ? clamp(eq.preampDb, -MAX_PREAMP_DB, MAX_PREAMP_DB) : 0;
+  const manual =
+    eq.enabled && Number.isFinite(eq.preampDb) ? clamp(eq.preampDb, -MAX_PREAMP_DB, MAX_PREAMP_DB) : 0;
   const headroom = eq.autoHeadroom ? Math.max(maxBoost, 0) : 0;
   const preamp = manual - headroom;
   const frequencies = logFrequencies(points);

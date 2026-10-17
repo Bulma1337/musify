@@ -374,3 +374,64 @@ fn first_output_sample_aligns_with_first_input_sample() {
         );
     }
 }
+
+/// Source rate, device rate, (out-of-band tone, where its alias or image lands).
+type RatePair = (u32, u32, &'static [(f64, f64)]);
+
+/// Hi-res sources on a 48 kHz (or 44.1 kHz) device, and CD material on a 192 kHz device: the same
+/// passband and stopband limits as the CD-rate pairs.
+#[test]
+fn quality_hi_res_rate_pairs() {
+    let cases: [RatePair; 4] = [
+        // 192 kHz → 48 kHz: tones above 24 kHz alias to 48000 − f (or fold twice).
+        (
+            192_000,
+            48_000,
+            &[
+                (25_000.0, 23_000.0),
+                (30_000.0, 18_000.0),
+                (60_000.0, 12_000.0),
+            ],
+        ),
+        // 352.8 kHz → 44.1 kHz (8:1).
+        (
+            352_800,
+            44_100,
+            &[
+                (23_000.0, 21_100.0),
+                (30_000.0, 14_100.0),
+                (100_000.0, 11_800.0),
+            ],
+        ),
+        // 176.4 kHz → 96 kHz: content above 48 kHz aliases to 96000 − f.
+        (
+            176_400,
+            96_000,
+            &[(50_000.0, 46_000.0), (70_000.0, 26_000.0)],
+        ),
+        // 44.1 kHz → 192 kHz: a tone at f leaves an image at 44100 − f.
+        (
+            44_100,
+            192_000,
+            &[(20_500.0, 23_600.0), (21_500.0, 22_600.0)],
+        ),
+    ];
+    for (src, dst, stop) in cases {
+        let q = measure(src, dst, stop);
+        assert!(
+            q.offset_samples.abs() < 1e-3,
+            "{src}->{dst} alignment {}",
+            q.offset_samples
+        );
+        assert!(
+            q.worst_ripple_db <= 0.01,
+            "{src}->{dst} passband ripple {} dB",
+            q.worst_ripple_db
+        );
+        assert!(
+            q.worst_stop_db <= -120.0,
+            "{src}->{dst} aliases/images at {} dB",
+            q.worst_stop_db
+        );
+    }
+}

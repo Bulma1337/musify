@@ -171,9 +171,7 @@ export function EqualizerPage() {
 
       <PresetBar />
 
-      {processing && (
-        <p className="mt-3 text-[13px] text-subdued">{t("equalizer.notBitPerfect")}</p>
-      )}
+      {processing && <p className="mt-3 text-[13px] text-subdued">{t("equalizer.notBitPerfect")}</p>}
 
       <div role="tablist" aria-label={t("equalizer.modeLabel")} className="mt-5 mb-3 flex gap-1">
         {MODES.map((m) => (

@@ -183,7 +183,11 @@ function PlaybackSection() {
           label={t("settings.playback.mono")}
         />
       </SettingRow>
-      <SettingRow stacked title={t("settings.playback.balance")} description={t("settings.playback.balanceHint")}>
+      <SettingRow
+        stacked
+        title={t("settings.playback.balance")}
+        description={t("settings.playback.balanceHint")}
+      >
         <RangeSlider
           label={t("settings.playback.balance")}
           value={Math.round(stereo.balance * 100)}
@@ -214,7 +218,12 @@ function PlaybackSection() {
       </SettingRow>
 
       <SettingRow title={t("settings.playback.equalizer")} description={t("settings.playback.equalizerHint")}>
-        <Button variant="secondary" size="sm" icon={<SlidersHorizontal size={16} />} onClick={() => navigate("/equalizer")}>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<SlidersHorizontal size={16} />}
+          onClick={() => navigate("/equalizer")}
+        >
           {t("settings.playback.openEqualizer")}
         </Button>
       </SettingRow>
@@ -227,7 +236,9 @@ function OutputSection() {
   const output = useSettings((s) => s.output);
   const set = useSettings((s) => s.set);
   const { devices, loading, refresh } = useOutputDevices();
-  const selected = output.deviceId ? devices.find((d) => d.id === output.deviceId) : devices.find((d) => d.isDefault);
+  const selected = output.deviceId
+    ? devices.find((d) => d.id === output.deviceId)
+    : devices.find((d) => d.isDefault);
   const unsupported = !!selected && !selected.supportsExclusive;
 
   return (
@@ -295,7 +306,9 @@ function DisplaySection() {
       <SettingRow
         stacked
         title={t("settings.display.accent")}
-        description={accent === "dynamic" ? t("settings.display.accentDynamicHint") : t("settings.display.accentHint")}
+        description={
+          accent === "dynamic" ? t("settings.display.accentDynamicHint") : t("settings.display.accentHint")
+        }
       >
         <Segmented
           label={t("settings.display.accent")}
