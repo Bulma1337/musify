@@ -1,0 +1,21 @@
+{
+  "updates": {
+    "title": "About Musify",
+    "version": "Version {{version}}",
+    "check": "Check for updates",
+    "checking": "Checking for updates …",
+    "upToDate": "Musify is up to date.",
+    "downloading": "Downloading version {{version}} ({{percent}}) …",
+    "ready": "Version {{version}} is ready. It is installed when you restart.",
+    "installing": "Installing the update …",
+    "failed": "Update failed: {{message}}",
+    "desktopOnly": "Updates are only available in the desktop app.",
+    "restart": "Restart",
+    "restartHint": "Restart Musify and update to version {{version}}",
+    "notes": "New in {{version}}",
+    "auto": "Update automatically",
+    "autoHint": "Looks for new versions at start and every 6 hours and downloads them in the background.",
+    "project": "Project page",
+    "projectHint": "Source code, bug reports and all versions."
+  }
+}

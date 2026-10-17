@@ -53,6 +53,8 @@ interface SettingsState {
   resumeWindowMin: number;
   /** Save the play queue on the server so other devices (and this one) can continue it. */
   syncPlayQueue: boolean;
+  /** Look for new versions and download them in the background. */
+  autoUpdate: boolean;
   streamingQuality: QualityPreset;
   downloadQuality: QualityPreset;
   /** Size limit of the audio streaming cache in GB: one of `CACHE_LIMITS_GB`. */
@@ -84,6 +86,7 @@ export const useSettings = create<SettingsState>()(
       autoplay: true,
       resumeWindowMin: 10,
       syncPlayQueue: true,
+      autoUpdate: true,
       streamingQuality: "original",
       downloadQuality: "original",
       cacheLimitGb: 2,

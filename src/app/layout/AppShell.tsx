@@ -1,3 +1,5 @@
+import { startUpdateChecks } from "@/features/updates/updater";
+import { useSettings } from "@/settings/store";
 import { resumeAtStartup, startQueueSync } from "@/player/resume";
 import { FullscreenPlayer } from "./FullscreenPlayer";
 import { MiniPlayer } from "./MiniPlayer";
@@ -106,6 +108,7 @@ export function AppShell() {
     void resumeAtStartup();
     return startQueueSync();
   }, []);
+  useEffect(() => startUpdateChecks(() => useSettings.getState().autoUpdate), []);
   useEffect(() => {
     void normalizeWindowAtStartup();
   }, []);
