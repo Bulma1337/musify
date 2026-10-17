@@ -72,7 +72,7 @@ interface SettingsState {
   notifyTrackChange: boolean;
   /** Show the playing track in Discord. */
   discordPresence: boolean;
-  /** Look up a public album cover for Discord (sends artist and album to Apple's search). */
+  /** Look up a public album cover for Discord (sends artist and album to Deezer's and Apple's search). */
   discordCovers: boolean;
   streamingQuality: QualityPreset;
   downloadQuality: QualityPreset;

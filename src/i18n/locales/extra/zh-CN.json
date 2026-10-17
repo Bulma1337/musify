@@ -976,7 +976,7 @@
       "discord": "在 Discord 中显示",
       "discordHint": "在你的 Discord 个人资料中显示你正在听的内容：标题、艺人、封面和进度。",
       "discordCovers": "为 Discord 查找封面",
-      "discordCoversHint": "Discord 需要公开的图片，因此会把艺人和专辑发送到 Apple 的音乐搜索。关闭后，Discord 将显示 Musify 标志。",
+      "discordCoversHint": "Discord 需要公开的图片，因此会将艺人和专辑发送到 Deezer 和 Apple 的音乐搜索。关闭后，Discord 会显示 Musify 标志。",
       "needsDiscord": "开启“在 Discord 中显示”后可用。"
     },
     "home": {

@@ -143,7 +143,7 @@
       "discord": "In Discord anzeigen",
       "discordHint": "Zeigt in deinem Discord-Profil, was du gerade hörst: Titel, Interpreten, Cover und Fortschritt.",
       "discordCovers": "Cover für Discord suchen",
-      "discordCoversHint": "Discord braucht ein öffentliches Bild. Dafür werden Interpret und Album an die Musiksuche von Apple geschickt. Ohne das zeigt Discord das Musify-Logo.",
+      "discordCoversHint": "Discord braucht ein öffentliches Bild. Dafür werden Interpret und Album an die Musiksuche von Deezer und Apple geschickt. Ohne das zeigt Discord das Musify-Logo.",
       "needsDiscord": "Verfügbar, sobald „In Discord anzeigen“ eingeschaltet ist."
     },
     "home": {

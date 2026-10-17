@@ -976,7 +976,7 @@
       "discord": "Discord に表示",
       "discordHint": "聴いている曲を Discord のプロフィールに表示します：タイトル、アーティスト、カバー、再生位置。",
       "discordCovers": "Discord 用のカバーを探す",
-      "discordCoversHint": "Discord には公開された画像が必要なため、アーティストとアルバムが Apple の音楽検索に送信されます。オフの場合、Discord には Musify のロゴが表示されます。",
+      "discordCoversHint": "Discord には公開された画像が必要なため、アーティストとアルバムが Deezer と Apple の音楽検索に送信されます。オフの場合、Discord には Musify のロゴが表示されます。",
       "needsDiscord": "「Discord に表示」をオンにすると利用できます。"
     },
     "home": {

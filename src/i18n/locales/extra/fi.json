@@ -999,7 +999,7 @@
       "discord": "Näytä Discordissa",
       "discordHint": "Näyttää Discord-profiilissasi, mitä kuuntelet: kappaleen nimen, esittäjät, kansikuvan ja edistymisen.",
       "discordCovers": "Etsi kansikuvat Discordille",
-      "discordCoversHint": "Discord tarvitsee julkisen kuvan, joten esittäjä ja albumi lähetetään Applen musiikkihakuun. Ilman sitä Discord näyttää Musifyn logon.",
+      "discordCoversHint": "Discord tarvitsee julkisen kuvan, joten esittäjä ja albumi lähetetään Deezerin ja Applen musiikkihakuun. Ilman sitä Discord näyttää Musifyn logon.",
       "needsDiscord": "Käytettävissä, kun ”Näytä Discordissa” on päällä."
     },
     "home": {

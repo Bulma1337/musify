@@ -1022,7 +1022,7 @@
       "discord": "Afișează în Discord",
       "discordHint": "Arată pe profilul tău Discord ce asculți: titlu, artiști, copertă și progres.",
       "discordCovers": "Găsește coperți pentru Discord",
-      "discordCoversHint": "Discord are nevoie de o imagine publică, așa că artistul și albumul sunt trimise către căutarea de muzică Apple. Fără aceasta, Discord afișează sigla Musify.",
+      "discordCoversHint": "Discord are nevoie de o imagine publică, așa că artistul și albumul sunt trimise către căutarea muzicală Deezer și Apple. Fără aceasta, Discord afișează sigla Musify.",
       "needsDiscord": "Disponibil după ce „Afișează în Discord” este activat."
     },
     "home": {

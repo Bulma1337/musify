@@ -1045,7 +1045,7 @@
       "discord": "Zobrazovat v aplikaci Discord",
       "discordHint": "Zobrazí na tvém profilu v aplikaci Discord, co posloucháš: název, interprety, obal a průběh.",
       "discordCovers": "Hledat obaly pro Discord",
-      "discordCoversHint": "Discord potřebuje veřejný obrázek, proto se interpret a album odesílají do hudebního vyhledávání Apple. Bez toho Discord zobrazí logo Musify.",
+      "discordCoversHint": "Discord potřebuje veřejný obrázek, proto se interpret a album odesílají do hudebního vyhledávání Deezer a Apple. Bez toho Discord zobrazí logo Musify.",
       "needsDiscord": "K dispozici po zapnutí „Zobrazovat v aplikaci Discord“."
     },
     "home": {

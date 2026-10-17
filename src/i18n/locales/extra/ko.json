@@ -976,7 +976,7 @@
       "discord": "Discord에 표시",
       "discordHint": "듣고 있는 곡을 Discord 프로필에 표시해요: 제목, 아티스트, 커버, 진행 상황.",
       "discordCovers": "Discord용 커버 찾기",
-      "discordCoversHint": "Discord에는 공개된 이미지가 필요해서 아티스트와 앨범이 Apple 음악 검색으로 전송돼요. 끄면 Discord에는 Musify 로고가 표시돼요.",
+      "discordCoversHint": "Discord에는 공개 이미지가 필요하므로 아티스트와 앨범 정보를 Deezer와 Apple의 음악 검색으로 보냅니다. 끄면 Discord에 Musify 로고가 표시돼요.",
       "needsDiscord": "“Discord에 표시”를 켜면 사용할 수 있어요."
     },
     "home": {

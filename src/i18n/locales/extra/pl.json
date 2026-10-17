@@ -1045,7 +1045,7 @@
       "discord": "Pokazuj w Discord",
       "discordHint": "Pokazuje w Twoim profilu Discord, czego słuchasz: tytuł, wykonawców, okładkę i postęp.",
       "discordCovers": "Wyszukuj okładki dla Discord",
-      "discordCoversHint": "Discord wymaga publicznego obrazu, więc wykonawca i album są wysyłane do wyszukiwarki muzyki Apple. Bez tego Discord pokazuje logo Musify.",
+      "discordCoversHint": "Discord potrzebuje publicznego obrazu, dlatego wykonawca i album są wysyłane do wyszukiwarki muzyki Deezer i Apple. Bez tego Discord pokazuje logo Musify.",
       "needsDiscord": "Dostępne po włączeniu opcji „Pokazuj w Discord”."
     },
     "home": {

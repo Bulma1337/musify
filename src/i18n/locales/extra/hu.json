@@ -999,7 +999,7 @@
       "discord": "Megjelenítés a Discordban",
       "discordHint": "Megmutatja a Discord-profilodon, mit hallgatsz: cím, előadók, borító és előrehaladás.",
       "discordCovers": "Borítók keresése a Discordhoz",
-      "discordCoversHint": "A Discordnak nyilvános képre van szüksége, ezért az előadó és az album az Apple zenekeresőjének kerül elküldésre. Enélkül a Discord a Musify logóját mutatja.",
+      "discordCoversHint": "A Discordnak nyilvános kép kell, ezért az előadó és az album a Deezer és az Apple zenekeresőjéhez kerül. Enélkül a Discord a Musify logóját mutatja.",
       "needsDiscord": "Akkor érhető el, ha a „Megjelenítés a Discordban” be van kapcsolva."
     },
     "home": {

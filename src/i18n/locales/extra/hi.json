@@ -999,7 +999,7 @@
       "discord": "Discord में दिखाएँ",
       "discordHint": "आपकी Discord प्रोफ़ाइल पर दिखाता है कि आप क्या सुन रहे हैं: शीर्षक, कलाकार, कवर और प्रगति।",
       "discordCovers": "Discord के लिए कवर खोजें",
-      "discordCoversHint": "Discord को सार्वजनिक छवि चाहिए, इसलिए कलाकार और एल्बम Apple की म्यूज़िक खोज को भेजे जाते हैं। इसके बिना Discord Musify का लोगो दिखाता है।",
+      "discordCoversHint": "Discord को एक सार्वजनिक चित्र चाहिए, इसलिए कलाकार और एल्बम Deezer और Apple की संगीत खोज को भेजे जाते हैं। इसके बिना Discord Musify का लोगो दिखाता है।",
       "needsDiscord": "“Discord में दिखाएँ” चालू होने पर उपलब्ध।"
     },
     "home": {

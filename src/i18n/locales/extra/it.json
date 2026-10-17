@@ -1022,7 +1022,7 @@
       "discord": "Mostra su Discord",
       "discordHint": "Mostra cosa stai ascoltando sul tuo profilo Discord: titolo, artisti, copertina e avanzamento.",
       "discordCovers": "Trova copertine per Discord",
-      "discordCoversHint": "Discord richiede un'immagine pubblica, quindi artista e album vengono inviati alla ricerca musicale di Apple. Senza questa opzione Discord mostra il logo di Musify.",
+      "discordCoversHint": "Discord ha bisogno di un'immagine pubblica, quindi artista e album vengono inviati alla ricerca musicale di Deezer e Apple. Senza, Discord mostra il logo di Musify.",
       "needsDiscord": "Disponibile quando “Mostra su Discord” è attivo."
     },
     "home": {
