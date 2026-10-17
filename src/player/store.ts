@@ -369,12 +369,29 @@ export const usePlayer = create<PlayerState>()(
   ),
 );
 
-/** Upcoming context items after the current one, in play order. */
+let upcomingCache: {
+  order: PlayerState["order"];
+  orderIndex: number;
+  items: PlayerState["contextItems"];
+  result: QueueItem[];
+} | null = null;
+
+/**
+ * Upcoming context items after the current one, in play order. Usable as a store selector: the
+ * result is cached per input, so an unchanged queue returns the same array (a fresh array on every
+ * call makes React re-render forever).
+ */
 export function upcomingContextItems(state: PlayerState): QueueItem[] {
-  return state.order
+  const c = upcomingCache;
+  if (c && c.order === state.order && c.orderIndex === state.orderIndex && c.items === state.contextItems) {
+    return c.result;
+  }
+  const result = state.order
     .slice(state.orderIndex + 1)
     .map((i) => state.contextItems[i]!)
     .filter(Boolean);
+  upcomingCache = { order: state.order, orderIndex: state.orderIndex, items: state.contextItems, result };
+  return result;
 }
 
 /** The item the engine should preload after the current one (repeat-one repeats the current item). */
