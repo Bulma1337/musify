@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -70,6 +70,64 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 }
 
 const MODES: readonly EqModeChoice[] = ["ten", "thirtyOne", "parametric"];
+
+/** The three modes as a WAI-ARIA tab list (roving tabindex, arrow keys); the selected state comes from the store only. */
+function ModeTabs({
+  active,
+  onChange,
+  label,
+}: {
+  active: EqModeChoice;
+  onChange: (m: EqModeChoice) => void;
+  label: string;
+}) {
+  const { t } = useTranslation();
+  const refs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    const index = MODES.indexOf(active);
+    let next: number;
+    if (e.key === "ArrowRight") next = (index + 1) % MODES.length;
+    else if (e.key === "ArrowLeft") next = (index - 1 + MODES.length) % MODES.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = MODES.length - 1;
+    else return;
+    e.preventDefault();
+    const mode = MODES[next]!;
+    onChange(mode);
+    refs.current[mode]?.focus();
+  }
+
+  return (
+    <div role="tablist" aria-label={label} onKeyDown={onKeyDown} className="mt-5 mb-3 flex flex-wrap gap-1">
+      {MODES.map((m) => {
+        const selected = active === m;
+        return (
+          <button
+            key={m}
+            ref={(el) => {
+              refs.current[m] = el;
+            }}
+            id={`eq-mode-${m}`}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            aria-controls="eq-mode-panel"
+            tabIndex={selected ? 0 : -1}
+            data-active={selected}
+            onClick={() => onChange(m)}
+            className={cn(
+              "h-9 shrink-0 rounded-full px-4 text-sm font-bold whitespace-nowrap",
+              selected ? "bg-text text-black" : "bg-elevated text-subdued hover:text-text",
+            )}
+          >
+            {t(`equalizer.modes.${m}`)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 /**
  * A/B comparison: press to hear the signal without the EQ, hold = back on release, quick press =
@@ -173,23 +231,7 @@ export function EqualizerPage() {
 
       {processing && <p className="mt-3 text-[13px] text-subdued">{t("equalizer.notBitPerfect")}</p>}
 
-      <div role="tablist" aria-label={t("equalizer.modeLabel")} className="mt-5 mb-3 flex gap-1">
-        {MODES.map((m) => (
-          <button
-            key={m}
-            type="button"
-            role="tab"
-            aria-selected={activeMode === m}
-            onClick={() => setEqMode(m)}
-            className={cn(
-              "h-9 rounded-full px-4 text-sm font-bold transition-colors",
-              activeMode === m ? "bg-text text-black" : "bg-elevated text-subdued hover:text-text",
-            )}
-          >
-            {t(`equalizer.modes.${m}`)}
-          </button>
-        ))}
-      </div>
+      <ModeTabs active={activeMode} onChange={setEqMode} label={t("equalizer.modeLabel")} />
 
       <div className="flex flex-col gap-4">
         <section className="rounded-lg bg-elevated p-4" aria-label={t("equalizer.curve.title")}>
@@ -208,7 +250,8 @@ export function EqualizerPage() {
 
         <section
           role="tabpanel"
-          aria-label={t(`equalizer.modes.${activeMode}`)}
+          id="eq-mode-panel"
+          aria-labelledby={`eq-mode-${activeMode}`}
           className="rounded-lg bg-elevated p-5"
         >
           {mode.type === "graphic" ? (

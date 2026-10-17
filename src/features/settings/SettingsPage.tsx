@@ -110,6 +110,7 @@ function PlaybackSection() {
       <SettingRow
         title={t("settings.playback.skipSameAlbum")}
         description={t("settings.playback.skipSameAlbumHint")}
+        disabledReason={seconds === 0 ? t("settings.playback.needsCrossfade") : undefined}
       >
         <Switch
           checked={crossfade.skipSameAlbum}
@@ -141,6 +142,7 @@ function PlaybackSection() {
         stacked
         title={t("settings.playback.target")}
         description={t("settings.playback.targetHint")}
+        disabledReason={normalizationOff ? t("settings.playback.needsNormalization") : undefined}
       >
         <Segmented
           label={t("settings.playback.target")}
@@ -156,6 +158,7 @@ function PlaybackSection() {
       <SettingRow
         title={t("settings.playback.preventClipping")}
         description={t("settings.playback.preventClippingHint")}
+        disabledReason={normalizationOff ? t("settings.playback.needsNormalization") : undefined}
       >
         <Switch
           checked={normalization.preventClipping}
@@ -167,6 +170,7 @@ function PlaybackSection() {
       <SettingRow
         title={t("settings.playback.analyzeUntagged")}
         description={t("settings.playback.analyzeUntaggedHint")}
+        disabledReason={normalizationOff ? t("settings.playback.needsNormalization") : undefined}
       >
         <Switch
           checked={normalization.analyzeUntagged}
@@ -203,7 +207,12 @@ function PlaybackSection() {
           onChange={(v) => setStereo({ balance: v / 100 })}
         />
       </SettingRow>
-      <SettingRow stacked title={t("settings.playback.width")} description={t("settings.playback.widthHint")}>
+      <SettingRow
+        stacked
+        title={t("settings.playback.width")}
+        description={t("settings.playback.widthHint")}
+        disabledReason={stereo.mono ? t("settings.playback.needsStereo") : undefined}
+      >
         <RangeSlider
           label={t("settings.playback.width")}
           value={Math.round(stereo.width * 100)}
