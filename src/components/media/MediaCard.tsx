@@ -13,6 +13,8 @@ export interface MediaCardProps {
   to: string;
   round?: boolean;
   fallback?: "album" | "playlist" | "artist" | "liked";
+  /** Custom artwork (generated covers); replaces the cover image. */
+  art?: ReactNode;
   playing?: boolean;
   onPlay?: () => void;
   /** Wraps the card, e.g. in a context-menu trigger. */
@@ -27,6 +29,7 @@ export function MediaCard({
   to,
   round,
   fallback,
+  art,
   playing,
   onPlay,
   className,
@@ -47,7 +50,13 @@ export function MediaCard({
       )}
     >
       <div className="relative">
-        <Cover cover={cover} size={180} round={round} fallback={fallback} className="w-full" />
+        {art ? (
+          <div className="aspect-square w-full overflow-hidden rounded-[4px] shadow-[0_8px_24px_rgb(0_0_0/0.5)]">
+            {art}
+          </div>
+        ) : (
+          <Cover cover={cover} size={180} round={round} fallback={fallback} className="w-full" />
+        )}
         {onPlay && (
           <PlayButton
             playing={!!playing}

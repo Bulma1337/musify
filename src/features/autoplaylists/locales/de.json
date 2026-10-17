@@ -1,0 +1,31 @@
+{
+  "autoPlaylists": {
+    "shelfTitle": "Aus deinem Hörverlauf",
+    "kind": "Automatische Playlist",
+    "title": {
+      "heavyRotation": "Deine Dauerbrenner",
+      "rediscovered": "Wiederentdeckt",
+      "allTime": "Deine All-Time-Top-Songs",
+      "topYear": "Top-Songs {{year}}"
+    },
+    "short": {
+      "heavyRotation": "Am meisten gehört in den letzten 30 Tagen",
+      "rediscovered": "Alte Favoriten, wieder da",
+      "allTime": "Am meisten gehört aller Zeiten",
+      "topYear": "Dein Jahr in Songs"
+    },
+    "description": {
+      "heavyRotation": "Was du in den letzten 30 Tagen am häufigsten gehört hast.",
+      "rediscovered": "Songs, die du vor einiger Zeit oft gehört und seit Monaten nicht mehr gespielt hast.",
+      "allTime": "Deine meistgespielten Songs überhaupt, aus den Wiedergabezahlen des Servers und deinem Verlauf in Navify.",
+      "topYear": "Deine meistgespielten Songs {{year}}."
+    },
+    "trackCount_one": "{{count}} Titel",
+    "trackCount_other": "{{count}} Titel",
+    "save": "Als Playlist speichern",
+    "saved": "„{{name}}“ als Playlist gespeichert",
+    "emptyTitle": "Noch nicht genug Hörverlauf",
+    "emptyHint": "Hör weiter Musik, dann füllt sich diese Playlist von selbst.",
+    "notFound": "Diese Playlist gibt es nicht."
+  }
+}

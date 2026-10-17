@@ -3,7 +3,17 @@ import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { DropdownMenu } from "radix-ui";
-import { ArrowDownUp, Check, FolderPlus, Library, ListMusic, Plus, Search, X } from "lucide-react";
+import {
+  ArrowDownUp,
+  ChartColumn,
+  Check,
+  FolderPlus,
+  Library,
+  ListMusic,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
 import { usePlaylists, useSetStarred, useStarred } from "@/api/queries";
 import { useProvider } from "@/api/session";
 import { describeError } from "@/api/errors";
@@ -209,6 +219,9 @@ export function LibrarySidebar() {
           {!collapsed && <span className="truncate text-text">{t("library.title")}</span>}
         </button>
         {!collapsed && <div className="flex-1" />}
+        <IconButton label={t("stats.title")} onClick={() => navigate("/stats")}>
+          <ChartColumn size={18} />
+        </IconButton>
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
             <IconButton label={t("libraryExtras.create")} className="bg-highlight">

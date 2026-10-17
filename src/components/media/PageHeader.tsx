@@ -20,6 +20,8 @@ export interface PageHeaderProps {
   title: string;
   cover?: CoverRef;
   coverFallback?: "album" | "playlist" | "artist" | "liked";
+  /** Custom artwork (generated covers); replaces the cover image. */
+  art?: ReactNode;
   round?: boolean;
   /** Line below the title: owner/artist, year, track count, duration. */
   meta?: ReactNode;
@@ -37,7 +39,8 @@ export interface PageHeaderProps {
  * (color + play button + title) that appears once the header scrolls out of view.
  */
 export function PageHeader(props: PageHeaderProps) {
-  const { kind, title, cover, coverFallback, round, meta, description, playing, onPlay, actions } = props;
+  const { kind, title, cover, coverFallback, art, round, meta, description, playing, onPlay, actions } =
+    props;
   const derived = useCoverColor(props.color ? undefined : cover);
   const color = props.color ?? derived;
   const scrollElement = useScrollContainer();
@@ -72,14 +75,20 @@ export function PageHeader(props: PageHeaderProps) {
         className="@container flex items-end gap-6 px-6 pt-20 pb-6"
         style={{ background: `linear-gradient(${rgbCss(color)}, ${rgbCss(color, 0.55)})` }}
       >
-        <Cover
-          cover={cover}
-          size={232}
-          round={round}
-          fallback={coverFallback}
-          eager
-          className="w-[clamp(128px,22cqw,232px)] shadow-[0_4px_60px_rgb(0_0_0/0.5)]"
-        />
+        {art ? (
+          <div className="aspect-square w-[clamp(128px,22cqw,232px)] shrink-0 overflow-hidden rounded-[4px] shadow-[0_4px_60px_rgb(0_0_0/0.5)]">
+            {art}
+          </div>
+        ) : (
+          <Cover
+            cover={cover}
+            size={232}
+            round={round}
+            fallback={coverFallback}
+            eager
+            className="w-[clamp(128px,22cqw,232px)] shadow-[0_4px_60px_rgb(0_0_0/0.5)]"
+          />
+        )}
         <div className="flex min-w-0 flex-col gap-2">
           <span className="text-sm font-semibold">{kind}</span>
           <h1

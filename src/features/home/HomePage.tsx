@@ -7,6 +7,8 @@ import { useProvider } from "@/api/session";
 import { MediaCard } from "@/components/media/MediaCard";
 import { Shelf } from "@/components/media/Shelf";
 import { Spinner } from "@/components/ui/Spinner";
+import { AutoPlaylistShelf } from "@/features/autoplaylists/AutoPlaylistShelf";
+import { RecapBanner } from "@/features/recap/RecapBanner";
 import { loaders, playOrToggle, useIsContextPlaying } from "@/player/actions";
 import { greetingForHour } from "./greeting";
 import { QuickTile } from "./QuickTile";
@@ -149,6 +151,7 @@ export function HomePage() {
         </div>
       ) : (
         <div className="mt-6 flex flex-col gap-8">
+          <RecapBanner />
           {quick.length > 0 && (
             <section aria-label={t("home.quickAccess")} className="grid grid-cols-2 gap-3 2xl:grid-cols-4">
               {quick.map((entry) => (
@@ -156,6 +159,7 @@ export function HomePage() {
               ))}
             </section>
           )}
+          <AutoPlaylistShelf />
           {ALBUM_SHELVES.map((type) => (
             <Shelf
               key={type}

@@ -1,0 +1,31 @@
+{
+  "autoPlaylists": {
+    "shelfTitle": "From your listening",
+    "kind": "Automatic playlist",
+    "title": {
+      "heavyRotation": "Your heavy rotation",
+      "rediscovered": "Rediscovered",
+      "allTime": "Your all-time top songs",
+      "topYear": "Top songs {{year}}"
+    },
+    "short": {
+      "heavyRotation": "Your most played of the last 30 days",
+      "rediscovered": "Old favorites, back again",
+      "allTime": "Most played of all time",
+      "topYear": "Your year in songs"
+    },
+    "description": {
+      "heavyRotation": "What you played the most in the last 30 days.",
+      "rediscovered": "Songs you played a lot a while ago and have not heard for months.",
+      "allTime": "Your most played songs ever, from the server's play counts and your history in Navify.",
+      "topYear": "Your most played songs of {{year}}."
+    },
+    "trackCount_one": "{{count}} track",
+    "trackCount_other": "{{count}} tracks",
+    "save": "Save as playlist",
+    "saved": "Saved \"{{name}}\" as a playlist",
+    "emptyTitle": "Not enough listening history yet",
+    "emptyHint": "Keep listening and this playlist fills itself.",
+    "notFound": "This playlist does not exist."
+  }
+}
