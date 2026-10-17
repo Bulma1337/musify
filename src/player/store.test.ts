@@ -1,5 +1,5 @@
 import { fakeTracks } from "@/test/fakeProvider";
-import { peekNext, usePlayer } from "./store";
+import { peekNext, upcomingContextItems, usePlayer } from "./store";
 
 const context = { type: "album" as const, id: "al1", name: "Morning Static" };
 
@@ -35,6 +35,18 @@ describe("player store", () => {
     usePlayer.getState().next();
     expect(usePlayer.getState().current?.track.id).toBe("t3");
     expect(usePlayer.getState().startNonce).toBe(afterPlay + 1);
+  });
+
+  it("upcomingContextItems returns the same array while the queue is unchanged (stable selector)", () => {
+    usePlayer.getState().playTracks(fakeTracks.slice(0, 4), 0, context);
+    const first = upcomingContextItems(usePlayer.getState());
+    expect(first.map((i) => i.track.id)).toEqual(["t2", "t3", "t4"]);
+    usePlayer.getState().setProgress(1000);
+    expect(upcomingContextItems(usePlayer.getState())).toBe(first);
+    usePlayer.getState().next();
+    const afterNext = upcomingContextItems(usePlayer.getState());
+    expect(afterNext).not.toBe(first);
+    expect(afterNext.map((i) => i.track.id)).toEqual(["t3", "t4"]);
   });
 
   it("manual queue plays before the context continues", () => {

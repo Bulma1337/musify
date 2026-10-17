@@ -1,9 +1,18 @@
-//! Second-order IIR sections: RBJ Audio-EQ-Cookbook design, exact magnitude evaluation and
-//! Transposed Direct Form II processing.
+//! Second-order IIR sections: RBJ Audio-EQ-Cookbook design, magnitude-matched peaking design,
+//! exact magnitude evaluation and Transposed Direct Form II processing.
 //!
 //! Design notes:
-//! - Every filter is the bilinear transform (prewarped at `f0`) of the cookbook's analog prototype,
-//!   so the digital magnitude at `w` equals the analog magnitude at `Ω = tan(w/2) / tan(w0/2)`.
+//! - [`Design::Bilinear`] filters are the bilinear transform (prewarped at `f0`) of the cookbook's
+//!   analog prototype, so the digital magnitude at `w` equals the analog magnitude at
+//!   `Ω = tan(w/2) / tan(w0/2)`. This is what AutoEQ / Equalizer APO profiles assume, so parametric
+//!   filters always use it. Its drawback is frequency warping: near Nyquist every bell is squeezed
+//!   (a 16 kHz octave band at 44.1 kHz loses about half of its upper skirt).
+//! - [`Design::Matched`] (peaking only) follows M. Vicanek, "Matched Second Order Digital Filters"
+//!   (2016): impulse-invariant poles, and a numerator chosen so that `|H|` equals the analog
+//!   prototype exactly at DC, at `f0` and at Nyquist. There is no warping: the bell keeps its analog
+//!   width up to Nyquist. A cut is designed as the exact inverse of the matching boost, so boost and
+//!   cut stay mirror images (as in the analog prototype) and the cut's poles are the boost's
+//!   minimum-phase zeros. The graphic EQ uses it (see `eq/graphic.rs`).
 //! - Shelves use the cookbook's **Q form** (`alpha = sin(w0) / (2Q)`), not the slope `S` form,
 //!   because AutoEQ / Equalizer APO profiles specify shelves with Q. `Q = 1/√2` equals `S = 1`
 //!   (steepest slope without overshoot) and is what the internal shelves (bass, loudness) use.
@@ -35,6 +44,17 @@ pub struct Coeffs {
     pub a2: f64,
 }
 
+/// How the analog prototype of a filter is turned into a digital biquad.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Design {
+    /// RBJ cookbook (bilinear transform, prewarped at `f0`).
+    #[default]
+    Bilinear,
+    /// Magnitude-matched, warping-free design. Only peaking filters have one; other kinds fall back
+    /// to [`Design::Bilinear`].
+    Matched,
+}
+
 /// One filter of a chain, in user units. Gain is ignored (forced to 0) for pass and notch filters.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct FilterSpec {
@@ -42,16 +62,32 @@ pub struct FilterSpec {
     pub freq_hz: f64,
     pub gain_db: f64,
     pub q: f64,
+    pub design: Design,
 }
 
 impl FilterSpec {
+    /// An RBJ (bilinear) filter.
     pub fn new(kind: FilterKind, freq_hz: f64, gain_db: f64, q: f64) -> Self {
         Self {
             kind,
             freq_hz,
             gain_db,
             q,
+            design: Design::Bilinear,
         }
+    }
+
+    /// A magnitude-matched peaking filter (see [`Design::Matched`]).
+    pub fn matched_peaking(freq_hz: f64, gain_db: f64, q: f64) -> Self {
+        Self {
+            design: Design::Matched,
+            ..Self::new(FilterKind::Peaking, freq_hz, gain_db, q)
+        }
+    }
+
+    /// Same filter kind and design: changing between the two only needs parameter smoothing.
+    pub fn same_shape(&self, other: &FilterSpec) -> bool {
+        self.kind == other.kind && self.design == other.design
     }
 
     /// Parameters clamped to what the filter design accepts at `sample_rate`.
@@ -77,12 +113,45 @@ impl FilterSpec {
             freq_hz,
             gain_db,
             q,
+            design: self.design,
         }
     }
 
+    /// Coefficients at `sample_rate` (parameters are clamped).
     pub fn coeffs(&self, sample_rate: f64) -> Coeffs {
-        Coeffs::design(self.kind, self.freq_hz, self.gain_db, self.q, sample_rate)
+        match (self.design, self.kind) {
+            (Design::Matched, FilterKind::Peaking) => {
+                Coeffs::matched_peaking(self.freq_hz, self.gain_db, self.q, sample_rate)
+            }
+            _ => Coeffs::design(self.kind, self.freq_hz, self.gain_db, self.q, sample_rate),
+        }
     }
+}
+
+fn valid_rate(sample_rate: f64) -> f64 {
+    if sample_rate.is_finite() && sample_rate > 0.0 {
+        sample_rate
+    } else {
+        48_000.0
+    }
+}
+
+/// `|H(jΩ)|²` of the cookbook's analog peaking prototype `(s² + s·A/Q + 1) / (s² + s/(A·Q) + 1)` at
+/// `Ω² = omega_sq` (frequency normalized to `f0`), with `a = A = 10^(gain/40)`.
+pub fn analog_peaking_mag_sq(omega_sq: f64, a: f64, q: f64) -> f64 {
+    let re = (1.0 - omega_sq) * (1.0 - omega_sq);
+    (re + omega_sq * (a / q) * (a / q)) / (re + omega_sq / ((a * q) * (a * q)))
+}
+
+/// `(b0, b1, b2)` of the minimum-phase polynomial whose squared magnitude is
+/// `dc·cos²(w/2) + ny·sin²(w/2) + x·cos²(w/2)·sin²(w/2)`. A slightly infeasible `x` (rounding) is
+/// limited to the realizable range.
+fn factor_magnitude(dc: f64, ny: f64, x: f64) -> (f64, f64, f64) {
+    let p = dc.max(0.0).sqrt(); // b0 + b1 + b2
+    let m = ny.max(0.0).sqrt(); // b0 − b1 + b2
+    let w = 0.5 * (p + m); // b0 + b2
+    let d = (w * w + 0.25 * x).max(0.0).sqrt(); // b0 − b2 (b0·b2 = −x/16)
+    (0.5 * (w + d), 0.5 * (p - m), 0.5 * (w - d))
 }
 
 /// Whether `kind` uses its gain parameter.
@@ -110,18 +179,8 @@ impl Coeffs {
         q: f64,
         sample_rate: f64,
     ) -> Coeffs {
-        let fs = if sample_rate.is_finite() && sample_rate > 0.0 {
-            sample_rate
-        } else {
-            48_000.0
-        };
-        let s = FilterSpec {
-            kind,
-            freq_hz,
-            gain_db,
-            q,
-        }
-        .clamped(fs);
+        let fs = valid_rate(sample_rate);
+        let s = FilterSpec::new(kind, freq_hz, gain_db, q).clamped(fs);
         let w0 = TAU * s.freq_hz / fs;
         let sin_w = w0.sin();
         let half = (0.5 * w0).sin();
@@ -199,6 +258,63 @@ impl Coeffs {
         }
     }
 
+    /// Magnitude-matched peaking filter (Vicanek 2016, see the module docs). Parameters are clamped
+    /// like in [`Coeffs::design`].
+    pub fn matched_peaking(freq_hz: f64, gain_db: f64, q: f64, sample_rate: f64) -> Coeffs {
+        let fs = valid_rate(sample_rate);
+        let s = FilterSpec::new(FilterKind::Peaking, freq_hz, gain_db, q).clamped(fs);
+        let w0 = TAU * s.freq_hz / fs;
+        // Design the boost; a cut is its exact inverse.
+        let a = 10f64.powf(s.gain_db.abs() / 40.0);
+        // Poles of 1 / (s² + s/(A·Q) + 1), mapped by impulse invariance (z = e^{sT}).
+        let zeta = 1.0 / (2.0 * a * s.q);
+        let r = (-zeta * w0).exp();
+        let a1 = if zeta <= 1.0 {
+            -2.0 * r * (w0 * (1.0 - zeta * zeta).sqrt()).cos()
+        } else {
+            -2.0 * r * (w0 * (zeta * zeta - 1.0).sqrt()).cosh()
+        };
+        let a2 = r * r;
+        if s.gain_db == 0.0 {
+            // Numerator = denominator: exactly unity gain.
+            return Coeffs {
+                b0: 1.0,
+                b1: a1,
+                b2: a2,
+                a1,
+                a2,
+            };
+        }
+        // |A(w)|² = A0·φ0 + A1·φ1 + A2·φ0·φ1 with φ0 = cos²(w/2), φ1 = sin²(w/2).
+        let den_dc = (1.0 + a1 + a2) * (1.0 + a1 + a2);
+        let den_ny = (1.0 - a1 + a2) * (1.0 - a1 + a2);
+        let den_x = -16.0 * a2;
+        let half = (0.5 * w0).sin();
+        let phi1 = half * half;
+        let phi0 = 1.0 - phi1;
+        let g2 = a * a * a * a; // analog |H(f0)|²
+        let omega_ny = 0.5 * fs / s.freq_hz;
+        let ny2 = analog_peaking_mag_sq(omega_ny * omega_ny, a, s.q); // analog |H(fs/2)|²
+        // Numerator |B|² = B0·φ0 + B1·φ1 + B2·φ0·φ1 with |H|² = 1 at DC, ny2 at Nyquist and g2 at
+        // f0. B2 is written without the large cancelling terms of the direct solution.
+        let num_dc = den_dc;
+        let num_ny = den_ny * ny2;
+        let num_x = (g2 - 1.0) * den_dc / phi1 + (g2 - ny2) * den_ny / phi0 + g2 * den_x;
+        let (b0, b1, b2) = factor_magnitude(num_dc, num_ny, num_x);
+        if s.gain_db > 0.0 {
+            Coeffs { b0, b1, b2, a1, a2 }
+        } else {
+            let inv = 1.0 / b0;
+            Coeffs {
+                b0: inv,
+                b1: a1 * inv,
+                b2: a2 * inv,
+                a1: b1 * inv,
+                a2: b2 * inv,
+            }
+        }
+    }
+
     /// Linear interpolation between two coefficient sets. The stability region of `(a1, a2)` is a
     /// triangle (convex), so interpolating between two stable filters is always stable.
     #[inline]
@@ -214,8 +330,12 @@ impl Coeffs {
 
     /// Squared magnitude at `freq_hz`, using the cookbook's numerically robust `φ = sin²(w/2)` form.
     pub fn magnitude_sq(&self, freq_hz: f64, sample_rate: f64) -> f64 {
-        let s = (PI * freq_hz / sample_rate).sin();
-        let phi = s * s;
+        self.magnitude_sq_phi(phi(freq_hz, sample_rate))
+    }
+
+    /// Squared magnitude at `φ = sin²(w/2)` (see [`phi`]).
+    #[inline]
+    pub fn magnitude_sq_phi(&self, phi: f64) -> f64 {
         let Coeffs { b0, b1, b2, a1, a2 } = *self;
         let bs = b0 + b1 + b2;
         let as_ = 1.0 + a1 + a2;
@@ -243,6 +363,13 @@ impl Coeffs {
         let d = dr * dr + di * di;
         ((nr * dr + ni * di) / d, (ni * dr - nr * di) / d)
     }
+}
+
+/// `φ = sin²(π·f/fs)`, the frequency variable of [`Coeffs::magnitude_sq_phi`].
+#[inline]
+pub fn phi(freq_hz: f64, sample_rate: f64) -> f64 {
+    let s = (PI * freq_hz / sample_rate).sin();
+    s * s
 }
 
 /// Values below this are flushed to zero (−600 dBFS): keeps the state out of the denormal range.

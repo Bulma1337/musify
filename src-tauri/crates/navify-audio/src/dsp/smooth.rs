@@ -290,13 +290,14 @@ impl SmoothFilter {
         }
     }
 
-    /// Glides to `spec`. A different filter kind is applied immediately (callers crossfade those).
+    /// Glides to `spec`. A different filter kind or design is applied immediately (callers crossfade
+    /// those).
     pub fn set_target(&mut self, spec: FilterSpec) {
         let spec = spec.clamped(self.fs);
         if spec == self.spec {
             return;
         }
-        if spec.kind != self.spec.kind {
+        if !spec.same_shape(&self.spec) {
             *self = Self::new(spec, self.fs);
             return;
         }
@@ -345,13 +346,13 @@ impl SmoothFilter {
             self.coeffs = self.spec.coeffs(self.fs);
             self.settled = true;
         } else {
-            self.coeffs = Coeffs::design(
-                self.spec.kind,
-                self.cur[0].exp(),
-                self.cur[1],
-                self.cur[2].exp(),
-                self.fs,
-            );
+            self.coeffs = FilterSpec {
+                freq_hz: self.cur[0].exp(),
+                gain_db: self.cur[1],
+                q: self.cur[2].exp(),
+                ..self.spec
+            }
+            .coeffs(self.fs);
         }
     }
 }

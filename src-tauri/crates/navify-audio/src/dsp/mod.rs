@@ -28,7 +28,9 @@ mod loudness;
 mod smooth;
 mod stereo;
 
-use crate::api::{DspConfig, EqConfig, EqResponse};
+use crate::api::{DspConfig, EqConfig, EqResponse, GraphicBands};
+
+use self::biquad::FilterSpec;
 
 use self::bass::BassStage;
 use self::eq::bank::EqStage;
@@ -37,7 +39,7 @@ use self::loudness::LoudnessStage;
 use self::smooth::{CHUNK, Fade, Ramp, SMOOTH_TAU_S, chunk_alpha, crossfade_chunks};
 use self::stereo::StereoStage;
 
-pub use self::eq::graphic::{Q_OCTAVE, Q_THIRD_OCTAVE};
+pub use self::eq::graphic::{CENTER_WEIGHT, EDGE_Q_FACTOR, POINTS_PER_INTERVAL, Q_SCALE};
 pub use self::limiter::CEILING_DBTP;
 pub use self::loudness::boost_db as loudness_boost_db;
 
@@ -311,6 +313,19 @@ pub fn volume_to_gain(volume: f64) -> f64 {
     }
 }
 
+/// The filters the chain runs for a graphic EQ setting at `sample_rate` (see `dsp/eq/graphic.rs`).
+pub fn graphic_filters(bands: GraphicBands, gains_db: &[f64], sample_rate: u32) -> Vec<FilterSpec> {
+    eq::graphic::solve(bands, gains_db, rate_or_default(sample_rate))
+}
+
+fn rate_or_default(sample_rate: u32) -> f64 {
+    if sample_rate >= 8_000 {
+        sample_rate as f64
+    } else {
+        48_000.0
+    }
+}
+
 /// Frequency response of `config` at `points` log-spaced frequencies (20 Hz … 20 kHz).
 ///
 /// Exactly what the chain applies for this EQ with the bass enhancer off (graphic gains solved,
@@ -324,8 +339,10 @@ pub fn eq_response(config: &EqConfig, sample_rate: u32, points: usize) -> EqResp
     dsp_response(&dsp, sample_rate, points)
 }
 
-/// Like [`eq_response`], including the bass enhancer's low shelf (its harmonics are not linear and
-/// are not part of the curve).
+/// Like [`eq_response`], including the bass enhancer's low shelf. The enhancer's harmonics come from
+/// a nonlinear waveshaper (they depend on the signal, not just on frequency), so they cannot be part
+/// of a frequency response and are left out. Loudness compensation (volume dependent) is left out
+/// as well.
 pub fn dsp_response(config: &DspConfig, sample_rate: u32, points: usize) -> EqResponse {
     dsp_response_at(config, sample_rate, &eq::log_freqs(points))
 }
@@ -333,11 +350,7 @@ pub fn dsp_response(config: &DspConfig, sample_rate: u32, points: usize) -> EqRe
 /// Response of the linear EQ part of `config` (EQ filters, bass shelf, effective preamp) at the
 /// given frequencies.
 pub fn dsp_response_at(config: &DspConfig, sample_rate: u32, frequencies: &[f64]) -> EqResponse {
-    let fs = if sample_rate >= 8_000 {
-        sample_rate as f64
-    } else {
-        48_000.0
-    };
+    let fs = rate_or_default(sample_rate);
     eq::response_at(&eq::plan(config, fs), fs, frequencies)
 }
 
