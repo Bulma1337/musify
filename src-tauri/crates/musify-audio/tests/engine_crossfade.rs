@@ -3,6 +3,7 @@
 //! also when the app queues the next track while the fade runs.
 
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -172,4 +173,127 @@ fn crossfade_keeps_the_level_constant_while_the_next_track_is_queued() {
         .map(|p| (p[1] - p[0]).abs())
         .fold(0.0, f64::max);
     assert!(max_step < 0.08, "discontinuity of {max_step:.3}");
+}
+
+/// Amplitude of `freq` in `w` (Goertzel). Windows hold whole periods, so the other tone does not
+/// leak into it.
+fn tone_amplitude(w: &[f64], freq: f64) -> f64 {
+    let coeff = 2.0 * (2.0 * std::f64::consts::PI * freq / f64::from(RATE)).cos();
+    let (mut s1, mut s2) = (0.0, 0.0);
+    for &x in w {
+        let s = x + coeff * s1 - s2;
+        s2 = s1;
+        s1 = s;
+    }
+    let power = s1 * s1 + s2 * s2 - coeff * s1 * s2;
+    2.0 * power.max(0.0).sqrt() / w.len() as f64
+}
+
+/// Plays a 1.2 s tone (album `album_a`) followed by a 1.2 s tone (album `album_b`) and returns when
+/// the second one becomes audible, in seconds after the first one started, and its transition.
+fn next_track_onset(
+    crossfade_ms: u32,
+    skip_same_album: bool,
+    album_a: Option<&str>,
+    album_b: Option<&str>,
+) -> (f64, Transition) {
+    // Tests run in parallel: every run gets its own files.
+    static RUN: AtomicUsize = AtomicUsize::new(0);
+    let run = RUN.fetch_add(1, Ordering::Relaxed);
+    let (a, b) = (format!("onset{run}-a"), format!("onset{run}-b"));
+    let samples = Arc::new(Mutex::new(None));
+    let engine = AudioEngine::new(EngineInit {
+        cache: CacheConfig {
+            dir: tmp_dir().join(format!("cache-onset{run}-{}", std::process::id())),
+            max_bytes: 16 * 1024 * 1024,
+        },
+        output: Box::new(NullFactory {
+            samples: samples.clone(),
+        }),
+    });
+    let events = engine.events();
+    engine.send(EngineCommand::SetCrossfade {
+        config: CrossfadeConfig {
+            duration_ms: crossfade_ms,
+            skip_same_album,
+        },
+    });
+    let track = |id: &str, freq: f64, album: Option<&str>| TrackSource {
+        album_key: album.map(Into::into),
+        ..sine_track(id, freq, 1.2)
+    };
+    engine.send(EngineCommand::Play {
+        track: track(&a, 1000.0, album_a),
+        start_ms: 0,
+        paused: false,
+    });
+    engine.send(EngineCommand::SetNext {
+        track: Some(track(&b, 1500.0, album_b)),
+    });
+
+    let deadline = Instant::now() + Duration::from_secs(15);
+    let mut transition = None;
+    loop {
+        assert!(Instant::now() < deadline, "timed out");
+        match events.recv_timeout(Duration::from_millis(50)) {
+            Ok(EngineEvent::TrackStarted {
+                id, transition: t, ..
+            }) if id == b => {
+                transition = Some(t);
+            }
+            Ok(EngineEvent::TrackEnded { id, .. }) if id == b => break,
+            _ => {}
+        }
+    }
+
+    let rec = samples.lock().unwrap().as_ref().unwrap().lock().clone();
+    let left: Vec<f64> = rec.iter().step_by(2).copied().collect();
+    let first_audible = left.iter().position(|v| v.abs() > 1e-4).expect("audio");
+    // 10 ms windows: 10 periods of a, 15 of b. b counts as audible from −40 dB of its full level.
+    // The search starts after the fade-in at the start, which smears a's spectrum.
+    let window = (0.01 * f64::from(RATE)) as usize;
+    let skip = 10;
+    let onset = left[first_audible..]
+        .chunks_exact(window)
+        .skip(skip)
+        .position(|w| tone_amplitude(w, 1500.0) > AMPLITUDE * 0.01)
+        .expect("second track audible")
+        + skip;
+    (
+        (onset * window) as f64 / f64::from(RATE),
+        transition.expect("b started"),
+    )
+}
+
+#[test]
+fn crossfade_starts_the_next_track_that_long_before_the_end() {
+    // 1.2 s track, 400 ms crossfade: the next track comes in at 0.8 s.
+    let (onset, transition) = next_track_onset(400, false, None, None);
+    println!("crossfade 400 ms: next track audible at {onset:.3} s");
+    assert_eq!(transition, Transition::Crossfade);
+    assert!((onset - 0.8).abs() <= 0.015, "next track at {onset:.3} s");
+
+    // Same album, but crossfading within albums is allowed (the default).
+    let (onset, transition) = next_track_onset(400, false, Some("album"), Some("album"));
+    assert_eq!(transition, Transition::Crossfade);
+    assert!(
+        (onset - 0.8).abs() <= 0.015,
+        "album: next track at {onset:.3} s"
+    );
+
+    // Tracks of different albums are crossfaded even when album tracks should stay gapless.
+    let (onset, transition) = next_track_onset(400, true, Some("one"), Some("two"));
+    assert_eq!(transition, Transition::Crossfade);
+    assert!(
+        (onset - 0.8).abs() <= 0.015,
+        "other album: next track at {onset:.3} s"
+    );
+}
+
+#[test]
+fn album_tracks_stay_gapless_when_asked_to() {
+    let (onset, transition) = next_track_onset(400, true, Some("album"), Some("album"));
+    println!("same album, no crossfade: next track audible at {onset:.3} s");
+    assert_eq!(transition, Transition::Gapless);
+    assert!((onset - 1.2).abs() <= 0.015, "next track at {onset:.3} s");
 }
