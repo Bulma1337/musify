@@ -99,7 +99,8 @@
     "resumed": "Es geht weiter, wo du aufgehört hast.",
     "loaded": "Warteschlange vom Server übernommen.",
     "nowPlayingPanel": "Aktuellen Titel anzeigen",
-    "formatAndSound": "{{format}}: Format und Klang"
+    "formatAndSound": "{{format}}: Format und Klang",
+    "pausedState": "Pausiert"
   },
   "track": {
     "title": "Titel",

@@ -143,7 +143,12 @@
       "closeToTrayHint": "Closing only hides the window and the music keeps playing. Quit from the tray icon.",
       "notify": "Notify on track change",
       "notifyHint": "Shows the new track when the app is not in front.",
-      "desktopOnly": "These settings are only available in the desktop app."
+      "desktopOnly": "These settings are only available in the desktop app.",
+      "discord": "Show in Discord",
+      "discordHint": "Shows what you are listening to on your Discord profile: title, artists, cover and progress.",
+      "discordCovers": "Find covers for Discord",
+      "discordCoversHint": "Discord needs a public image, so artist and album are sent to Apple's music search. Without it Discord shows the Musify logo.",
+      "needsDiscord": "Available once “Show in Discord” is on."
     },
     "home": {
       "title": "Home",

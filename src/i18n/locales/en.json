@@ -99,7 +99,8 @@
     "resumed": "Continuing where you left off.",
     "loaded": "Took over the queue from the server.",
     "nowPlayingPanel": "Show the current track",
-    "formatAndSound": "{{format}}: format and sound"
+    "formatAndSound": "{{format}}: format and sound",
+    "pausedState": "Paused"
   },
   "track": {
     "title": "Title",

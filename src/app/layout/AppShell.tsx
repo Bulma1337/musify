@@ -2,6 +2,7 @@ import { startUpdateChecks } from "@/features/updates/updater";
 import { useSettings } from "@/settings/store";
 import { startMediaSession } from "@/player/mediaSession";
 import { startSystemIntegration } from "@/app/systemIntegration";
+import { startDiscordPresence } from "@/app/discordPresence";
 import { startCloseHandling } from "@/app/windowClose";
 import { startLyricsSidecars } from "@/features/downloads/lyricsSidecar";
 import { resumeAtStartup, startQueueSync } from "@/player/resume";
@@ -93,7 +94,12 @@ function MainView() {
             </div>
           }
         >
-          {scrollElement && <Outlet />}
+          {/* Each page fades in; the key restarts it when switching between pages of one kind. */}
+          {scrollElement && (
+            <div key={location.pathname} className="min-h-full animate-fade-in">
+              <Outlet />
+            </div>
+          )}
         </Suspense>
       </ScrollContainerContext.Provider>
     </main>
@@ -126,6 +132,7 @@ export function AppShell() {
   useEffect(() => startMediaSession(), []);
   useEffect(() => startCloseHandling(), []);
   useEffect(() => startSystemIntegration(), []);
+  useEffect(() => startDiscordPresence(), []);
   useEffect(() => startLyricsSidecars(), []);
   useEffect(() => {
     void normalizeWindowAtStartup();

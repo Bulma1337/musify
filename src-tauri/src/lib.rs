@@ -2,6 +2,7 @@ use tauri::Manager;
 
 mod audio;
 mod db;
+mod discord;
 mod downloads;
 mod media;
 mod migrate;
@@ -69,6 +70,7 @@ pub fn run() {
             app.manage(db::DbState(db::open_app_db(app.handle())));
             app.manage(downloads::DownloadsState::new(app.handle()));
             app.manage(media::MediaState::start(app.handle()));
+            app.manage(discord::DiscordState::start());
             app.manage(tray::create(app.handle())?);
             // Started by autostart: stay in the tray until the user opens the window.
             if std::env::args().any(|a| a == "--minimized")
@@ -93,6 +95,7 @@ pub fn run() {
             media::media_playback,
             media::media_clear,
             tray::tray_update,
+            discord::discord_presence,
             stats::history_record,
             stats::stats_summary,
             stats::stats_tracks,

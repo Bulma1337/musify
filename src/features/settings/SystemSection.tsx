@@ -8,12 +8,14 @@ import { SettingRow, SettingsSection } from "./controls";
 
 const AUTOSTART_KEY = ["system", "autostart"];
 
-/** Settings → System: autostart (minimized), close to tray, track notifications. */
+/** Settings → System: autostart (minimized), close to tray, track notifications, Discord. */
 export function SystemSection() {
   const { t } = useTranslation();
   const client = useQueryClient();
   const closeToTray = useSettings((s) => s.closeToTray);
   const notify = useSettings((s) => s.notifyTrackChange);
+  const discord = useSettings((s) => s.discordPresence);
+  const discordCovers = useSettings((s) => s.discordCovers);
   const set = useSettings((s) => s.set);
   // The OS entry is the source of truth for autostart, not a stored setting.
   const autostart = useQuery({
@@ -62,6 +64,26 @@ export function SystemSection() {
           disabled={!inTauri}
           onCheckedChange={(on) => set("notifyTrackChange", on)}
           label={t("settings.system.notify")}
+        />
+      </SettingRow>
+      <SettingRow title={t("settings.system.discord")} description={t("settings.system.discordHint")}>
+        <Switch
+          checked={discord}
+          disabled={!inTauri}
+          onCheckedChange={(on) => set("discordPresence", on)}
+          label={t("settings.system.discord")}
+        />
+      </SettingRow>
+      <SettingRow
+        title={t("settings.system.discordCovers")}
+        description={t("settings.system.discordCoversHint")}
+        disabledReason={discord ? undefined : t("settings.system.needsDiscord")}
+      >
+        <Switch
+          checked={discord && discordCovers}
+          disabled={!inTauri || !discord}
+          onCheckedChange={(on) => set("discordCovers", on)}
+          label={t("settings.system.discordCovers")}
         />
       </SettingRow>
     </SettingsSection>

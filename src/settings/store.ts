@@ -70,6 +70,10 @@ interface SettingsState {
   closeToTray: boolean;
   /** Desktop notification when a new track starts while the app is in the background. */
   notifyTrackChange: boolean;
+  /** Show the playing track in Discord. */
+  discordPresence: boolean;
+  /** Look up a public album cover for Discord (sends artist and album to Apple's search). */
+  discordCovers: boolean;
   streamingQuality: QualityPreset;
   downloadQuality: QualityPreset;
   /** Size limit of the audio streaming cache in GB: one of `CACHE_LIMITS_GB`. */
@@ -127,6 +131,8 @@ export const useSettings = create<SettingsState>()(
       onlineLyrics: true,
       closeToTray: false,
       notifyTrackChange: false,
+      discordPresence: true,
+      discordCovers: true,
       streamingQuality: "original",
       downloadQuality: "original",
       cacheLimitGb: 2,

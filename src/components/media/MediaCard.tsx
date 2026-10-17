@@ -45,7 +45,7 @@ export function MediaCard({
         if (e.key === "Enter") navigate(to);
       }}
       className={cn(
-        "group flex min-w-0 cursor-pointer flex-col gap-2 rounded-md p-3 transition-colors hover:bg-highlight focus-visible:bg-highlight",
+        "group flex min-w-0 cursor-pointer flex-col gap-2 rounded-md p-3 transition-[background-color,transform] duration-150 hover:bg-highlight focus-visible:bg-highlight active:scale-[0.98]",
         className,
       )}
     >
@@ -55,7 +55,13 @@ export function MediaCard({
             {art}
           </div>
         ) : (
-          <Cover cover={cover} size={180} round={round} fallback={fallback} className="w-full" />
+          <Cover
+            cover={cover}
+            size={180}
+            round={round}
+            fallback={fallback}
+            className="w-full transition-transform duration-300 group-hover:scale-[1.02]"
+          />
         )}
         {onPlay && (
           <PlayButton

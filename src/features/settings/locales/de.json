@@ -143,7 +143,12 @@
       "closeToTrayHint": "Das Fenster wird nur ausgeblendet, die Musik läuft weiter. Beenden über das Symbol im Infobereich.",
       "notify": "Benachrichtigung bei Titelwechsel",
       "notifyHint": "Zeigt den neuen Titel an, wenn die App nicht im Vordergrund ist.",
-      "desktopOnly": "Diese Einstellungen gibt es nur in der Desktop-App."
+      "desktopOnly": "Diese Einstellungen gibt es nur in der Desktop-App.",
+      "discord": "In Discord anzeigen",
+      "discordHint": "Zeigt in deinem Discord-Profil, was du gerade hörst: Titel, Interpreten, Cover und Fortschritt.",
+      "discordCovers": "Cover für Discord suchen",
+      "discordCoversHint": "Discord braucht ein öffentliches Bild. Dafür werden Interpret und Album an die Musiksuche von Apple geschickt. Ohne das zeigt Discord das Musify-Logo.",
+      "needsDiscord": "Verfügbar, sobald „In Discord anzeigen“ eingeschaltet ist."
     },
     "home": {
       "title": "Startseite",
