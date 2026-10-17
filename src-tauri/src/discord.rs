@@ -13,7 +13,7 @@ use serde_json::{Value, json};
 
 /// The "Musify" application in the Discord developer portal. Its name is what Discord shows
 /// ("Listening to Musify"); the `musify` image asset is the small logo.
-pub const CLIENT_ID: &str = "";
+pub const CLIENT_ID: &str = "1561072844098764901";
 
 const OP_HANDSHAKE: u32 = 0;
 const OP_FRAME: u32 = 1;
