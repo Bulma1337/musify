@@ -23,8 +23,6 @@ pub struct Db {
 }
 
 /// Managed state: `State<'_, DbState>` in commands.
-// Read by the downloads and history commands (milestones 7 and 10).
-#[allow(dead_code)]
 pub struct DbState(pub Arc<Db>);
 
 impl Db {
@@ -72,7 +70,6 @@ fn migrate(conn: &mut Connection) -> rusqlite::Result<()> {
 }
 
 /// Runs a database job on the blocking pool (for async commands).
-#[allow(dead_code)]
 pub async fn run<T: Send + 'static>(
     db: &Arc<Db>,
     f: impl FnOnce(&mut Connection) -> rusqlite::Result<T> + Send + 'static,
