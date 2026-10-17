@@ -80,7 +80,8 @@ export function matchLanguage(tag: string): Language | null {
   const exact = supportedLanguages.find((l) => l.toLowerCase() === lower);
   if (exact) return exact;
   const [base, ...rest] = lower.split("-");
-  if (base === "zh") return rest.some((p) => p === "tw" || p === "hk" || p === "mo" || p === "hant") ? "zh-TW" : "zh-CN";
+  if (base === "zh")
+    return rest.some((p) => p === "tw" || p === "hk" || p === "mo" || p === "hant") ? "zh-TW" : "zh-CN";
   if (base === "no" || base === "nn") return "nb";
   return supportedLanguages.find((l) => l === base) ?? null;
 }

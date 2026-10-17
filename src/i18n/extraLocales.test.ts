@@ -34,7 +34,9 @@ function grouped(flat: Map<string, string>): Map<string, string[]> {
 
 const english = flatten(collectMessages("en"));
 const englishGroups = grouped(english);
-const pluralBases = new Set([...english.keys()].filter((k) => PLURAL.test(k)).map((k) => k.replace(PLURAL, "")));
+const pluralBases = new Set(
+  [...english.keys()].filter((k) => PLURAL.test(k)).map((k) => k.replace(PLURAL, "")),
+);
 const extraCodes = LANGUAGES.map((l) => l.code).filter((c) => c !== "de" && c !== "en");
 
 describe("translations", () => {

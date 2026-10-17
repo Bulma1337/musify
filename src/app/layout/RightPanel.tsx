@@ -64,11 +64,18 @@ function ArtistProfile({ artist, compact }: { artist: { id: string; name: string
           className={cn("w-full object-cover", compact ? "aspect-[16/9]" : "aspect-[4/3]")}
         />
       ) : (
-        <div className={cn("w-full bg-gradient-to-br from-accent-soft to-highlight", compact ? "aspect-[16/9]" : "aspect-[4/3]")} />
+        <div
+          className={cn(
+            "w-full bg-gradient-to-br from-accent-soft to-highlight",
+            compact ? "aspect-[16/9]" : "aspect-[4/3]",
+          )}
+        />
       )}
       <div className="flex flex-col gap-1.5 p-3">
         <p className="font-bold group-hover:underline">{artist.name}</p>
-        {bio && <p className={cn("text-sm text-subdued", compact ? "line-clamp-3" : "line-clamp-4")}>{bio}</p>}
+        {bio && (
+          <p className={cn("text-sm text-subdued", compact ? "line-clamp-3" : "line-clamp-4")}>{bio}</p>
+        )}
       </div>
     </Link>
   );
@@ -249,7 +256,10 @@ export function RightPanel() {
   const panel = useLayout((s) => s.rightPanel);
   if (!panel) return null;
   return (
-    <aside key={panel} className="relative flex h-full min-h-0 animate-panel-in flex-col rounded-lg bg-surface">
+    <aside
+      key={panel}
+      className="relative flex h-full min-h-0 animate-panel-in flex-col rounded-lg bg-surface"
+    >
       {panel === "nowPlaying" && <NowPlayingPanel />}
       {panel === "queue" && <QueuePanel />}
       {panel === "audio" && <OutputPanel />}

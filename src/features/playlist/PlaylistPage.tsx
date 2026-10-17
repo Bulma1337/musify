@@ -169,7 +169,11 @@ function PlaylistView({ playlist }: { playlist: PlaylistDetail }) {
           }
           coverAction={
             editable
-              ? { label: t("playlist.changeImage"), icon: <ImagePlus size={28} />, onClick: () => imageInput.current?.click() }
+              ? {
+                  label: t("playlist.changeImage"),
+                  icon: <ImagePlus size={28} />,
+                  onClick: () => imageInput.current?.click(),
+                }
               : undefined
           }
           kind={playlist.public ? t("playlist.kindPublic") : t("playlist.kindPrivate")}

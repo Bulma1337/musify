@@ -62,7 +62,17 @@ function useAvailableAutoPlaylists(): AutoRef[] {
     return candidates
       .filter(([ref, hasEntries]) => hasEntries && autoPlaylistAllowed(ref, prefs, historyDays))
       .map(([ref]) => ref);
-  }, [heavy.data, rediscovered.data, allTimeLocal.data, serverHasPlays, topThis.data, topLast.data, year, prefs, historyDays]);
+  }, [
+    heavy.data,
+    rediscovered.data,
+    allTimeLocal.data,
+    serverHasPlays,
+    topThis.data,
+    topLast.data,
+    year,
+    prefs,
+    historyDays,
+  ]);
 }
 
 /** Home page row with the automatic playlists. Renders nothing while there is no history. */

@@ -10,11 +10,23 @@ const LEVEL_CLASSES: Record<HeatLevel, string> = {
   4: "bg-accent",
 };
 
-export function HeatCell({ level, title, className }: { level: HeatLevel; title?: string; className?: string }) {
+export function HeatCell({
+  level,
+  title,
+  className,
+}: {
+  level: HeatLevel;
+  title?: string;
+  className?: string;
+}) {
   return (
     <div
       title={title}
-      className={cn("size-3 rounded-[3px] outline-1 -outline-offset-1 outline-white/5", LEVEL_CLASSES[level], className)}
+      className={cn(
+        "size-3 rounded-[3px] outline-1 -outline-offset-1 outline-white/5",
+        LEVEL_CLASSES[level],
+        className,
+      )}
     />
   );
 }

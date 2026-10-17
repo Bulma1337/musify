@@ -127,7 +127,9 @@ describe("OutputPanel", () => {
     renderPanel();
     fireEvent.click(screen.getByRole("switch", { name: "Equalizer" }));
     expect(useSettings.getState().dsp.eq.enabled).toBe(true);
-    fireEvent.change(screen.getByRole("combobox", { name: "Equalizer preset" }), { target: { value: "bassBooster" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Equalizer preset" }), {
+      target: { value: "bassBooster" },
+    });
     expect(useSettings.getState().eqPresetId).toBe("bassBooster");
   });
 

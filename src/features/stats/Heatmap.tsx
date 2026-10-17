@@ -34,12 +34,18 @@ export function Heatmap({ heatmap }: { heatmap: number[][] }) {
           {heatmap.map((row, day) => (
             <div key={day} className="contents">
               {/* Every other weekday is labeled, like a contribution graph. */}
-              <span className="pr-2 text-[11px] leading-3 text-subdued">{day % 2 === 0 ? days[day] : ""}</span>
+              <span className="pr-2 text-[11px] leading-3 text-subdued">
+                {day % 2 === 0 ? days[day] : ""}
+              </span>
               {row.map((ms, hour) => (
                 <HeatCell
                   key={hour}
                   level={heatLevel(ms, max)}
-                  title={t("stats.heatmapCell", { day: longDays[day], hour, minutes: Math.round(ms / 60000) })}
+                  title={t("stats.heatmapCell", {
+                    day: longDays[day],
+                    hour,
+                    minutes: Math.round(ms / 60000),
+                  })}
                 />
               ))}
             </div>

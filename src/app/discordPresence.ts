@@ -26,7 +26,11 @@ interface PresenceInput {
 /** Album art from Apple's public search, keyed by artist + album (cleared with the app). */
 const covers = new Map<string, Promise<string | null>>();
 
-const normalize = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+const normalize = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
 
 /**
  * A public image URL for the album. The music server's own cover URL is never sent: it carries

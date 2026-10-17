@@ -95,7 +95,11 @@ export function MiniPlayer() {
         className="relative flex h-full w-full overflow-hidden text-text"
         style={{ backgroundImage: background }}
       >
-        <div data-tauri-drag-region className="flex h-full shrink-0 flex-col gap-2 p-3" style={{ width: size.height }}>
+        <div
+          data-tauri-drag-region
+          className="flex h-full shrink-0 flex-col gap-2 p-3"
+          style={{ width: size.height }}
+        >
           <div data-tauri-drag-region className="relative min-h-0 flex-1">
             <Cover
               cover={track.cover}

@@ -43,7 +43,11 @@ export const useCustomCovers = create<CustomCoversState>()(
 /** Cover refs with this prefix point to a custom image instead of the server's cover art. */
 const LOCAL_PREFIX = "local:";
 
-export function hasCustomCover(images: Record<string, string>, serverId: string, playlistId: string): boolean {
+export function hasCustomCover(
+  images: Record<string, string>,
+  serverId: string,
+  playlistId: string,
+): boolean {
   return keyOf(serverId, playlistId) in images;
 }
 
@@ -55,7 +59,8 @@ export function withCustomCover<T extends Playlist>(playlist: T, images: Record<
 
 /** Image URL of a cover ref: the custom image for `local:` refs, else the server's cover art. */
 export function coverSource(provider: MusicProvider, cover: CoverRef, size: number): string | undefined {
-  if (cover.startsWith(LOCAL_PREFIX)) return useCustomCovers.getState().images[cover.slice(LOCAL_PREFIX.length)];
+  if (cover.startsWith(LOCAL_PREFIX))
+    return useCustomCovers.getState().images[cover.slice(LOCAL_PREFIX.length)];
   return provider.coverUrl(cover, size);
 }
 

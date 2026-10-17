@@ -29,11 +29,7 @@ export const useStarredChanges = create<StarredState>((set) => ({
     }),
 }));
 
-export function starredChange(
-  serverId: string,
-  kind: StarrableKind,
-  id: string,
-): boolean | undefined {
+export function starredChange(serverId: string, kind: StarrableKind, id: string): boolean | undefined {
   return useStarredChanges.getState().changes[keyOf(serverId, kind, id)];
 }
 

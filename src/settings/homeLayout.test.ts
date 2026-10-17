@@ -1,5 +1,10 @@
 import { autoPlaylistAllowed } from "@/features/autoplaylists/availability";
-import { DEFAULT_AUTO_PLAYLISTS, HOME_SECTION_IDS, moveHomeSection, normalizeHomeSections } from "./homeLayout";
+import {
+  DEFAULT_AUTO_PLAYLISTS,
+  HOME_SECTION_IDS,
+  moveHomeSection,
+  normalizeHomeSections,
+} from "./homeLayout";
 
 describe("home sections", () => {
   it("keep the saved order, drop unknown rows and add new ones at the end", () => {
@@ -37,9 +42,15 @@ describe("automatic playlists", () => {
   });
 
   it("show this year's top songs only with the Recap, past years always", () => {
-    expect(autoPlaylistAllowed({ kind: "topYear", year: 2026 }, DEFAULT_AUTO_PLAYLISTS, 300, october)).toBe(false);
-    expect(autoPlaylistAllowed({ kind: "topYear", year: 2026 }, DEFAULT_AUTO_PLAYLISTS, 300, december)).toBe(true);
-    expect(autoPlaylistAllowed({ kind: "topYear", year: 2025 }, DEFAULT_AUTO_PLAYLISTS, 300, october)).toBe(true);
+    expect(autoPlaylistAllowed({ kind: "topYear", year: 2026 }, DEFAULT_AUTO_PLAYLISTS, 300, october)).toBe(
+      false,
+    );
+    expect(autoPlaylistAllowed({ kind: "topYear", year: 2026 }, DEFAULT_AUTO_PLAYLISTS, 300, december)).toBe(
+      true,
+    );
+    expect(autoPlaylistAllowed({ kind: "topYear", year: 2025 }, DEFAULT_AUTO_PLAYLISTS, 300, october)).toBe(
+      true,
+    );
   });
 
   it("can be switched off one by one or all at once", () => {

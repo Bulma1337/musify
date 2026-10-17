@@ -10,7 +10,15 @@ function Mark({ lossless }: { lossless: boolean }) {
 }
 
 /** "FLAC 24/96" and the like, readable on every header color. */
-export function QualityBadge({ label, lossless, className }: { label: string; lossless: boolean; className?: string }) {
+export function QualityBadge({
+  label,
+  lossless,
+  className,
+}: {
+  label: string;
+  lossless: boolean;
+  className?: string;
+}) {
   return (
     <span className={cn(BASE, className)}>
       <Mark lossless={lossless} />
@@ -18,4 +26,3 @@ export function QualityBadge({ label, lossless, className }: { label: string; lo
     </span>
   );
 }
-

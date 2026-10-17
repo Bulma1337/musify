@@ -12,7 +12,12 @@ import {
 import { useSettings } from "@/settings/store";
 import { SettingRow, SettingsSection } from "./controls";
 
-const AUTO_KINDS: (keyof Omit<AutoPlaylistPrefs, "enabled">)[] = ["heavyRotation", "rediscovered", "allTime", "topYear"];
+const AUTO_KINDS: (keyof Omit<AutoPlaylistPrefs, "enabled">)[] = [
+  "heavyRotation",
+  "rediscovered",
+  "allTime",
+  "topYear",
+];
 
 /** Settings → Home: order and visibility of the rows, and which automatic playlists appear. */
 export function HomeSettings() {
@@ -25,12 +30,21 @@ export function HomeSettings() {
     id === "autoPlaylists" ? t("autoPlaylists.shelfTitle") : t(`home.${id}`);
 
   return (
-    <SettingsSection id="settings-home" title={t("settings.home.title")} description={t("settings.home.description")}>
+    <SettingsSection
+      id="settings-home"
+      title={t("settings.home.title")}
+      description={t("settings.home.description")}
+    >
       <SettingRow stacked title={t("settings.home.rows")} description={t("settings.home.rowsHint")}>
         <ol className="flex flex-col gap-1" aria-label={t("settings.home.rows")}>
           {sections.map((section, index) => (
-            <li key={section.id} className="flex items-center gap-2 rounded-md bg-highlight/60 py-1.5 pr-2 pl-3">
-              <span className={section.visible ? "flex-1 text-sm" : "flex-1 text-sm text-subdued line-through"}>
+            <li
+              key={section.id}
+              className="flex items-center gap-2 rounded-md bg-highlight/60 py-1.5 pr-2 pl-3"
+            >
+              <span
+                className={section.visible ? "flex-1 text-sm" : "flex-1 text-sm text-subdued line-through"}
+              >
                 {label(section.id)}
               </span>
               <IconButton

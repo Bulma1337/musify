@@ -374,11 +374,7 @@ function DisplaySection() {
       title={t("settings.display.title")}
       description={t("settings.display.description")}
     >
-      <SettingRow
-        stacked
-        title={t("settings.display.accent")}
-        description={t("settings.display.accentHint")}
-      >
+      <SettingRow stacked title={t("settings.display.accent")} description={t("settings.display.accentHint")}>
         <AccentPicker value={accent} onChange={(a) => set("accent", a)} />
       </SettingRow>
       <SettingRow stacked title={t("settings.display.zoom")} description={t("settings.display.zoomHint")}>

@@ -3,7 +3,15 @@ import { Heart } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 /** Heart of the favorite buttons: filled when on, with a short pop and ring when it turns on. */
-export function HeartIcon({ filled, size, className }: { filled: boolean; size: number; className?: string }) {
+export function HeartIcon({
+  filled,
+  size,
+  className,
+}: {
+  filled: boolean;
+  size: number;
+  className?: string;
+}) {
   const [was, setWas] = useState(filled);
   const [pops, setPops] = useState(0);
   if (filled !== was) {

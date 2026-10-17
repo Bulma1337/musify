@@ -1,10 +1,5 @@
 import i18n from "@/i18n";
-import type {
-  DeviceSampleFormat,
-  ExclusiveCaps,
-  OutputFormat,
-  SourceFormat,
-} from "@/player/engineTypes";
+import type { DeviceSampleFormat, ExclusiveCaps, OutputFormat, SourceFormat } from "@/player/engineTypes";
 
 const number = (value: number, maxDigits: number) =>
   new Intl.NumberFormat(i18n.language, { maximumFractionDigits: maxDigits }).format(value);

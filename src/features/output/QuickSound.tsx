@@ -37,7 +37,9 @@ export function QuickSound() {
   const normalization = useSettings((s) => s.normalization);
   const crossfade = useSettings((s) => s.crossfade);
   const set = useSettings((s) => s.set);
-  const known = presetId !== null && (BUILT_IN_PRESETS.some((p) => p.id === presetId) || customPresets.some((p) => p.id === presetId));
+  const known =
+    presetId !== null &&
+    (BUILT_IN_PRESETS.some((p) => p.id === presetId) || customPresets.some((p) => p.id === presetId));
 
   return (
     <section aria-label={t("output.sound")} className="flex flex-col gap-4 rounded-lg bg-elevated p-4">
@@ -82,7 +84,10 @@ export function QuickSound() {
         <Segmented
           label={t("settings.playback.normalization")}
           value={normalization.mode}
-          options={NORMALIZATION_MODES.map((m) => ({ value: m, label: t(`settings.playback.normalizationModes.${m}`) }))}
+          options={NORMALIZATION_MODES.map((m) => ({
+            value: m,
+            label: t(`settings.playback.normalizationModes.${m}`),
+          }))}
           onChange={(mode) => set("normalization", { ...normalization, mode })}
         />
       </div>

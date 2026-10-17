@@ -183,7 +183,6 @@ export function OutputPanel() {
             </div>
           </div>
         </section>
-
       </div>
     </>
   );

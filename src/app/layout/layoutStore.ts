@@ -87,7 +87,9 @@ export const useLayout = create<LayoutState>()(
       // v1: the output panel became the audio panel, and the now-playing panel got its own button.
       // A panel closed before could not be reopened, so it is shown again.
       migrate: (persisted, version) => {
-        const state = (persisted ?? {}) as Omit<Partial<LayoutState>, "rightPanel"> & { rightPanel?: string | null };
+        const state = (persisted ?? {}) as Omit<Partial<LayoutState>, "rightPanel"> & {
+          rightPanel?: string | null;
+        };
         if (version < 1) {
           if (state.rightPanel === "devices") state.rightPanel = "audio";
           if (!state.rightPanel) state.rightPanel = "nowPlaying";

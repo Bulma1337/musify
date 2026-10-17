@@ -18,7 +18,6 @@ export function peakCell(heatmap: number[][]): { day: number; hour: number; ms: 
   return best;
 }
 
-
 const DAY_MS = 86_400_000;
 
 /** Local day number (days since 1970-01-01, as the history stores it) of a local date. */

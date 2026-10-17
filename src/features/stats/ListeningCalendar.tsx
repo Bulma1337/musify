@@ -33,7 +33,8 @@ export function ListeningCalendar({
   const monthLabels = weeks.map((week, i) => {
     const first = week.find((d) => !d.outside) ?? week[0]!;
     const month = dateOfDay(first.day).getUTCMonth();
-    const previous = i > 0 ? dateOfDay((weeks[i - 1]!.find((d) => !d.outside) ?? weeks[i - 1]![0]!).day).getUTCMonth() : -1;
+    const previous =
+      i > 0 ? dateOfDay((weeks[i - 1]!.find((d) => !d.outside) ?? weeks[i - 1]![0]!).day).getUTCMonth() : -1;
     return month !== previous ? formats.month.format(dateOfDay(first.day)) : "";
   });
 
@@ -44,7 +45,10 @@ export function ListeningCalendar({
           role="img"
           aria-label={t("stats.calendarSummary", { count: activeDays })}
           className="inline-grid grid-flow-col gap-[3px]"
-          style={{ gridTemplateRows: "1rem repeat(7, 0.75rem)", gridTemplateColumns: `auto repeat(${weeks.length}, 0.75rem)` }}
+          style={{
+            gridTemplateRows: "1rem repeat(7, 0.75rem)",
+            gridTemplateColumns: `auto repeat(${weeks.length}, 0.75rem)`,
+          }}
         >
           <span />
           {days.map((label, i) => (
@@ -55,7 +59,9 @@ export function ListeningCalendar({
           {weeks.map((week, w) => (
             <div key={week[0]!.day} className="contents">
               <span className="relative text-[11px] text-subdued">
-                {monthLabels[w] && <span className="absolute left-0 whitespace-nowrap">{monthLabels[w]}</span>}
+                {monthLabels[w] && (
+                  <span className="absolute left-0 whitespace-nowrap">{monthLabels[w]}</span>
+                )}
               </span>
               {week.map((d) =>
                 d.outside ? (

@@ -19,7 +19,9 @@ export interface HomeSectionPref {
 export const DEFAULT_HOME_SECTIONS: HomeSectionPref[] = HOME_SECTION_IDS.map((id) => ({ id, visible: true }));
 
 /** Keeps the saved order, drops unknown ids and appends sections added in newer versions. */
-export function normalizeHomeSections(saved: readonly { id: string; visible: boolean }[] | undefined): HomeSectionPref[] {
+export function normalizeHomeSections(
+  saved: readonly { id: string; visible: boolean }[] | undefined,
+): HomeSectionPref[] {
   const known = new Set<string>(HOME_SECTION_IDS);
   const seen = new Set<string>();
   const result: HomeSectionPref[] = [];
@@ -33,7 +35,11 @@ export function normalizeHomeSections(saved: readonly { id: string; visible: boo
 }
 
 /** Moves a section one step up (-1) or down (+1). */
-export function moveHomeSection(sections: readonly HomeSectionPref[], id: HomeSectionId, step: -1 | 1): HomeSectionPref[] {
+export function moveHomeSection(
+  sections: readonly HomeSectionPref[],
+  id: HomeSectionId,
+  step: -1 | 1,
+): HomeSectionPref[] {
   const index = sections.findIndex((s) => s.id === id);
   const target = index + step;
   if (index < 0 || target < 0 || target >= sections.length) return [...sections];
