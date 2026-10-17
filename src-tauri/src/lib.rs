@@ -3,6 +3,7 @@ use tauri::Manager;
 mod audio;
 mod db;
 mod secrets;
+mod stats;
 
 /// Basic build information shown in Settings → About.
 #[derive(serde::Serialize)]
@@ -78,7 +79,12 @@ pub fn run() {
             audio::audio_spectrum_subscribe,
             audio::audio_devices,
             audio::audio_eq_response,
-            audio::audio_parse_autoeq
+            audio::audio_parse_autoeq,
+            stats::history_record,
+            stats::stats_summary,
+            stats::stats_tracks,
+            stats::stats_years,
+            stats::save_png
         ])
         .run(tauri::generate_context!())
         .expect("error while running Navify");

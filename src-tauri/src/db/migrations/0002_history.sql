@@ -1,4 +1,5 @@
 -- Local listening history: one row per playback of a track (statistics, Recap, automatic playlists).
+-- Rows hold ids and a metadata snapshot only, never URLs or credentials.
 CREATE TABLE play_history (
   id            INTEGER PRIMARY KEY,
   server_id     TEXT    NOT NULL,
@@ -10,8 +11,10 @@ CREATE TABLE play_history (
   duration_ms   INTEGER NOT NULL,
   -- 1 = played to the end.
   completed     INTEGER NOT NULL,
-  -- 1 = skipped before it counted as a play.
+  -- 1 = skipped before it counted as a play (not completed and not counted).
   skipped       INTEGER NOT NULL,
+  -- 1 = counts as a play by the scrobble rule (half the track or 4 minutes, at least 30 s).
+  counted       INTEGER NOT NULL DEFAULT 0,
   context_type  TEXT,
   context_id    TEXT,
   -- Metadata snapshot, so statistics work offline and after server changes.
