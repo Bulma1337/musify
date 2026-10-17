@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Lyrics, MusicProvider, Track } from "@/api/provider";
 import { useProvider } from "@/api/session";
+import { useSettings } from "@/settings/store";
 import { fetchLrclib } from "./lrclib";
+import { readLocalLyrics } from "./localLyrics";
 
 /** What the lookup found for one track. `lyrics: null` is a cached negative result. */
 export interface ResolvedLyrics {
@@ -31,9 +33,11 @@ export async function resolveLyrics(
   provider: MusicProvider,
   track: Track,
   signal?: AbortSignal,
+  { online = true }: { online?: boolean } = {},
 ): Promise<ResolvedLyrics> {
   const server = await serverLyrics(provider, track);
   if (server?.synced) return { lyrics: server, instrumental: false };
+  if (!online) return { lyrics: server, instrumental: false };
 
   const lrclib = await fetchLrclib(track, signal);
   if (lrclib.lyrics?.synced) return { lyrics: lrclib.lyrics, instrumental: false };
@@ -48,9 +52,19 @@ export async function resolveLyrics(
  */
 export function useLyrics(track: Track | undefined) {
   const provider = useProvider();
+  const online = useSettings((s) => s.onlineLyrics);
   const query = useQuery({
-    queryKey: [provider.server.id, "lyrics", track?.id],
-    queryFn: ({ signal }) => resolveLyrics(provider, track!, signal),
+    queryKey: [provider.server.id, "lyrics", track?.id, online],
+    queryFn: async ({ signal }) => {
+      // A .lrc next to a downloaded file comes first (works offline, and the user's own files win).
+      const local = await readLocalLyrics(track!);
+      if (local?.synced) return { lyrics: local, instrumental: false };
+      const resolved = await resolveLyrics(provider, track!, signal, { online });
+      if (local && (!resolved.lyrics || (!resolved.lyrics.synced && resolved.lyrics.source === "lrclib"))) {
+        return { lyrics: local, instrumental: false };
+      }
+      return resolved;
+    },
     enabled: !!track,
     staleTime: Infinity,
     retry: false,

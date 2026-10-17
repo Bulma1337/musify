@@ -175,3 +175,22 @@ export function parseLrcDocument(input: string, source: Lyrics["source"] = "lrcl
 export function parseLrc(input: string, source: Lyrics["source"] = "lrclib"): Lyrics | null {
   return parseLrcDocument(input, source).lyrics;
 }
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/** `[mm:ss.xx]` for a time in ms. */
+function lrcStamp(ms: number): string {
+  const centis = Math.max(0, Math.round(ms / 10));
+  return `[${pad2(Math.floor(centis / 6000))}:${pad2(Math.floor(centis / 100) % 60)}.${pad2(centis % 100)}]`;
+}
+
+/**
+ * Writes lyrics as LRC text (the offset is applied to the stamps; word timing is dropped). Unsynced
+ * lyrics become plain lines, which `parseLrc` reads back as unsynced.
+ */
+export function toLrc(lyrics: Lyrics): string {
+  const lines = lyrics.synced
+    ? lyrics.lines.map((line) => `${lrcStamp((line.startMs ?? 0) + lyrics.offsetMs)}${line.text}`)
+    : lyrics.lines.map((line) => line.text);
+  return `${lines.join("\n")}\n`;
+}

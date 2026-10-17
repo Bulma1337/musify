@@ -1,3 +1,4 @@
+import { relative } from "node:path";
 import { fileURLToPath, URL } from "node:url";
 import process from "node:process";
 import type { IncomingMessage } from "node:http";
@@ -6,6 +7,13 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 const host = process.env.TAURI_DEV_HOST;
+
+/**
+ * Folders the dev server must not watch, relative to this config, so that a checkout inside
+ * .worktrees still watches its own sources (a glob on any ".worktrees" folder would ignore them all).
+ */
+const configDir = fileURLToPath(new URL(".", import.meta.url));
+const UNWATCHED = /^(src-tauri|\.worktrees|\.dev|devservers)([\\/]|$)/;
 
 /** Hop-by-hop or encoding headers that must not be forwarded verbatim. */
 const SKIP_HEADERS = new Set([
@@ -80,7 +88,7 @@ export default defineConfig({
     strictPort: true,
     host: host || false,
     hmr: host ? { protocol: "ws", host, port: 1421 } : undefined,
-    watch: { ignored: ["**/src-tauri/**", "**/.worktrees/**", "**/.dev/**", "**/devservers/**"] },
+    watch: { ignored: (file: string) => UNWATCHED.test(relative(configDir, file)) },
   },
   build: {
     target: "chrome120",

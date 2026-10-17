@@ -27,7 +27,7 @@
       "crossfade": "Überblenden",
       "crossfadeHint": "Blendet das Ende eines Titels in den Anfang des nächsten über.",
       "skipSameAlbum": "Innerhalb eines Albums nicht überblenden",
-      "skipSameAlbumHint": "Titel, die auf einem Album aufeinander folgen, laufen stattdessen ohne Lücke.",
+      "skipSameAlbumHint": "Aufeinanderfolgende Titel eines Albums gehen dann ohne Überblenden nahtlos ineinander über, etwa bei Live- und Konzeptalben.",
       "needsNormalization": "Verfügbar, sobald „Lautstärke angleichen“ eingeschaltet ist.",
       "needsCrossfade": "Verfügbar, sobald Überblenden eingeschaltet ist.",
       "needsStereo": "Bei Mono nicht verfügbar.",
@@ -103,7 +103,20 @@
       "languages": {
         "de": "Deutsch",
         "en": "English"
-      }
+      },
+      "onlineLyrics": "Songtexte aus dem Internet ergänzen",
+      "onlineLyricsHint": "Hat dein Server keinen Songtext, sucht die App bei LRCLIB (lrclib.net) danach. Dafür werden Titel, Künstler, Album und Länge dorthin übertragen."
+    },
+    "system": {
+      "title": "System",
+      "description": "Start mit Windows, Fenster und Benachrichtigungen.",
+      "autostart": "Mit Windows starten",
+      "autostartHint": "Startet minimiert im Infobereich, damit Medientasten sofort funktionieren.",
+      "closeToTray": "Beim Schließen im Infobereich weiterlaufen",
+      "closeToTrayHint": "Das Fenster wird nur ausgeblendet, die Musik läuft weiter. Beenden über das Symbol im Infobereich.",
+      "notify": "Benachrichtigung bei Titelwechsel",
+      "notifyHint": "Zeigt den neuen Titel an, wenn die App nicht im Vordergrund ist.",
+      "desktopOnly": "Diese Einstellungen gibt es nur in der Desktop-App."
     }
   }
 }

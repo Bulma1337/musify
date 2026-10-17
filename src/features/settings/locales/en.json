@@ -27,7 +27,7 @@
       "crossfade": "Crossfade",
       "crossfadeHint": "Blends the end of a track into the start of the next one.",
       "skipSameAlbum": "Do not crossfade within an album",
-      "skipSameAlbumHint": "Tracks that follow each other on an album play without a gap instead.",
+      "skipSameAlbumHint": "Consecutive tracks of an album then run seamlessly into each other without crossfade, as on live and concept albums.",
       "needsNormalization": "Available once volume leveling is on.",
       "needsCrossfade": "Available once crossfade is on.",
       "needsStereo": "Not available in mono.",
@@ -103,7 +103,20 @@
       "languages": {
         "de": "Deutsch",
         "en": "English"
-      }
+      },
+      "onlineLyrics": "Find missing lyrics online",
+      "onlineLyricsHint": "When your server has no lyrics, the app looks them up on LRCLIB (lrclib.net). Title, artist, album and length are sent there for that."
+    },
+    "system": {
+      "title": "System",
+      "description": "Start with Windows, window and notifications.",
+      "autostart": "Start with Windows",
+      "autostartHint": "Starts minimized in the tray, so media keys work right away.",
+      "closeToTray": "Keep running in the tray when closed",
+      "closeToTrayHint": "Closing only hides the window and the music keeps playing. Quit from the tray icon.",
+      "notify": "Notify on track change",
+      "notifyHint": "Shows the new track when the app is not in front.",
+      "desktopOnly": "These settings are only available in the desktop app."
     }
   }
 }

@@ -199,5 +199,9 @@
     "signOutBody": "Musify löscht die gespeicherten Zugangsdaten für diesen Server und leert die Warteschlange. Heruntergeladene Titel bleiben auf dem Rechner.",
     "signOutConfirm": "Abmelden",
     "cancel": "Abbrechen"
+  },
+  "tray": {
+    "open": "Musify öffnen",
+    "quit": "Beenden"
   }
 }

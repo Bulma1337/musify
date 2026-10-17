@@ -2,8 +2,8 @@ import type { MusicProvider, SavedPlayQueue, Track } from "@/api/provider";
 import { useSession } from "@/api/session";
 import { toast } from "@/components/ui/toast";
 import i18n from "@/i18n";
+import { registerShutdownTask } from "@/app/windowClose";
 import { readPersisted, writePersisted } from "@/lib/persist";
-import { inTauri } from "@/lib/platform";
 import { useSettings } from "@/settings/store";
 import { upcomingContextItems, usePlayer, type PlayerState } from "./store";
 
@@ -26,8 +26,6 @@ const MAX_BEFORE = 200;
 const MAX_AFTER = 800;
 /** Two saves this close together are the same moment (clock differences between devices). */
 const SAME_MOMENT_MS = 5_000;
-/** Longest wait for the last save when the window closes. */
-const CLOSE_SAVE_TIMEOUT_MS = 1_500;
 
 export interface ResumeMeta {
   /** When the local state was saved (ms since epoch). */
@@ -224,29 +222,17 @@ export function startQueueSync(): () => void {
   window.addEventListener("focus", onFront);
   document.addEventListener("visibilitychange", onFront);
 
-  // Last save when the window closes.
-  let unlistenClose: (() => void) | undefined;
-  if (inTauri) {
-    void import("@tauri-apps/api/window").then(({ getCurrentWindow }) =>
-      getCurrentWindow()
-        .onCloseRequested(async () => {
-          clearTimeout(timer);
-          await Promise.race([saveNow(), new Promise((r) => setTimeout(r, CLOSE_SAVE_TIMEOUT_MS))]);
-        })
-        .then((off) => {
-          unlistenClose = off;
-        }),
-    );
-  } else {
-    window.addEventListener("beforeunload", save);
-  }
+  // Last save when the app closes.
+  const unregister = registerShutdownTask(() => {
+    clearTimeout(timer);
+    return saveNow();
+  });
 
   return () => {
     unsubscribe();
     clearTimeout(timer);
     window.removeEventListener("focus", onFront);
     document.removeEventListener("visibilitychange", onFront);
-    window.removeEventListener("beforeunload", save);
-    unlistenClose?.();
+    unregister();
   };
 }

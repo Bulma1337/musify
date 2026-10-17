@@ -13,11 +13,11 @@ for your own <b>Navidrome</b>, <b>Subsonic/OpenSubsonic</b> and <b>Jellyfin</b> 
 - **Native audio engine** (Rust, 64-bit float processing): lossless and hi-res playback (tested up to 32 bit / 384 kHz), sample-exact gapless playback, equal-power crossfade, ReplayGain / loudness normalization, true-peak limiter.
 - **Exclusive mode** (Windows WASAPI): each track at its native sample rate and bit depth, bit-perfect when no processing is active; best-rate fallback when the device can't do the native rate.
 - **Equalizer**: 10- and 31-band graphic EQ that follows its sliders within half a decibel, parametric EQ, preamp with automatic headroom, Deep Bass, presets, AutoEQ import, live spectrum.
-- **Synced lyrics** from your server or LRCLIB.
+- **Synced lyrics** from your server, `.lrc` files next to downloads, or LRCLIB (can be switched off).
 - **Downloads and offline mode**: albums, playlists and favorites, resumable downloads, offline library.
 - **Queue and playlists**: drag and drop, shuffle and Shuffle+ with recommendations, autoplay; continue where you left off, also from another device (Subsonic play queue).
 - **Statistics** with automatic playlists and a yearly **Rückblick** (recap) with its own colors every year.
-- **System integration**: media keys and the Windows media overlay.
+- **System integration**: media keys and the Windows media overlay, tray icon, start with Windows, notifications.
 - German and English.
 
 ## Install

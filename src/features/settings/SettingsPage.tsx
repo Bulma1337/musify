@@ -11,6 +11,7 @@ import { useLanguage } from "@/settings/language";
 import { useSettings, type AccentColor, type QualityPreset } from "@/settings/store";
 import { StorageSettings } from "@/features/downloads/StorageSettings";
 import { AboutSection } from "@/features/updates/AboutSection";
+import { SystemSection } from "./SystemSection";
 import { Segmented, SettingRow, SettingsSection, type SegmentedOption } from "./controls";
 import { RangeSlider } from "./RangeSlider";
 
@@ -326,6 +327,7 @@ function OutputSection() {
 function DisplaySection() {
   const { t, i18n } = useTranslation();
   const accent = useSettings((s) => s.accent);
+  const onlineLyrics = useSettings((s) => s.onlineLyrics);
   const set = useSettings((s) => s.set);
   const zoom = useLayout((s) => s.zoom);
   const setZoom = useLayout((s) => s.setZoom);
@@ -367,6 +369,16 @@ function DisplaySection() {
           onChange={setZoom}
         />
       </SettingRow>
+      <SettingRow
+        title={t("settings.display.onlineLyrics")}
+        description={t("settings.display.onlineLyricsHint")}
+      >
+        <Switch
+          checked={onlineLyrics}
+          onCheckedChange={(on) => set("onlineLyrics", on)}
+          label={t("settings.display.onlineLyrics")}
+        />
+      </SettingRow>
       <SettingRow stacked title={t("settings.display.language")}>
         <Segmented
           label={t("settings.display.language")}
@@ -392,6 +404,7 @@ export function SettingsPage() {
           <StorageSettings />
         </div>
         <DisplaySection />
+        <SystemSection />
         <AboutSection />
       </div>
     </div>

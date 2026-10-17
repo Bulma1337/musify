@@ -1,3 +1,4 @@
+import { NARROW_WINDOW_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -105,7 +106,8 @@ export function LibrarySidebar() {
   const navigate = useNavigate();
   const provider = useProvider();
   const client = useQueryClient();
-  const collapsed = useLayout((s) => s.libraryCollapsed);
+  const narrow = useMediaQuery(NARROW_WINDOW_QUERY);
+  const collapsed = useLayout((s) => s.libraryCollapsed) || narrow;
   const toggleLibrary = useLayout((s) => s.toggleLibrary);
   const entries = useLibraryEntries();
   const [filter, setFilter] = useState<Filter | null>(null);
