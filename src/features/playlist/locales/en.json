@@ -30,6 +30,11 @@
     "saved": "Changes saved",
     "nowPublic": "The playlist is now public",
     "nowPrivate": "The playlist is now private",
-    "deleted": "Deleted “{{name}}”"
+    "deleted": "Deleted “{{name}}”",
+    "changeImage": "Change image",
+    "removeImage": "Remove own image",
+    "imageChanged": "Image changed",
+    "imageRemoved": "Own image removed",
+    "imageFailed": "The image could not be read."
   }
 }

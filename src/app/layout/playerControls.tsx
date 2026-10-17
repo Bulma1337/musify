@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import {
-  Heart,
   Pause,
   Play,
   Repeat,
@@ -14,7 +13,8 @@ import {
   VolumeX,
 } from "lucide-react";
 import type { Track } from "@/api/provider";
-import { useSetStarred } from "@/api/queries";
+import { useIsStarred, useSetStarred } from "@/api/queries";
+import { HeartIcon } from "@/components/media/HeartIcon";
 import { useSession } from "@/api/session";
 import { IconButton } from "@/components/ui/Button";
 import { Slider } from "@/components/ui/Slider";
@@ -28,13 +28,14 @@ import { usePlayer } from "@/player/store";
 export function LikeButton({ track, size = 16 }: { track: Track; size?: number }) {
   const { t } = useTranslation();
   const setStarred = useSetStarred();
+  const starred = useIsStarred("track", track.id, track.starred);
   return (
     <IconButton
-      label={track.starred ? t("menu.removeFromLiked") : t("menu.addToLiked")}
-      active={track.starred}
-      onClick={() => setStarred.mutate({ kind: "track", id: track.id, starred: !track.starred })}
+      label={starred ? t("menu.removeFromLiked") : t("menu.addToLiked")}
+      active={starred}
+      onClick={() => setStarred.mutate({ kind: "track", id: track.id, starred: !starred })}
     >
-      <Heart size={size} className={track.starred ? "fill-current" : ""} />
+      <HeartIcon size={size} filled={starred} />
     </IconButton>
   );
 }

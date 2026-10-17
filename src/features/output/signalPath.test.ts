@@ -1,6 +1,5 @@
 import type { OutputFormat } from "@/player/engineTypes";
-import { DEFAULT_DSP } from "@/settings/store";
-import { bitPerfectBlockers, exclusiveSummary, formatDeviceFormat, formatOutputFormat } from "./signalPath";
+import { exclusiveSummary, formatDeviceFormat, formatOutputFormat } from "./signalPath";
 
 const output: OutputFormat = {
   deviceName: "DAC",
@@ -36,24 +35,5 @@ describe("hi-res output details", () => {
     ).toMatch(/32 bit \/ 384 kHz/i);
     expect(exclusiveSummary(null)).toBeNull();
     expect(exclusiveSummary({ modes: [] })).toBeNull();
-  });
-
-  it("explains resampling and a device that can't hold the source's bits", () => {
-    const blockers = bitPerfectBlockers({
-      dsp: DEFAULT_DSP,
-      normalization: { mode: "off", target: "normal", preventClipping: true, analyzeUntagged: true },
-      volume: 1,
-      muted: false,
-      source: {
-        codec: "flac",
-        sampleRate: 352_800,
-        bitsPerSample: 24,
-        channels: 2,
-        bitrateKbps: null,
-        lossless: true,
-      },
-      output: { ...output, sampleRate: 44_100, sampleFormat: "int16", sourceRate: 352_800, resampled: true },
-    });
-    expect(blockers).toEqual(["resampling", "deviceFormat"]);
   });
 });

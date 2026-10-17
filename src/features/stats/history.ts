@@ -59,6 +59,12 @@ export interface Streak {
   endDay: number;
 }
 
+/** Listening time of one local day (days since 1970-01-01). */
+export interface DayStat {
+  day: number;
+  playedMs: number;
+}
+
 export interface MonthStat {
   /** "2026-03" in local time. */
   month: string;
@@ -89,6 +95,8 @@ export interface Summary {
   longestStreak: Streak;
   discoveries: Discoveries;
   months: MonthStat[];
+  /** Days with any listening, ascending. */
+  daily: DayStat[];
 }
 
 export type TrackListKind = "heavyRotation" | "rediscovered" | "range";

@@ -10,10 +10,12 @@ import { cn } from "@/lib/cn";
 import { formatNumber } from "@/lib/format";
 import i18n from "@/i18n";
 import { Heatmap } from "./Heatmap";
+import { localDayNumber } from "./heatmapMath";
+import { ListeningCalendar } from "./ListeningCalendar";
 import { daysAndHours, minutesOf } from "@/features/recap/insights";
 import { playRow, playTrackRows } from "./playRows";
 import { useHistoryYears, useStatsSummary } from "./queries";
-import { rangeKey, type StatsRange } from "./ranges";
+import { rangeBounds, rangeKey, type StatsRange } from "./ranges";
 import type { MonthStat, StatRow, Summary } from "./history";
 import { fillMonths } from "./months";
 import { TopList } from "./TopList";
@@ -58,7 +60,7 @@ function MonthBars({ months }: { months: MonthStat[] }) {
               month: `${label(m.month)} ${m.month.slice(0, 4)}`,
               minutes: formatNumber(minutesOf(m.playedMs)),
             })}
-            className="flex-1 rounded-t-[3px] bg-accent"
+            className="flex-1 rounded-t-[3px] bg-accent accent-fill"
             style={{ height: `${Math.max(m.playedMs > 0 ? 3 : 0, (m.playedMs / max) * 100)}%` }}
           />
         ))}
@@ -138,7 +140,16 @@ function Overview({ summary, range }: { summary: Summary; range: StatsRange }) {
   );
 }
 
-/** Listening statistics from the local history: totals, top lists, heatmap, streak, months. */
+/** First and last local day of the range for the calendar; "all time" starts at the first listening day. */
+function calendarDays(range: StatsRange, summary: Summary): { fromDay: number; toDay: number } {
+  const { from, to } = rangeBounds(range);
+  const today = localDayNumber(new Date());
+  const toDay = Math.min(today, localDayNumber(new Date(to - 1)));
+  const fromDay = from === 0 ? (summary.daily[0]?.day ?? toDay) : localDayNumber(new Date(from));
+  return { fromDay, toDay };
+}
+
+/** Listening statistics from the local history: totals, top lists, calendar, heatmap, streak, months. */
 export function StatsPage() {
   const { t } = useTranslation();
   const provider = useProvider();
@@ -227,6 +238,10 @@ export function StatsPage() {
             />
             <TopList title={t("stats.topGenres")} kind="genre" rows={summary.topGenres} />
           </div>
+
+          <Card title={t("stats.calendarTitle")}>
+            <ListeningCalendar daily={summary.daily} {...calendarDays(range, summary)} />
+          </Card>
 
           <Card title={t("stats.heatmapTitle")}>
             <Heatmap heatmap={summary.heatmap} />

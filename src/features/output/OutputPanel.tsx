@@ -1,110 +1,62 @@
-import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
-import { ArrowDown, AudioWaveform, Check, RefreshCw, Speaker, X } from "lucide-react";
+import { AudioWaveform, Check, RefreshCw, Speaker, X } from "lucide-react";
 import { IconButton } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { cn } from "@/lib/cn";
 import { useLayout } from "@/app/layout/layoutStore";
 import { useEngineStatus } from "@/player/bridge";
 import type { DeviceInfo } from "@/player/engineTypes";
+import { isLossless, qualityLabel } from "@/player/quality";
 import { usePlayer } from "@/player/store";
 import { useSettings } from "@/settings/store";
-import {
-  activeProcessing,
-  bitPerfectBlockers,
-  exclusiveSummary,
-  formatOutputFormat,
-  formatSampleRate,
-  formatSourceFormat,
-} from "./signalPath";
+import { exclusiveSummary, formatOutputFormat, formatSampleRate } from "./signalPath";
+import { QuickSound } from "./QuickSound";
 import { useOutputDevices } from "./useOutputDevices";
 
-function Stage({ label, children, muted }: { label: string; children: ReactNode; muted?: boolean }) {
-  return (
-    <div className="rounded-md bg-surface px-3 py-2">
-      <p className="text-xs text-subdued">{label}</p>
-      <p className={cn("text-sm break-words", muted && "text-subdued")}>{children}</p>
-    </div>
-  );
-}
-
-function SignalPath() {
+/** The playing track's format, large, and where it goes: the top of the audio panel. */
+function AudioStatus() {
   const { t } = useTranslation();
-  const source = useEngineStatus((s) => s.sourceFormat);
+  const track = usePlayer((s) => s.current?.track);
   const output = useEngineStatus((s) => s.outputFormat);
-  const dsp = useSettings((s) => s.dsp);
-  const normalization = useSettings((s) => s.normalization);
-  const volume = usePlayer((s) => s.volume);
-  const muted = usePlayer((s) => s.muted);
-
-  const stages = activeProcessing(dsp, normalization);
-  const blockers = output ? bitPerfectBlockers({ dsp, normalization, volume, muted, source, output }) : [];
+  const label = track ? qualityLabel(track.format) : null;
+  if (!track || !label) return null;
+  const lossless = isLossless(track.format);
+  const bitRate = track.format.bitRate ? `${track.format.bitRate} kbit/s` : null;
+  const details = [lossless ? t("output.lossless") : t("output.lossy"), bitRate].filter(Boolean).join(" · ");
 
   return (
-    <section aria-label={t("output.signalPath")} className="rounded-lg bg-elevated p-4">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="font-bold">{t("output.signalPath")}</h3>
+    <section aria-label={t("output.format")} className="flex flex-col gap-1 rounded-lg bg-elevated p-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-bold text-subdued">{t("output.format")}</p>
         {output?.exclusive &&
           (output.bitPerfect ? (
             <span
-              className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-[13px] font-bold text-on-accent"
+              className="inline-flex items-center gap-1.5 rounded-full bg-accent accent-fill px-2.5 py-0.5 text-xs font-bold text-on-accent"
               data-testid="bit-perfect-badge"
             >
-              <AudioWaveform size={14} aria-hidden="true" />
+              <AudioWaveform size={12} aria-hidden="true" />
               {t("output.bitPerfect")}
             </span>
           ) : (
-            <span className="rounded-full bg-highlight px-3 py-1 text-[13px] text-subdued">
+            <span className="rounded-full bg-highlight px-2.5 py-0.5 text-xs text-subdued">
               {t("output.notBitPerfect")}
             </span>
           ))}
       </div>
-
-      <div className="flex flex-col items-stretch gap-1">
-        <Stage label={t("output.source")} muted={!source}>
-          {source ? formatSourceFormat(source) : t("output.nothingPlaying")}
-        </Stage>
-        <ArrowDown size={16} className="self-center text-muted" aria-hidden="true" />
-        <Stage label={t("output.processing")} muted={stages.length === 0}>
-          {stages.length === 0
-            ? t("output.unchanged")
-            : stages.map((s) => t(`output.stages.${s}`)).join(", ")}
-        </Stage>
-        <ArrowDown size={16} className="self-center text-muted" aria-hidden="true" />
-        <Stage label={t("output.destination")} muted={!output}>
-          {output ? formatOutputFormat(output) : t("output.nothingPlaying")}
-          {output?.resampled && output.sourceRate ? (
-            <span className="block text-xs text-subdued" data-testid="resampled-note">
-              {t("output.resampledFrom", {
-                from: formatSampleRate(output.sourceRate),
-                to: formatSampleRate(output.sampleRate),
-              })}
-            </span>
-          ) : null}
-        </Stage>
-      </div>
-
-      {output && !output.exclusive && (output.sourceRate ?? 0) > output.sampleRate && (
-        <p className="mt-3 text-[13px] text-subdued" data-testid="mixer-limit">
-          {t("output.mixerLimits", { rate: formatSampleRate(output.sampleRate) })}
+      <p className="flex items-center gap-2 text-2xl font-extrabold tracking-tight">
+        {lossless && <span aria-hidden="true" className="size-2.5 rounded-full bg-accent accent-fill" />}
+        {label}
+      </p>
+      <p className="text-sm text-subdued">{details}</p>
+      {output && (
+        <p className="mt-1 text-xs break-words text-subdued" data-testid="output-line">
+          {t("output.playsOn", { output: formatOutputFormat(output) })}
         </p>
       )}
       {output?.exclusiveFallback && (
-        <p className="mt-3 text-[13px] text-warning">
+        <p className="mt-1 text-xs text-warning">
           {t("output.exclusiveFailed", { reason: output.exclusiveFallback })}
         </p>
-      )}
-
-      {output?.exclusive && !output.bitPerfect && blockers.length > 0 && (
-        <div className="mt-3 text-[13px] text-subdued">
-          <p>{t("output.reasonsTitle")}</p>
-          <ul className="mt-1 list-disc pl-5">
-            {blockers.map((b) => (
-              <li key={b}>{t(`output.reasons.${b}`)}</li>
-            ))}
-          </ul>
-        </div>
       )}
     </section>
   );
@@ -158,9 +110,10 @@ function deviceDetail(device: DeviceInfo): string {
 }
 
 /** Right panel: choose the output device, exclusive mode and see the live signal path. */
+/** Audio panel: format, quick sound settings, output device. */
 export function OutputPanel() {
   const { t } = useTranslation();
-  const setRightPanel = useLayout((s) => s.setRightPanel);
+  const closeRightPanel = useLayout((s) => s.closeRightPanel);
   const output = useSettings((s) => s.output);
   const set = useSettings((s) => s.set);
   const { devices, loading, refresh } = useOutputDevices();
@@ -175,17 +128,18 @@ export function OutputPanel() {
   return (
     <>
       <div className="flex h-14 shrink-0 items-center gap-2 px-4">
-        <h2 className="min-w-0 flex-1 truncate font-bold">{t("devices.title")}</h2>
+        <h2 className="min-w-0 flex-1 truncate font-bold">{t("output.panelTitle")}</h2>
         <IconButton label={t("output.refresh")} onClick={refresh} disabled={loading}>
           <RefreshCw size={16} className={loading ? "animate-spin" : undefined} />
         </IconButton>
-        <IconButton label={t("window.close")} onClick={() => setRightPanel(null)}>
+        <IconButton label={t("window.close")} onClick={closeRightPanel}>
           <X size={18} />
         </IconButton>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 [&>*]:shrink-0">
-        <SignalPath />
+        <AudioStatus />
+        <QuickSound />
 
         <section aria-label={t("output.devices")}>
           <h3 className="px-2 pb-1 font-bold">{t("output.devices")}</h3>
@@ -230,12 +184,6 @@ export function OutputPanel() {
           </div>
         </section>
 
-        <Link
-          to="/equalizer"
-          className="text-sm font-bold text-subdued underline-offset-2 hover:text-text hover:underline"
-        >
-          {t("output.openEqualizer")}
-        </Link>
       </div>
     </>
   );

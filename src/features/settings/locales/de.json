@@ -89,13 +89,40 @@
       "title": "Anzeige",
       "description": "Farben, Größe und Sprache der App.",
       "accent": "Akzentfarbe",
-      "accentHint": "Wird für Schaltflächen, Regler und Hervorhebungen verwendet.",
-      "accentDynamicHint": "Der Akzent folgt dem Cover des Titels, der gerade spielt.",
+      "accentHint": "Für Schaltflächen, Regler, Favoriten und Hervorhebungen. Album-Kopfbereiche, der Vollbild-Player und Songtexte nehmen ihre Farben vom Cover.",
+      "accentSolids": "Farben",
+      "accentGradients": "Verläufe",
       "accents": {
         "purple": "Lila",
+        "violet": "Violett",
+        "indigo": "Indigo",
         "blue": "Blau",
+        "sky": "Himmelblau",
+        "cyan": "Cyan",
+        "teal": "Türkis",
+        "yellow": "Gelb",
+        "amber": "Bernstein",
+        "orange": "Orange",
+        "coral": "Koralle",
         "red": "Rot",
-        "dynamic": "Dynamisch"
+        "pink": "Rosa",
+        "magenta": "Magenta",
+        "copper": "Kupfer",
+        "sand": "Sand",
+        "slate": "Schiefer",
+        "silver": "Silber",
+        "sunset": "Sonnenuntergang",
+        "ocean": "Ozean",
+        "flame": "Flamme",
+        "berry": "Beere",
+        "peach": "Pfirsich",
+        "neon": "Neon",
+        "ember": "Glut",
+        "dusk": "Dämmerung",
+        "gold": "Gold",
+        "ice": "Eis",
+        "blossom": "Blüte",
+        "midnight": "Mitternacht"
       },
       "zoom": "Zoom",
       "zoomHint": "Macht alles in der App kleiner oder größer.",
@@ -117,6 +144,30 @@
       "notify": "Benachrichtigung bei Titelwechsel",
       "notifyHint": "Zeigt den neuen Titel an, wenn die App nicht im Vordergrund ist.",
       "desktopOnly": "Diese Einstellungen gibt es nur in der Desktop-App."
+    },
+    "home": {
+      "title": "Startseite",
+      "description": "Welche Bereiche die Startseite zeigt und in welcher Reihenfolge.",
+      "rows": "Bereiche",
+      "rowsHint": "Mit den Pfeilen verschiebst du einen Bereich, der Schalter blendet ihn ein oder aus.",
+      "moveUp": "{{name}} nach oben",
+      "moveDown": "{{name}} nach unten",
+      "show": "{{name}} anzeigen",
+      "autoPlaylists": "Automatische Playlists",
+      "autoPlaylistsHint": "Playlists, die Musify aus deinem Hörverlauf erstellt.",
+      "needsAutoPlaylists": "Verfügbar, sobald automatische Playlists eingeschaltet sind.",
+      "auto": {
+        "heavyRotation": "Deine Dauerbrenner",
+        "rediscovered": "Wiederentdeckt",
+        "allTime": "Deine All-Time-Top-Songs",
+        "topYear": "Top-Songs des Jahres"
+      },
+      "autoHints": {
+        "heavyRotation": "Was du in den letzten 30 Tagen am häufigsten gehört hast. Erscheint nach zwei Wochen Hörverlauf.",
+        "rediscovered": "Frühere Lieblinge, die du länger nicht gehört hast. Erscheint nach zwei Monaten Hörverlauf.",
+        "allTime": "Deine meistgespielten Songs überhaupt, auch mit den Wiedergabezahlen deines Servers.",
+        "topYear": "Erscheint zusammen mit dem Rückblick ab dem 1. Dezember."
+      }
     }
   }
 }

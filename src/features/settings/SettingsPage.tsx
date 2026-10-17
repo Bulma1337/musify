@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { RefreshCw, SlidersHorizontal } from "lucide-react";
+import { Check, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { ZOOM_LEVELS, useLayout } from "@/app/layout/layoutStore";
 import { Button, IconButton } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
@@ -8,9 +8,12 @@ import { useOutputDevices } from "@/features/output/useOutputDevices";
 import type { LoudnessTarget, NormalizationMode } from "@/player/engineTypes";
 import { supportedLanguages, type Language } from "@/i18n";
 import { useLanguage } from "@/settings/language";
+import { ACCENT_PRESETS, accentFill, type AccentPreset } from "@/settings/accentPresets";
 import { useSettings, type AccentColor, type QualityPreset } from "@/settings/store";
+import { cn } from "@/lib/cn";
 import { StorageSettings } from "@/features/downloads/StorageSettings";
 import { AboutSection } from "@/features/updates/AboutSection";
+import { HomeSettings } from "./HomeSettings";
 import { SystemSection } from "./SystemSection";
 import { Segmented, SettingRow, SettingsSection, type SegmentedOption } from "./controls";
 import { RangeSlider } from "./RangeSlider";
@@ -22,15 +25,44 @@ const QUALITIES: readonly QualityPreset[] = ["original", "high", "normal", "low"
 const NORMALIZATION_MODES: readonly NormalizationMode[] = ["off", "track", "album", "auto"];
 const TARGETS: readonly LoudnessTarget[] = ["loud", "normal", "quiet"];
 
-const SWATCH: Record<AccentColor, string> = {
-  purple: "bg-violet-500",
-  blue: "bg-blue-500",
-  red: "bg-rose-600",
-  dynamic: "bg-gradient-to-br from-violet-500 via-blue-500 to-rose-500",
-};
-
-function Swatch({ accent }: { accent: AccentColor }) {
-  return <span aria-hidden="true" className={`size-3.5 rounded-full ${SWATCH[accent]}`} />;
+/** Swatches of all accent presets: solid colors, then gradients. */
+function AccentPicker({ value, onChange }: { value: AccentColor; onChange: (id: AccentColor) => void }) {
+  const { t } = useTranslation();
+  const group = (kind: AccentPreset["kind"], title: string) => (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-bold text-subdued">{title}</p>
+      <div role="radiogroup" aria-label={title} className="flex flex-wrap gap-2.5">
+        {ACCENT_PRESETS.filter((p) => p.kind === kind).map((preset) => {
+          const name = t(`settings.display.accents.${preset.id}`);
+          const selected = preset.id === value;
+          return (
+            <button
+              key={preset.id}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              aria-label={name}
+              title={name}
+              onClick={() => onChange(preset.id)}
+              className={cn(
+                "relative grid size-8 place-items-center rounded-full transition-transform duration-150 hover:scale-110 active:scale-95",
+                selected ? "ring-2 ring-text ring-offset-2 ring-offset-surface" : "ring-1 ring-white/15",
+              )}
+              style={{ background: accentFill(preset) }}
+            >
+              {selected && <Check size={16} strokeWidth={3} style={{ color: preset.onAccent }} />}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+  return (
+    <div className="flex flex-col gap-4">
+      {group("solid", t("settings.display.accentSolids"))}
+      {group("gradient", t("settings.display.accentGradients"))}
+    </div>
+  );
 }
 
 function AudioQualitySection() {
@@ -334,7 +366,6 @@ function DisplaySection() {
   const setLanguage = useLanguage((s) => s.setLanguage);
   const language: Language = i18n.language.toLowerCase().startsWith("de") ? "de" : "en";
 
-  const accents: AccentColor[] = ["purple", "blue", "red", "dynamic"];
   const zoomValue = ZOOM_LEVELS.find((z) => Math.abs(z - zoom) < 0.001) ?? 1;
 
   return (
@@ -346,20 +377,9 @@ function DisplaySection() {
       <SettingRow
         stacked
         title={t("settings.display.accent")}
-        description={
-          accent === "dynamic" ? t("settings.display.accentDynamicHint") : t("settings.display.accentHint")
-        }
+        description={t("settings.display.accentHint")}
       >
-        <Segmented
-          label={t("settings.display.accent")}
-          value={accent}
-          options={accents.map((a) => ({
-            value: a,
-            label: t(`settings.display.accents.${a}`),
-            icon: <Swatch accent={a} />,
-          }))}
-          onChange={(a) => set("accent", a)}
-        />
+        <AccentPicker value={accent} onChange={(a) => set("accent", a)} />
       </SettingRow>
       <SettingRow stacked title={t("settings.display.zoom")} description={t("settings.display.zoomHint")}>
         <Segmented
@@ -403,6 +423,7 @@ export function SettingsPage() {
         <div className="rounded-lg bg-elevated px-6">
           <StorageSettings />
         </div>
+        <HomeSettings />
         <DisplaySection />
         <SystemSection />
         <AboutSection />

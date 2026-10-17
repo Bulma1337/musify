@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Disc3, Heart, ListMusic, Mic2, Music } from "lucide-react";
 import type { CoverRef } from "@/api/provider";
-import { useSession } from "@/api/session";
+import { useCoverSource } from "@/api/customCovers";
 import { cn } from "@/lib/cn";
 import { coverRequestSize } from "./coverSize";
 
@@ -22,9 +22,8 @@ export interface CoverProps {
 
 /** Square (or round) cover art with a lazy image and an icon placeholder. */
 export function Cover({ cover, size, fallback = "album", round, className, eager }: CoverProps) {
-  const provider = useSession((s) => s.provider);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const src = cover && provider ? provider.coverUrl(cover, coverRequestSize(size)) : undefined;
+  const src = useCoverSource(cover, coverRequestSize(size));
   const Icon = FALLBACK_ICONS[fallback];
 
   return (

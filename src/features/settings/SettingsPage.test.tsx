@@ -165,17 +165,18 @@ describe("SettingsPage", () => {
     expect(screen.getByText(/Bit-perfect output needs exclusive mode/)).toBeInTheDocument();
   });
 
-  it("switches the accent color", () => {
+  it("switches the accent between colors and gradients", () => {
     renderSettings();
-    for (const [name, accent] of [
-      ["Blue", "blue"],
-      ["Red", "red"],
-      ["Dynamic", "dynamic"],
-      ["Purple", "purple"],
+    for (const [group, name, accent] of [
+      ["Colors", "Blue", "blue"],
+      ["Gradients", "Sunset", "sunset"],
+      ["Colors", "Purple", "purple"],
     ] as const) {
-      fireEvent.click(radio("Accent color", name));
+      fireEvent.click(radio(group, name));
       expect(useSettings.getState().accent).toBe(accent);
+      expect(radio(group, name)).toHaveAttribute("aria-checked", "true");
     }
+    expect(screen.queryByRole("radio", { name: "Dynamic" })).not.toBeInTheDocument();
   });
 
   it("sets the zoom in steps from 70 to 130 percent", () => {

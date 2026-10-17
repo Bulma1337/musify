@@ -197,6 +197,14 @@ pub struct Streak {
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
+pub struct DayStat {
+    /// Local day number (days since 1970-01-01).
+    pub day: i64,
+    pub played_ms: i64,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct MonthStat {
     /// "2026-03" in local time.
     pub month: String,
@@ -232,6 +240,8 @@ pub struct Summary {
     pub longest_streak: Streak,
     pub discoveries: Discoveries,
     pub months: Vec<MonthStat>,
+    /// Listening time per local day with any listening, ascending (the listening calendar).
+    pub daily: Vec<DayStat>,
 }
 
 /// SQL expression: the row's start time in local seconds (as if local time were UTC).
@@ -288,6 +298,23 @@ pub fn summary(
     let days = listening_days(conn, server_id, from, to)?;
     let longest_streak = longest_streak(&days);
 
+    let daily = {
+        // Floor division, as in listening_days.
+        let sql = format!(
+            "SELECT ({LOCAL_SECS} - (({LOCAL_SECS} % 86400) + 86400) % 86400) / 86400 AS day, SUM(played_ms)
+             FROM play_history WHERE server_id = ?1 AND started_at >= ?2 AND started_at < ?3
+             GROUP BY day ORDER BY day"
+        );
+        let mut stmt = conn.prepare(&sql)?;
+        stmt.query_map(params![server_id, from, to], |r| {
+            Ok(DayStat {
+                day: r.get(0)?,
+                played_ms: r.get(1)?,
+            })
+        })?
+        .collect::<rusqlite::Result<Vec<_>>>()?
+    };
+
     let months = {
         let sql = format!(
             "SELECT strftime('%Y-%m', {LOCAL_SECS}, 'unixepoch') AS month, SUM(played_ms), SUM(counted)
@@ -319,6 +346,7 @@ pub fn summary(
         longest_streak,
         discoveries: discoveries(conn, server_id, from, to, top_limit)?,
         months,
+        daily,
     })
 }
 

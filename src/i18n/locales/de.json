@@ -79,7 +79,7 @@
     "unmute": "Stummschaltung aufheben",
     "lyrics": "Songtext",
     "queue": "Warteschlange",
-    "devices": "Ausgabegerät wählen",
+    "devices": "Audio und Ausgabegerät",
     "miniplayer": "Miniplayer öffnen",
     "fullscreen": "Vollbild",
     "playbackError": "Wiedergabefehler: {{message}}",
@@ -97,7 +97,9 @@
     "resumedFrom": "Es geht weiter, wo du auf „{{client}}“ aufgehört hast.",
     "loadedFrom": "Warteschlange von „{{client}}“ übernommen.",
     "resumed": "Es geht weiter, wo du aufgehört hast.",
-    "loaded": "Warteschlange vom Server übernommen."
+    "loaded": "Warteschlange vom Server übernommen.",
+    "nowPlayingPanel": "Aktuellen Titel anzeigen",
+    "formatAndSound": "{{format}}: Format und Klang"
   },
   "track": {
     "title": "Titel",
@@ -141,7 +143,8 @@
     "bitRate": "Bitrate",
     "replayGain": "ReplayGain (Track)",
     "lastPlayed": "Zuletzt gehört",
-    "nextInQueue": "Als Nächstes"
+    "nextInQueue": "Als Nächstes",
+    "aboutArtists": "Künstlerprofile"
   },
   "queue": {
     "title": "Warteschlange",

@@ -8,6 +8,7 @@ import { menuContent, menuItem, menuSeparator } from "@/components/media/TrackMe
 import { cn } from "@/lib/cn";
 import { currentTrackDrag, isTrackDrag, readTrackDrop, type DraggedTracks } from "@/lib/dnd";
 import { usePlayer } from "@/player/store";
+import { LibraryDownloadMark } from "./LibraryDownloadMark";
 import { startEntryDrag } from "./libraryDnd";
 import type { LibraryEntry } from "./libraryModel";
 import { useLibrary, useLibraryPrefs } from "./libraryStore";
@@ -132,7 +133,9 @@ function LibraryItemImpl({
         onDragStart={entry.kind === "playlist" ? (event) => startEntryDrag(event, entry.key) : undefined}
         className={({ isActive }) =>
           cn(
-            "flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-highlight",
+            // The rail is 72 px wide: 8 px padding on each side leaves room for the 48 px cover plus 4 px.
+            "flex items-center rounded-md transition-colors hover:bg-highlight",
+            collapsed ? "justify-center p-1" : "gap-3 p-2",
             isActive && "bg-highlight hover:bg-press",
           )
         }
@@ -148,7 +151,10 @@ function LibraryItemImpl({
           <>
             <div className="min-w-0 flex-1">
               <p className={cn("truncate", playing && "text-accent")}>{entry.title}</p>
-              <p className="truncate text-sm text-subdued">{entry.subtitle}</p>
+              <p className="flex min-w-0 items-center gap-1.5 text-sm text-subdued">
+                <LibraryDownloadMark entry={entry} />
+                <span className="truncate">{entry.subtitle}</span>
+              </p>
             </div>
             {pinned && (
               <Pin

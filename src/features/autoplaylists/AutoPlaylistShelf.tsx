@@ -10,6 +10,8 @@ import { AutoCover } from "./AutoCover";
 import { autoContextId, autoSlug, type AutoRef } from "./autoPlaylists";
 import { autoPlaylistQuery, useAutoAvailable } from "./queries";
 import { useAutoTitle } from "./useAutoTitle";
+import { autoPlaylistAllowed, useHistoryDays } from "./availability";
+import { useSettings } from "@/settings/store";
 
 function AutoCard({ auto }: { auto: AutoRef }) {
   const { t } = useTranslation();
@@ -35,9 +37,11 @@ function AutoCard({ auto }: { auto: AutoRef }) {
   );
 }
 
-/** The automatic playlists that have enough listening history behind them. */
+/** The automatic playlists that are switched on and have enough listening history behind them. */
 function useAvailableAutoPlaylists(): AutoRef[] {
   const year = new Date().getFullYear();
+  const prefs = useSettings((s) => s.autoPlaylists);
+  const historyDays = useHistoryDays();
   const heavy = useAutoAvailable({ kind: "heavyRotation" });
   const rediscovered = useAutoAvailable({ kind: "rediscovered" });
   const allTimeLocal = useAutoAvailable({ kind: "allTime" });
@@ -48,14 +52,17 @@ function useAvailableAutoPlaylists(): AutoRef[] {
   const serverHasPlays = (serverPlayed.data?.length ?? 0) > 0;
 
   return useMemo(() => {
-    const list: AutoRef[] = [];
-    if (heavy.data) list.push({ kind: "heavyRotation" });
-    if (rediscovered.data) list.push({ kind: "rediscovered" });
-    if (allTimeLocal.data || serverHasPlays) list.push({ kind: "allTime" });
-    if (topThis.data) list.push({ kind: "topYear", year });
-    if (topLast.data) list.push({ kind: "topYear", year: year - 1 });
-    return list;
-  }, [heavy.data, rediscovered.data, allTimeLocal.data, serverHasPlays, topThis.data, topLast.data, year]);
+    const candidates: [AutoRef, boolean | undefined][] = [
+      [{ kind: "heavyRotation" }, heavy.data],
+      [{ kind: "rediscovered" }, rediscovered.data],
+      [{ kind: "allTime" }, allTimeLocal.data || serverHasPlays],
+      [{ kind: "topYear", year }, topThis.data],
+      [{ kind: "topYear", year: year - 1 }, topLast.data],
+    ];
+    return candidates
+      .filter(([ref, hasEntries]) => hasEntries && autoPlaylistAllowed(ref, prefs, historyDays))
+      .map(([ref]) => ref);
+  }, [heavy.data, rediscovered.data, allTimeLocal.data, serverHasPlays, topThis.data, topLast.data, year, prefs, historyDays]);
 }
 
 /** Home page row with the automatic playlists. Renders nothing while there is no history. */

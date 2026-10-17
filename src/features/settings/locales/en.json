@@ -89,13 +89,40 @@
       "title": "Appearance",
       "description": "Colors, size and language of the app.",
       "accent": "Accent color",
-      "accentHint": "Used for buttons, sliders and highlights.",
-      "accentDynamicHint": "The accent follows the cover of the track that is playing.",
+      "accentHint": "Used for buttons, sliders, favorites and highlights. Album headers, the full-screen player and lyrics take their colors from the cover.",
+      "accentSolids": "Colors",
+      "accentGradients": "Gradients",
       "accents": {
         "purple": "Purple",
+        "violet": "Violet",
+        "indigo": "Indigo",
         "blue": "Blue",
+        "sky": "Sky",
+        "cyan": "Cyan",
+        "teal": "Teal",
+        "yellow": "Yellow",
+        "amber": "Amber",
+        "orange": "Orange",
+        "coral": "Coral",
         "red": "Red",
-        "dynamic": "Dynamic"
+        "pink": "Pink",
+        "magenta": "Magenta",
+        "copper": "Copper",
+        "sand": "Sand",
+        "slate": "Slate",
+        "silver": "Silver",
+        "sunset": "Sunset",
+        "ocean": "Ocean",
+        "flame": "Flame",
+        "berry": "Berry",
+        "peach": "Peach",
+        "neon": "Neon",
+        "ember": "Ember",
+        "dusk": "Dusk",
+        "gold": "Gold",
+        "ice": "Ice",
+        "blossom": "Blossom",
+        "midnight": "Midnight"
       },
       "zoom": "Zoom",
       "zoomHint": "Makes everything in the app smaller or larger.",
@@ -117,6 +144,30 @@
       "notify": "Notify on track change",
       "notifyHint": "Shows the new track when the app is not in front.",
       "desktopOnly": "These settings are only available in the desktop app."
+    },
+    "home": {
+      "title": "Home",
+      "description": "Which rows the home page shows and in which order.",
+      "rows": "Rows",
+      "rowsHint": "Use the arrows to move a row; the switch shows or hides it.",
+      "moveUp": "Move {{name}} up",
+      "moveDown": "Move {{name}} down",
+      "show": "Show {{name}}",
+      "autoPlaylists": "Automatic playlists",
+      "autoPlaylistsHint": "Playlists Musify builds from your listening history.",
+      "needsAutoPlaylists": "Available once automatic playlists are on.",
+      "auto": {
+        "heavyRotation": "Your heavy rotation",
+        "rediscovered": "Rediscovered",
+        "allTime": "Your all-time top songs",
+        "topYear": "Top songs of the year"
+      },
+      "autoHints": {
+        "heavyRotation": "What you played most in the last 30 days. Appears after two weeks of listening history.",
+        "rediscovered": "Old favorites you have not played for a while. Appears after two months of listening history.",
+        "allTime": "Your most played songs ever, including the play counts of your server.",
+        "topYear": "Appears together with the Recap from 1 December."
+      }
     }
   }
 }

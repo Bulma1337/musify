@@ -1,12 +1,13 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Heart, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { Track } from "@/api/provider";
-import { useArtistInfo, useSetStarred } from "@/api/queries";
+import { useArtistInfo } from "@/api/queries";
 import { Cover } from "@/components/media/Cover";
 import { LyricsPreviewCard } from "@/features/lyrics/LyricsPreviewCard";
 import { IconButton } from "@/components/ui/Button";
+import { Marquee } from "@/components/ui/Marquee";
 import { cn } from "@/lib/cn";
 import { OutputPanel } from "@/features/output/OutputPanel";
 import { formatDate, formatDuration } from "@/lib/format";
@@ -14,15 +15,16 @@ import { isLossless, qualityLabel } from "@/player/quality";
 import { upcomingContextItems, usePlayer, type QueueItem } from "@/player/store";
 import { HistoryView, QueueView } from "@/features/queue/QueuePanel";
 import { useLayout } from "./layoutStore";
+import { LikeButton } from "./playerControls";
 
 function PanelHeader({ title, children }: { title: string; children?: ReactNode }) {
   const { t } = useTranslation();
-  const setRightPanel = useLayout((s) => s.setRightPanel);
+  const closeRightPanel = useLayout((s) => s.closeRightPanel);
   return (
     <div className="flex h-14 shrink-0 items-center gap-2 px-4">
       <h2 className="min-w-0 flex-1 truncate font-bold">{title}</h2>
       {children}
-      <IconButton label={t("window.close")} onClick={() => setRightPanel(null)}>
+      <IconButton label={t("window.close")} onClick={closeRightPanel}>
         <X size={18} />
       </IconButton>
     </div>
@@ -44,31 +46,49 @@ function plainBiography(html: string): string {
   return text.replace(/\s*Read more on Last\.fm\.?\s*$/i, "").trim();
 }
 
-function ArtistCard({ track }: { track: Track }) {
-  const { t } = useTranslation();
-  const artist = track.artists[0];
-  const info = useArtistInfo(artist?.id);
-  if (!artist?.id) return null;
-  const bio = info.data?.biography ? plainBiography(info.data.biography) : undefined;
+/** Artist profiles shown in the panel at most (features and collaborations). */
+const MAX_ARTISTS = 4;
 
+function ArtistProfile({ artist, compact }: { artist: { id: string; name: string }; compact: boolean }) {
+  const info = useArtistInfo(artist.id);
+  const bio = info.data?.biography ? plainBiography(info.data.biography) : undefined;
   return (
-    <Card>
-      <Link to={`/artist/${artist.id}`} className="group block">
-        <div className="relative">
-          {info.data?.imageUrl ? (
-            <img src={info.data.imageUrl} alt="" className="aspect-[4/3] w-full object-cover" />
-          ) : (
-            <div className="aspect-[4/3] w-full bg-gradient-to-br from-accent-soft to-highlight" />
-          )}
-          <span className="absolute top-4 left-4 font-bold drop-shadow-[0_1px_4px_rgb(0_0_0/0.8)]">
-            {t("nowPlaying.aboutArtist")}
-          </span>
-        </div>
-        <div className="flex flex-col gap-2 p-4">
-          <p className="font-bold group-hover:underline">{artist.name}</p>
-          {bio && <p className="line-clamp-4 text-sm text-subdued">{bio}</p>}
-        </div>
-      </Link>
+    <Link
+      to={`/artist/${artist.id}`}
+      className="group flex flex-col overflow-hidden rounded-md bg-highlight/50 transition-colors hover:bg-highlight"
+    >
+      {info.data?.imageUrl ? (
+        <img
+          src={info.data.imageUrl}
+          alt=""
+          className={cn("w-full object-cover", compact ? "aspect-[16/9]" : "aspect-[4/3]")}
+        />
+      ) : (
+        <div className={cn("w-full bg-gradient-to-br from-accent-soft to-highlight", compact ? "aspect-[16/9]" : "aspect-[4/3]")} />
+      )}
+      <div className="flex flex-col gap-1.5 p-3">
+        <p className="font-bold group-hover:underline">{artist.name}</p>
+        {bio && <p className={cn("text-sm text-subdued", compact ? "line-clamp-3" : "line-clamp-4")}>{bio}</p>}
+      </div>
+    </Link>
+  );
+}
+
+/** A profile for every artist of the track, not only the first. */
+function ArtistCards({ track }: { track: Track }) {
+  const { t } = useTranslation();
+  const seen = new Set<string>();
+  const artists = track.artists
+    .filter((a): a is typeof a & { id: string } => !!a.id && !seen.has(a.id) && !!seen.add(a.id))
+    .slice(0, MAX_ARTISTS);
+  if (artists.length === 0) return null;
+  return (
+    <Card title={artists.length > 1 ? t("nowPlaying.aboutArtists") : t("nowPlaying.aboutArtist")}>
+      <div className="flex flex-col gap-3 px-4 pb-4">
+        {artists.map((artist) => (
+          <ArtistProfile key={artist.id} artist={artist} compact={artists.length > 1} />
+        ))}
+      </div>
     </Card>
   );
 }
@@ -110,12 +130,31 @@ function CreditsCard({ track }: { track: Track }) {
   );
 }
 
+/** All artists of a track, each linking to its page when the server knows it. */
+export function ArtistLinks({ track, className }: { track: Track; className?: string }) {
+  return (
+    <p className={cn("truncate", className)}>
+      {track.artists.map((a, i) => (
+        <span key={`${a.id ?? a.name}-${i}`}>
+          {i > 0 && ", "}
+          {a.id ? (
+            <Link to={`/artist/${a.id}`} className="hover:text-text hover:underline">
+              {a.name}
+            </Link>
+          ) : (
+            a.name
+          )}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 function NowPlayingPanel() {
   const { t } = useTranslation();
   const current = usePlayer((s) => s.current);
   const context = usePlayer((s) => s.context);
   const nextItem = usePlayer((s) => s.manualQueue[0] ?? upcomingContextItems(s)[0]);
-  const setStarred = useSetStarred();
   const track = current?.track;
 
   if (!track) {
@@ -136,22 +175,17 @@ function NowPlayingPanel() {
           <div className="min-w-0 flex-1">
             <Link
               to={track.album ? `/album/${track.album.id}` : "#"}
-              className="block truncate text-2xl font-bold hover:underline"
+              className="block text-2xl font-bold hover:underline"
+              title={track.title}
             >
-              {track.title}
+              <Marquee key={track.id}>{track.title}</Marquee>
             </Link>
-            <p className="truncate text-subdued">{track.artistLine}</p>
+            <ArtistLinks track={track} className="text-subdued" />
           </div>
-          <IconButton
-            label={track.starred ? t("menu.removeFromLiked") : t("menu.addToLiked")}
-            active={track.starred}
-            onClick={() => setStarred.mutate({ kind: "track", id: track.id, starred: !track.starred })}
-          >
-            <Heart size={20} className={track.starred ? "fill-current" : ""} />
-          </IconButton>
+          <LikeButton track={track} size={20} />
         </div>
         <LyricsPreviewCard />
-        <ArtistCard track={track} />
+        <ArtistCards track={track} />
         <CreditsCard track={track} />
         {nextItem && (
           <Card title={t("nowPlaying.nextInQueue")}>
@@ -215,10 +249,10 @@ export function RightPanel() {
   const panel = useLayout((s) => s.rightPanel);
   if (!panel) return null;
   return (
-    <aside className="relative flex h-full min-h-0 flex-col rounded-lg bg-surface">
+    <aside key={panel} className="relative flex h-full min-h-0 animate-panel-in flex-col rounded-lg bg-surface">
       {panel === "nowPlaying" && <NowPlayingPanel />}
       {panel === "queue" && <QueuePanel />}
-      {panel === "devices" && <OutputPanel />}
+      {panel === "audio" && <OutputPanel />}
     </aside>
   );
 }

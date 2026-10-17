@@ -28,21 +28,6 @@ export function displayStartMs(lyrics: Lyrics, startMs: number, userOffsetMs: nu
   return Math.max(0, startMs + lyrics.offsetMs + userOffsetMs);
 }
 
-const PREVIEW_LINES = 3;
-
-/** The active line and the next ones (synced), or the first lines (unsynced). Blank lines are skipped. */
-export function previewLines(lyrics: Lyrics, timeMs: number, count = PREVIEW_LINES) {
-  const from = lyrics.synced ? Math.max(activeLineIndex(lyrics.lines, timeMs), 0) : 0;
-  const lines: { line: LyricLine; active: boolean }[] = [];
-  const activeIndex = lyrics.synced ? activeLineIndex(lyrics.lines, timeMs) : -1;
-  for (let i = from; i < lyrics.lines.length && lines.length < count; i++) {
-    const line = lyrics.lines[i]!;
-    if (line.text.trim() === "") continue;
-    lines.push({ line, active: i === activeIndex });
-  }
-  return lines;
-}
-
 // --- Per-track user offset -------------------------------------------------------------------------
 
 export const OFFSET_STEP_MS = 100;

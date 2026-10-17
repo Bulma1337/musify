@@ -56,7 +56,7 @@ export function AccountMenu() {
             type="button"
             aria-label={t("account.menu")}
             title={`${active.username} · ${active.name}`}
-            className="mx-1 grid size-8 shrink-0 place-items-center self-center rounded-full bg-accent text-sm font-bold text-on-accent outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-text"
+            className="mx-1 grid size-8 shrink-0 place-items-center self-center rounded-full bg-accent accent-fill text-sm font-bold text-on-accent outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-text"
           >
             {initial}
           </button>

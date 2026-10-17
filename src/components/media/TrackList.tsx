@@ -11,9 +11,9 @@ import {
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Clock3, Disc3, Ellipsis, Heart, Play } from "lucide-react";
+import { Clock3, Disc3, Ellipsis, Play } from "lucide-react";
 import type { Track } from "@/api/provider";
-import { useSetStarred } from "@/api/queries";
+import { useIsStarred, useSetStarred } from "@/api/queries";
 import { useIsOffline } from "@/api/session";
 import { useScrollContainer } from "@/app/layout/scrollContainer";
 import { cn } from "@/lib/cn";
@@ -22,6 +22,7 @@ import { formatDuration } from "@/lib/format";
 import { DownloadIndicator } from "@/features/downloads/DownloadIndicator";
 import { usePlayer } from "@/player/store";
 import { Cover } from "./Cover";
+import { HeartIcon } from "./HeartIcon";
 import { TrackMenu } from "./TrackMenu";
 
 const ROW_HEIGHT = 56;
@@ -122,6 +123,7 @@ const TrackRow = memo(function TrackRow({
   const setStarred = useSetStarred();
   const offline = useIsOffline();
   const { track, index } = row;
+  const starred = useIsStarred("track", track.id, track.starred);
 
   return (
     <div
@@ -199,16 +201,16 @@ const TrackRow = memo(function TrackRow({
         <DownloadIndicator trackId={track.id} />
         <button
           type="button"
-          aria-label={track.starred ? t("menu.removeFromLiked") : t("menu.addToLiked")}
+          aria-label={starred ? t("menu.removeFromLiked") : t("menu.addToLiked")}
           disabled={offline}
           title={offline ? t("downloads.offline.unavailable") : undefined}
-          onClick={() => setStarred.mutate({ kind: "track", id: track.id, starred: !track.starred })}
+          onClick={() => setStarred.mutate({ kind: "track", id: track.id, starred: !starred })}
           className={cn(
-            "transition-transform hover:scale-110 disabled:pointer-events-none disabled:opacity-40",
-            track.starred ? "text-accent" : "invisible text-subdued group-hover:visible hover:text-text",
+            "transition-transform hover:scale-110 active:scale-90 disabled:pointer-events-none disabled:opacity-40",
+            starred ? "text-accent" : "invisible text-subdued group-hover:visible hover:text-text",
           )}
         >
-          <Heart size={16} className={track.starred ? "fill-current" : ""} />
+          <HeartIcon size={16} filled={starred} />
         </button>
         <span className="w-10 text-right">{formatDuration(track.durationMs)}</span>
         <button

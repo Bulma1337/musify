@@ -6,8 +6,9 @@ type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-on-accent hover:bg-accent-hover active:bg-accent-press hover:scale-[1.03]",
-  secondary: "border border-muted text-text hover:border-text hover:scale-[1.03]",
+  primary:
+    "bg-accent accent-fill text-on-accent hover:bg-accent-hover hover:brightness-110 active:bg-accent-press active:scale-[0.97] hover:scale-[1.03]",
+  secondary: "border border-muted text-text hover:border-text hover:scale-[1.03] active:scale-[0.97]",
   ghost: "text-subdued hover:text-text",
   danger: "bg-danger text-black hover:brightness-110",
 };
@@ -42,7 +43,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center gap-2 rounded-full font-bold transition-[transform,background-color,border-color,color] duration-100 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex shrink-0 items-center justify-center gap-2 rounded-full font-bold transition-[transform,background-color,border-color,color,filter] duration-150 disabled:pointer-events-none disabled:opacity-50",
         variants[variant],
         sizes[size],
         className,
@@ -79,7 +80,7 @@ export function IconButton({
       title={label}
       style={{ width: size, height: size }}
       className={cn(
-        "grid shrink-0 place-items-center rounded-full transition-[transform,color] duration-100 hover:scale-105 disabled:pointer-events-none disabled:opacity-40",
+        "grid shrink-0 place-items-center rounded-full transition-[transform,color] duration-150 hover:scale-105 active:scale-90 disabled:pointer-events-none disabled:opacity-40",
         active ? "text-accent hover:text-accent-hover" : "text-subdued hover:text-text",
         className,
       )}

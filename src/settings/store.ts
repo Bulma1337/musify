@@ -3,8 +3,17 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import type { StreamQuality } from "@/api/provider";
 import { readPersisted, writePersisted } from "@/lib/persist";
 import type { CrossfadeConfig, DspConfig, NormalizationConfig, OutputConfig } from "@/player/engineTypes";
+import { accentPreset, DEFAULT_ACCENT, type AccentId } from "./accentPresets";
+import {
+  DEFAULT_AUTO_PLAYLISTS,
+  DEFAULT_HOME_SECTIONS,
+  normalizeHomeSections,
+  type AutoPlaylistPrefs,
+  type HomeSectionPref,
+} from "./homeLayout";
 
-export type AccentColor = "purple" | "blue" | "red" | "dynamic";
+/** An id from ACCENT_PRESETS (src/settings/accentPresets.ts). */
+export type AccentColor = AccentId;
 
 /** Streaming quality presets shown in Settings → Audio quality. */
 export type QualityPreset = "original" | "high" | "normal" | "low";
@@ -73,6 +82,9 @@ interface SettingsState {
   eqPresetId: string | null;
   customPresets: EqPreset[];
   accent: AccentColor;
+  /** Home page rows below the quick-access grid: order and visibility. */
+  homeSections: HomeSectionPref[];
+  autoPlaylists: AutoPlaylistPrefs;
 
   set<K extends keyof Omit<SettingsState, "set" | "updateDsp">>(key: K, value: SettingsState[K]): void;
   updateDsp(change: (dsp: DspConfig) => DspConfig): void;
@@ -86,14 +98,21 @@ const storage: StateStorage = {
 };
 
 /**
- * Older saved settings. v2: crossfade applies within albums too. Version 1 kept album tracks gapless
- * by default, so crossfade seemed not to work when listening to an album.
+ * Older saved settings.
+ * - v2: crossfade applies within albums too. Version 1 kept album tracks gapless by default, so
+ *   crossfade seemed not to work when listening to an album.
+ * - v3: the accent no longer follows the cover ("dynamic" becomes the default accent), and unknown
+ *   accent ids fall back to it as well.
  */
 export function migrateSettings(persisted: unknown, version: number): SettingsState {
   const state = (persisted ?? {}) as Partial<SettingsState>;
   if (version < 2 && state.crossfade) {
     state.crossfade = { ...state.crossfade, skipSameAlbum: false };
   }
+  if (version < 3 && state.accent !== undefined) {
+    state.accent = accentPreset(state.accent).id;
+  }
+  if (state.homeSections) state.homeSections = normalizeHomeSections(state.homeSections);
   return state as SettingsState;
 }
 
@@ -117,14 +136,16 @@ export const useSettings = create<SettingsState>()(
       output: { deviceId: null, exclusive: false },
       eqPresetId: null,
       customPresets: [],
-      accent: "purple",
+      accent: DEFAULT_ACCENT,
+      homeSections: DEFAULT_HOME_SECTIONS,
+      autoPlaylists: DEFAULT_AUTO_PLAYLISTS,
 
       set: (key, value) => set({ [key]: value } as Partial<SettingsState>),
       updateDsp: (change) => set((s) => ({ dsp: change(s.dsp) })),
     }),
     {
       name: "musify.settings",
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => storage),
       migrate: migrateSettings,
       partialize: ({ set: _set, updateDsp: _update, ...data }) => data,

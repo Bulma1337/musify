@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
@@ -6,6 +6,8 @@ import { AlertDialog, ContextMenu, DropdownMenu } from "radix-ui";
 import {
   Ellipsis,
   Globe,
+  ImageOff,
+  ImagePlus,
   ListEnd,
   ListMusic,
   ListX,
@@ -16,6 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import type { PlaylistDetail } from "@/api/provider";
+import { hasCustomCover, imageFileToCover, useCustomCovers } from "@/api/customCovers";
 import { usePlaylist } from "@/api/queries";
 import { useProvider } from "@/api/session";
 import { describeError } from "@/api/errors";
@@ -45,6 +48,8 @@ function PlaylistView({ playlist }: { playlist: PlaylistDetail }) {
   const [saving, setSaving] = useState(false);
 
   const editable = !playlist.readOnly;
+  const imageInput = useRef<HTMLInputElement>(null);
+  const customImage = useCustomCovers((s) => hasCustomCover(s.images, provider.server.id, playlist.id));
   const context = { type: "playlist" as const, id: playlist.id, name: playlist.name };
 
   // Keep each entry's original position: removal works on server positions, not filtered ones.
@@ -124,6 +129,16 @@ function PlaylistView({ playlist }: { playlist: PlaylistDetail }) {
     player.setShuffle("shuffle");
   }
 
+  async function changeImage(file: File) {
+    try {
+      const dataUrl = await imageFileToCover(file);
+      useCustomCovers.getState().setImage(provider.server.id, playlist.id, dataUrl);
+      toast(t("playlist.imageChanged"));
+    } catch {
+      toastError(t("playlist.imageFailed"));
+    }
+  }
+
   const metaParts = [
     playlist.owner,
     t("playlist.trackCount", { count: playlist.trackCount || playlist.tracks.length }),
@@ -132,14 +147,31 @@ function PlaylistView({ playlist }: { playlist: PlaylistDetail }) {
 
   return (
     <div>
-      {/* `contents` keeps the header's sticky bar working while letting us catch clicks on the title. */}
-      <div
-        className={editable ? "contents [&_h1]:cursor-pointer hover:[&_h1]:underline" : "contents"}
-        onClick={(e) => {
-          if (editable && (e.target as HTMLElement).closest("h1")) setEditOpen(true);
+      <input
+        ref={imageInput}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) void changeImage(file);
         }}
-      >
+      />
+      <div className="contents">
         <PageHeader
+          titleAction={
+            editable ? (
+              <IconButton label={t("playlist.editDetails")} size={36} onClick={() => setEditOpen(true)}>
+                <Pencil size={20} />
+              </IconButton>
+            ) : undefined
+          }
+          coverAction={
+            editable
+              ? { label: t("playlist.changeImage"), icon: <ImagePlus size={28} />, onClick: () => imageInput.current?.click() }
+              : undefined
+          }
           kind={playlist.public ? t("playlist.kindPublic") : t("playlist.kindPrivate")}
           title={playlist.name}
           cover={playlist.cover}
@@ -170,6 +202,22 @@ function PlaylistView({ playlist }: { playlist: PlaylistDetail }) {
                     {editable && (
                       <DropdownMenu.Item className={menuItem} onSelect={() => setEditOpen(true)}>
                         <Pencil size={16} /> {t("playlist.editDetails")}
+                      </DropdownMenu.Item>
+                    )}
+                    {editable && (
+                      <DropdownMenu.Item className={menuItem} onSelect={() => imageInput.current?.click()}>
+                        <ImagePlus size={16} /> {t("playlist.changeImage")}
+                      </DropdownMenu.Item>
+                    )}
+                    {editable && customImage && (
+                      <DropdownMenu.Item
+                        className={menuItem}
+                        onSelect={() => {
+                          useCustomCovers.getState().removeImage(provider.server.id, playlist.id);
+                          toast(t("playlist.imageRemoved"));
+                        }}
+                      >
+                        <ImageOff size={16} /> {t("playlist.removeImage")}
                       </DropdownMenu.Item>
                     )}
                     {editable && provider.capabilities.publicPlaylists && (

@@ -1,33 +1,26 @@
 import { useEffect } from "react";
-import { useCoverColor } from "@/components/media/useCoverColor";
-import { usePlayer } from "@/player/store";
-import { deriveAccent } from "./accent";
+import { accentFill, accentPreset } from "./accentPresets";
 import { useLanguageController } from "./language";
 import { useSettings } from "./store";
 
-const SHADE_PROPERTIES = ["--accent-400", "--accent-500", "--accent-600"] as const;
-
 /**
- * Applies the look settings to the document: the accent color (`data-accent`, "dynamic" derives the
- * shades from the playing track's cover) and the stored language. Mount once in the app shell.
+ * Applies the look settings to the document: the accent (`--accent-*` shades, the fill of accent
+ * surfaces and the color on them) and the stored language. Mount once in the app shell. The accent
+ * never follows the cover; cover colors are used only by album headers, the full-screen player and
+ * lyrics.
  */
 export function useAppearance() {
   const accent = useSettings((s) => s.accent);
-  const cover = usePlayer((s) => s.current?.track.cover);
-  // Only fetches a cover color while "dynamic" is selected.
-  const coverColor = useCoverColor(accent === "dynamic" ? cover : undefined);
   useLanguageController();
 
   useEffect(() => {
+    const preset = accentPreset(accent);
     const root = document.documentElement;
-    root.dataset.accent = accent;
-    if (accent === "dynamic") {
-      const shades = deriveAccent(coverColor);
-      root.style.setProperty("--accent-400", shades[400]);
-      root.style.setProperty("--accent-500", shades[500]);
-      root.style.setProperty("--accent-600", shades[600]);
-    } else {
-      for (const property of SHADE_PROPERTIES) root.style.removeProperty(property);
-    }
-  }, [accent, coverColor]);
+    root.dataset.accent = preset.id;
+    root.style.setProperty("--accent-400", preset.shades[400]);
+    root.style.setProperty("--accent-500", preset.shades[500]);
+    root.style.setProperty("--accent-600", preset.shades[600]);
+    root.style.setProperty("--accent-on", preset.onAccent);
+    root.style.setProperty("--accent-fill", preset.stops ? accentFill(preset) : "none");
+  }, [accent]);
 }

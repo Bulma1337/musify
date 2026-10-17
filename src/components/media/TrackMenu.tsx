@@ -5,7 +5,7 @@ import { ContextMenu } from "radix-ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { Disc3, Heart, ListEnd, ListPlus, ListStart, Mic2, Plus } from "lucide-react";
 import type { Track } from "@/api/provider";
-import { usePlaylists, useSetStarred } from "@/api/queries";
+import { usePlaylists, useSetStarred, useStarredResolver } from "@/api/queries";
 import { useIsOffline, useProvider } from "@/api/session";
 import { DownloadMenuItem } from "@/features/downloads/TrackMenuItem";
 import { describeError } from "@/api/errors";
@@ -36,7 +36,8 @@ export function TrackMenu({ tracks, children, extra }: TrackMenuProps) {
   const playlists = usePlaylists();
   const setStarred = useSetStarred();
   const single = tracks.length === 1 ? tracks[0] : undefined;
-  const allStarred = tracks.every((tr) => tr.starred);
+  const isStarred = useStarredResolver();
+  const allStarred = tracks.every((tr) => isStarred("track", tr.id, tr.starred));
 
   async function addToPlaylist(id: string, name: string) {
     try {

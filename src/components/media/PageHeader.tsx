@@ -32,6 +32,10 @@ export interface PageHeaderProps {
   onPlay: () => void;
   /** Buttons next to the play button (shuffle, like, download, …). */
   actions?: ReactNode;
+  /** Shown next to the title (e.g. a pencil to edit the details). */
+  titleAction?: ReactNode;
+  /** Makes the cover a button (e.g. to change a playlist's image); shows the label on hover. */
+  coverAction?: { label: string; icon: ReactNode; onClick: () => void };
 }
 
 /**
@@ -41,6 +45,7 @@ export interface PageHeaderProps {
 export function PageHeader(props: PageHeaderProps) {
   const { kind, title, cover, coverFallback, art, round, meta, description, playing, onPlay, actions } =
     props;
+  const { titleAction, coverAction } = props;
   const derived = useCoverColor(props.color ? undefined : cover);
   const color = props.color ?? derived;
   const scrollElement = useScrollContainer();
@@ -80,25 +85,47 @@ export function PageHeader(props: PageHeaderProps) {
             {art}
           </div>
         ) : (
-          <Cover
-            cover={cover}
-            size={232}
-            round={round}
-            fallback={coverFallback}
-            eager
-            className="w-[clamp(128px,22cqw,232px)] shadow-[0_4px_60px_rgb(0_0_0/0.5)]"
-          />
+          <div className="group/cover relative shrink-0">
+            <Cover
+              cover={cover}
+              size={232}
+              round={round}
+              fallback={coverFallback}
+              eager
+              className="w-[clamp(128px,22cqw,232px)] shadow-[0_4px_60px_rgb(0_0_0/0.5)]"
+            />
+            {coverAction && (
+              <button
+                type="button"
+                onClick={coverAction.onClick}
+                className={cn(
+                  "absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 text-sm font-bold opacity-0 transition-opacity duration-150 group-hover/cover:opacity-100 focus-visible:opacity-100",
+                  round ? "rounded-full" : "rounded-[4px]",
+                )}
+              >
+                {coverAction.icon}
+                {coverAction.label}
+              </button>
+            )}
+          </div>
         )}
         <div className="flex min-w-0 flex-col gap-2">
           <span className="text-sm font-semibold">{kind}</span>
-          <h1
-            className={cn(
-              "line-clamp-3 font-extrabold leading-[1.05] tracking-tight break-words",
-              titleSize(title),
+          <div className="group/title flex min-w-0 items-end gap-3">
+            <h1
+              className={cn(
+                "line-clamp-3 min-w-0 font-extrabold leading-[1.05] tracking-tight break-words",
+                titleSize(title),
+              )}
+            >
+              {title}
+            </h1>
+            {titleAction && (
+              <div className="mb-[0.4em] shrink-0 opacity-60 transition-opacity group-hover/title:opacity-100 focus-within:opacity-100">
+                {titleAction}
+              </div>
             )}
-          >
-            {title}
-          </h1>
+          </div>
           {description && <div className="line-clamp-2 text-sm text-subdued">{description}</div>}
           {meta && <div className="flex flex-wrap items-center gap-x-1 text-sm">{meta}</div>}
         </div>

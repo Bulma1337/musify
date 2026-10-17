@@ -23,7 +23,7 @@ export function PlayButton({ playing, onClick, size = 56, className }: PlayButto
       }}
       style={{ width: size, height: size }}
       className={cn(
-        "grid shrink-0 place-items-center rounded-full bg-accent text-on-accent shadow-[0_8px_8px_rgb(0_0_0/0.3)] transition-transform hover:scale-105 hover:bg-accent-hover active:scale-95 active:bg-accent-press",
+        "grid shrink-0 place-items-center rounded-full bg-accent accent-fill text-on-accent shadow-[0_8px_8px_rgb(0_0_0/0.3)] transition-[transform,filter] duration-150 hover:scale-105 hover:bg-accent-hover hover:brightness-110 active:scale-95 active:bg-accent-press active:brightness-95",
         className,
       )}
     >
