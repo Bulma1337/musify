@@ -14,15 +14,15 @@ beforeEach(() => {
 });
 
 const HEADER_WITHOUT_TOKEN =
-  /^MediaBrowser Client="Navify", Device="Navify Desktop", DeviceId="[0-9a-f]{32}", Version="0\.1\.0"$/;
+  /^MediaBrowser Client="Musify", Device="Musify Desktop", DeviceId="[0-9a-f]{32}", Version="0\.1\.0"$/;
 
 describe("authorizationHeader", () => {
   it("quotes every value and appends the token last", () => {
     expect(authorizationHeader("dev1")).toBe(
-      'MediaBrowser Client="Navify", Device="Navify Desktop", DeviceId="dev1", Version="0.1.0"',
+      'MediaBrowser Client="Musify", Device="Musify Desktop", DeviceId="dev1", Version="0.1.0"',
     );
     expect(authorizationHeader("dev1", "tok")).toBe(
-      'MediaBrowser Client="Navify", Device="Navify Desktop", DeviceId="dev1", Version="0.1.0", Token="tok"',
+      'MediaBrowser Client="Musify", Device="Musify Desktop", DeviceId="dev1", Version="0.1.0", Token="tok"',
     );
   });
 
@@ -35,7 +35,7 @@ describe("device id", () => {
   it("is random, persisted and stable", async () => {
     const first = await getDeviceId();
     expect(first).toMatch(/^[0-9a-f]{32}$/);
-    expect(JSON.parse(localStorage.getItem("navify.device.json.deviceId")!)).toBe(first);
+    expect(JSON.parse(localStorage.getItem("musify.device.json.deviceId")!)).toBe(first);
     resetDeviceIdCache();
     expect(await getDeviceId()).toBe(first);
   });

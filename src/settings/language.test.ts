@@ -1,7 +1,7 @@
 import i18n from "@/i18n";
 import { applyStoredLanguage, useLanguage } from "./language";
 
-const KEY = "navify.settings.json.navify.language";
+const KEY = "musify.settings.json.musify.language";
 
 /** What zustand's persist middleware writes through our storage adapter (a JSON string, JSON-encoded again). */
 function store(language: unknown) {

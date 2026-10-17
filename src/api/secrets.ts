@@ -5,7 +5,7 @@ import { inTauri } from "@/lib/platform";
  * Server secrets live in the OS credential store (via Rust). The browser preview has no keyring,
  * so it falls back to sessionStorage, which is cleared when the tab closes.
  */
-const DEV_PREFIX = "navify.dev-secret.";
+const DEV_PREFIX = "musify.dev-secret.";
 
 export async function saveSecret(serverId: string, secret: string): Promise<void> {
   if (inTauri) return invoke("secret_set", { serverId, secret });

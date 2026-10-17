@@ -80,7 +80,7 @@
       "title": "Ausgabe",
       "description": "Wohin der Klang geht und wie er dorthin kommt.",
       "device": "Ausgabegerät",
-      "deviceHint": "Das Gerät, über das Navify abspielt. Der Systemstandard folgt deiner Auswahl in den Systemeinstellungen.",
+      "deviceHint": "Das Gerät, über das Musify abspielt. Der Systemstandard folgt deiner Auswahl in den Systemeinstellungen.",
       "unavailable": "Nicht verfügbares Gerät",
       "exclusive": "Exklusiver Modus",
       "exclusiveHint": "Übernimmt das Gerät, damit der System-Mixer das Signal nicht verändern kann. Bit-perfekte Ausgabe braucht den exklusiven Modus, einen ausgeschalteten Equalizer samt aller Klangeffekte und eine Lautstärke von 100 %. Andere Programme bleiben währenddessen stumm."

@@ -1,5 +1,5 @@
 /**
- * Jellyfin wire types (subset of the 12.x OpenAPI schemas that Navify reads).
+ * Jellyfin wire types (subset of the 12.x OpenAPI schemas that Musify reads).
  * Property names follow the server's PascalCase JSON. Everything is optional because servers and
  * plugins omit null fields.
  */

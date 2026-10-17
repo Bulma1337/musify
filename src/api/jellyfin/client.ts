@@ -2,8 +2,8 @@ import { httpRequest, httpStatusError } from "../http";
 import { ProviderError, type ServerConfig } from "../provider";
 import { readPersisted, writePersisted } from "@/lib/persist";
 
-export const CLIENT_NAME = "Navify";
-export const DEVICE_NAME = "Navify Desktop";
+export const CLIENT_NAME = "Musify";
+export const DEVICE_NAME = "Musify Desktop";
 export const APP_VERSION = "0.1.0";
 
 type ParamValue = string | number | boolean | undefined;

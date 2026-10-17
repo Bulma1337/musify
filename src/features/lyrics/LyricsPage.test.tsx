@@ -92,12 +92,12 @@ describe("LyricsPage", () => {
     await screen.findByRole("button", { name: "Second line" });
     fireEvent.click(screen.getByRole("button", { name: "Show lyrics 0.1 s later" }));
     fireEvent.click(screen.getByRole("button", { name: "Show lyrics 0.1 s later" }));
-    expect(localStorage.getItem(`navify.lyrics.offset.${track.id}`)).toBe("200");
+    expect(localStorage.getItem(`musify.lyrics.offset.${track.id}`)).toBe("200");
     expect(screen.getByText("+0.2 s")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Show lyrics 0.1 s earlier" }));
     expect(screen.getByText("+0.1 s")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Reset timing" }));
-    expect(localStorage.getItem(`navify.lyrics.offset.${track.id}`)).toBeNull();
+    expect(localStorage.getItem(`musify.lyrics.offset.${track.id}`)).toBeNull();
   });
 
   it("shows unsynced lyrics as static text with a hint", async () => {

@@ -5,7 +5,7 @@ import { ProviderError, type ServerConfig } from "../provider";
 import type { WireBodies, WireEnvelope, WireEnvelopeBody } from "./wire";
 
 export const API_VERSION = "1.16.1";
-export const CLIENT_NAME = "Navify";
+export const CLIENT_NAME = "Musify";
 
 type ParamValue = string | number | boolean | undefined;
 export type Params = Record<string, ParamValue | ParamValue[]>;

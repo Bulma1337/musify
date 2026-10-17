@@ -4,7 +4,7 @@ import { ProviderError } from "@/api/provider";
 import { parseLrc } from "./lrc";
 
 const BASE_URL = "https://lrclib.net/api";
-const CLIENT_HEADER = "Navify 0.1.0 (https://github.com/Bulma1337/navify)";
+const CLIENT_HEADER = "Musify 0.1.0 (https://github.com/Bulma1337/musify)";
 const TIMEOUT_MS = 8_000;
 /** Accepted difference between our track length and a search hit, in seconds. */
 const DURATION_TOLERANCE_S = 3;

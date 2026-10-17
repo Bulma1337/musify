@@ -1,6 +1,6 @@
-<p align="center"><img src="src-tauri/icons/navify-logo.svg" width="96" alt="Navify logo"></p>
+<p align="center"><img src="src-tauri/icons/musify-logo.svg" width="96" alt="Musify logo"></p>
 
-<h1 align="center">Navify</h1>
+<h1 align="center">Musify</h1>
 
 <p align="center">A fast, lightweight desktop music player with a familiar streaming-app layout —<br>
 for your own <b>Navidrome</b>, <b>Subsonic/OpenSubsonic</b> and <b>Jellyfin</b> servers.</p>

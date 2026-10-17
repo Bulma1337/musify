@@ -39,9 +39,9 @@ function readDevServer(): DevServer | null {
     if (parsed.jellyfin?.url && parsed.jellyfin.username) return parsed.jellyfin;
   }
   const {
-    NAVIFY_JELLYFIN_URL: url,
-    NAVIFY_JELLYFIN_USER: username,
-    NAVIFY_JELLYFIN_PASSWORD: password,
+    MUSIFY_JELLYFIN_URL: url,
+    MUSIFY_JELLYFIN_USER: username,
+    MUSIFY_JELLYFIN_PASSWORD: password,
   } = process.env;
   return url && username && password ? { url, username, password } : null;
 }
@@ -222,7 +222,7 @@ describe.skipIf(!available)("Jellyfin dev server", () => {
   it("creates, reorders and deletes a playlist", async () => {
     const picks = albumTracks.slice(0, 5);
     const playlist = await provider.createPlaylist(
-      `navify-it-${Date.now()}`,
+      `musify-it-${Date.now()}`,
       picks.map((t) => t.id),
     );
     try {
@@ -240,9 +240,9 @@ describe.skipIf(!available)("Jellyfin dev server", () => {
       await provider.addToPlaylist(playlist.id, [picks[0]!.id]);
       expect((await provider.getPlaylist(playlist.id)).tracks).toHaveLength(5);
 
-      await provider.updatePlaylist(playlist.id, { name: "navify-it-renamed", public: true });
+      await provider.updatePlaylist(playlist.id, { name: "musify-it-renamed", public: true });
       expect(await provider.getPlaylist(playlist.id)).toMatchObject({
-        name: "navify-it-renamed",
+        name: "musify-it-renamed",
         public: true,
       });
       expect((await provider.getPlaylists()).some((p) => p.id === playlist.id)).toBe(true);

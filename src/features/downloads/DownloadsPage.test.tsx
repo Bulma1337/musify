@@ -166,7 +166,7 @@ async function enabledButton(name: string) {
 describe("storage settings", () => {
   it("shows the folder and the sizes of downloads and cache", async () => {
     render();
-    expect(await screen.findByText("D:/Music/Navify")).toBeInTheDocument();
+    expect(await screen.findByText("D:/Music/Musify")).toBeInTheDocument();
     expect(await screen.findByText(/118 MB • 3 tracks/)).toBeInTheDocument();
     expect(await screen.findByText("50 MB")).toBeInTheDocument();
   });
@@ -236,7 +236,7 @@ describe("storage settings", () => {
 
   it("explains that the folder can't change while downloads are running", async () => {
     vi.mocked(downloadsApi.storageInfo).mockResolvedValue({
-      dir: "D:/Music/Navify",
+      dir: "D:/Music/Musify",
       downloadsBytes: 1,
       trackCount: 1,
       busy: true,

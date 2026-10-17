@@ -78,9 +78,9 @@ const server = {
   authMode: "token",
   addedAt: new Date().toISOString(),
 };
-await evaluate(`localStorage.setItem("navify.servers.json.servers", ${JSON.stringify(JSON.stringify([server]))});
-  localStorage.setItem("navify.servers.json.activeServerId", ${JSON.stringify(JSON.stringify(server.id))});
-  sessionStorage.setItem("navify.dev-secret.${server.id}", ${JSON.stringify(cfg.password)}); true`);
+await evaluate(`localStorage.setItem("musify.servers.json.servers", ${JSON.stringify(JSON.stringify([server]))});
+  localStorage.setItem("musify.servers.json.activeServerId", ${JSON.stringify(JSON.stringify(server.id))});
+  sessionStorage.setItem("musify.dev-secret.${server.id}", ${JSON.stringify(cfg.password)}); true`);
 await send("Page.reload");
 await sleep(3000);
 

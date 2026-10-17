@@ -17,7 +17,7 @@
     "description": {
       "heavyRotation": "Was du in den letzten 30 Tagen am häufigsten gehört hast.",
       "rediscovered": "Songs, die du vor einiger Zeit oft gehört und seit Monaten nicht mehr gespielt hast.",
-      "allTime": "Deine meistgespielten Songs überhaupt, aus den Wiedergabezahlen des Servers und deinem Verlauf in Navify.",
+      "allTime": "Deine meistgespielten Songs überhaupt, aus den Wiedergabezahlen des Servers und deinem Verlauf in Musify.",
       "topYear": "Deine meistgespielten Songs {{year}}."
     },
     "trackCount_one": "{{count}} Titel",

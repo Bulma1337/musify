@@ -356,7 +356,7 @@ mod tests {
             track_number: Some(1),
             disc_total: None,
         };
-        let base = Path::new("C:/Users/someone/AppData/Local/io.github.navify/downloads");
+        let base = Path::new("C:/Users/someone/AppData/Local/io.github.musify/downloads");
         let rel = relative_track_path(&l, "flac", base);
         let full = base.join(&rel);
         assert!(

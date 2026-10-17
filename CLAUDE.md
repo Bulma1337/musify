@@ -1,4 +1,4 @@
-# Navify – notes for Claude
+# Musify – notes for Claude
 
 Desktop music player with a familiar three-panel streaming layout for Subsonic/OpenSubsonic (Navidrome first) and Jellyfin.
 Tauri 2 shell, React 19 + TypeScript frontend, native Rust audio engine. Will be open-sourced.
@@ -39,8 +39,8 @@ Tauri 2 shell, React 19 + TypeScript frontend, native Rust audio engine. Will be
 
 ## Git
 
-- Repo: github.com/Bulma1337/navify. One branch + PR per milestone (`m<N>-<topic>`), squash-merge when green.
-- The updater private key lives in `%USERPROFILE%\.navify-keys\` and in the repo secrets – never commit it.
+- Repo: github.com/Bulma1337/musify. One branch + PR per milestone (`m<N>-<topic>`), squash-merge when green.
+- The updater private key lives in `%USERPROFILE%\.navify-keys\` (folder name from before the rename to Musify) and in the repo secrets – never commit it.
 
 ## Stay inside the project folder
 

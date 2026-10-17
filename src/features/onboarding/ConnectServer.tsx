@@ -106,7 +106,7 @@ export function ConnectServer({ onCancel }: { onCancel?: () => void } = {}) {
         noValidate
       >
         <div className="mb-2 flex flex-col items-center gap-3 text-center">
-          <img src="/navify.svg" alt="" className="size-12" draggable={false} />
+          <img src="/musify.svg" alt="" className="size-12" draggable={false} />
           <h1 className="text-[28px] leading-tight font-extrabold tracking-tight">
             {onCancel ? t("onboarding.addTitle") : t("onboarding.title")}
           </h1>

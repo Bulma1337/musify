@@ -3,6 +3,7 @@ use tauri::Manager;
 mod audio;
 mod db;
 mod downloads;
+mod migrate;
 mod secrets;
 mod stats;
 
@@ -35,6 +36,7 @@ fn focus_main_window(app: &tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    migrate::move_old_data();
     let mut builder = tauri::Builder::default();
 
     #[cfg(desktop)]
@@ -106,5 +108,5 @@ pub fn run() {
             downloads::downloads_set_dir
         ])
         .run(tauri::generate_context!())
-        .expect("error while running Navify");
+        .expect("error while running Musify");
 }

@@ -27,7 +27,7 @@ export const useLanguage = create<LanguageState>()(
       },
     }),
     {
-      name: "navify.language",
+      name: "musify.language",
       version: 1,
       storage: createJSONStorage(() => storage),
       partialize: ({ language }) => ({ language }),

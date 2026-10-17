@@ -1,14 +1,14 @@
 //! Downloads one file over HTTP into a `.part` file, resuming with `Range` when possible.
 //!
 //! The request URL and headers carry credentials: they are only held in memory and never logged;
-//! every error message goes through the redaction helpers of `navify-audio`.
+//! every error message goes through the redaction helpers of `musify-audio`.
 
 use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use navify_audio::source::{BlockingClient, BlockingResponse, describe_io, describe_reqwest};
+use musify_audio::source::{BlockingClient, BlockingResponse, describe_io, describe_reqwest};
 use serde::Deserialize;
 
 /// Where to fetch a file. Kept in memory only.

@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Navify",
+    "name": "Musify",
     "tagline": "Your music. Your server.",
     "connecting": "Connecting to {{server}} …",
     "retry": "Try again",
@@ -193,7 +193,7 @@
     "addServer": "Add server",
     "signOut": "Sign out of {{server}}",
     "signOutTitle": "Sign out of {{server}}?",
-    "signOutBody": "Navify deletes the saved credentials for this server and clears the queue. Downloaded tracks stay on this computer.",
+    "signOutBody": "Musify deletes the saved credentials for this server and clears the queue. Downloaded tracks stay on this computer.",
     "signOutConfirm": "Sign out",
     "cancel": "Cancel"
   }

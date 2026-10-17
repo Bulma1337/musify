@@ -99,7 +99,7 @@ export const useSettings = create<SettingsState>()(
       updateDsp: (change) => set((s) => ({ dsp: change(s.dsp) })),
     }),
     {
-      name: "navify.settings",
+      name: "musify.settings",
       version: 1,
       storage: createJSONStorage(() => storage),
       partialize: ({ set: _set, updateDsp: _update, ...data }) => data,

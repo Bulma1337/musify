@@ -1,7 +1,7 @@
 {
   "stats": {
     "title": "Statistik",
-    "subtitle": "Was du gehört hast, basierend auf deinem Verlauf in Navify.",
+    "subtitle": "Was du gehört hast, basierend auf deinem Verlauf in Musify.",
     "rangeLabel": "Zeitraum",
     "range": {
       "weeks4": "4 Wochen",
@@ -9,7 +9,7 @@
       "all": "Gesamt"
     },
     "emptyTitle": "Noch kein Hörverlauf",
-    "emptyText": "Spiel etwas Musik ab, dann erscheinen hier deine Statistiken. Gezählt wird nur, was du in Navify hörst.",
+    "emptyText": "Spiel etwas Musik ab, dann erscheinen hier deine Statistiken. Gezählt wird nur, was du in Musify hörst.",
     "minutes": "Minuten Musik",
     "minutesHint": "{{days}} d {{hours}} Std. am Stück",
     "minutesHintHours": "{{hours}} Std. am Stück",

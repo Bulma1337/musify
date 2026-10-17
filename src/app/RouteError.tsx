@@ -10,7 +10,7 @@ export function RouteError() {
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 bg-backdrop p-8 text-center">
-      <img src="/navify.svg" alt="" className="size-12" draggable={false} />
+      <img src="/musify.svg" alt="" className="size-12" draggable={false} />
       <h1 className="text-2xl font-bold">{t("app.crashTitle")}</h1>
       <p className="max-w-md text-subdued">{t("app.crashText")}</p>
       {import.meta.env.DEV && message && (

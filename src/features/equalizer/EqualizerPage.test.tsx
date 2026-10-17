@@ -235,7 +235,7 @@ describe("EqualizerPage", () => {
       const box = within(dialog).getByLabelText("Preset text") as HTMLTextAreaElement;
       // The dialog starts with the current sound as JSON.
       const exported = box.value;
-      expect(JSON.parse(exported)).toMatchObject({ navify: "eq-preset", version: 1 });
+      expect(JSON.parse(exported)).toMatchObject({ musify: "eq-preset", version: 1 });
 
       fireEvent.change(box, { target: { value: "hello" } });
       fireEvent.click(within(dialog).getByRole("button", { name: "Import" }));

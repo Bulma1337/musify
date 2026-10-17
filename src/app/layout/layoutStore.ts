@@ -61,6 +61,6 @@ export const useLayout = create<LayoutState>()(
       zoomIn: () => set({ zoom: stepZoom(get().zoom, 1) }),
       zoomOut: () => set({ zoom: stepZoom(get().zoom, -1) }),
     }),
-    { name: "navify.layout", storage: createJSONStorage(() => localStorage) },
+    { name: "musify.layout", storage: createJSONStorage(() => localStorage) },
   ),
 );

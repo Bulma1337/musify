@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Navify",
+    "name": "Musify",
     "tagline": "Deine Musik. Dein Server.",
     "connecting": "Verbinde mit {{server}} …",
     "retry": "Erneut versuchen",
@@ -193,7 +193,7 @@
     "addServer": "Server hinzufügen",
     "signOut": "Von {{server}} abmelden",
     "signOutTitle": "Von {{server}} abmelden?",
-    "signOutBody": "Navify löscht die gespeicherten Zugangsdaten für diesen Server und leert die Warteschlange. Heruntergeladene Titel bleiben auf dem Rechner.",
+    "signOutBody": "Musify löscht die gespeicherten Zugangsdaten für diesen Server und leert die Warteschlange. Heruntergeladene Titel bleiben auf dem Rechner.",
     "signOutConfirm": "Abmelden",
     "cancel": "Abbrechen"
   }

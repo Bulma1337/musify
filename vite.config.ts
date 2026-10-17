@@ -29,7 +29,7 @@ async function readBody(req: IncomingMessage): Promise<Uint8Array<ArrayBuffer> |
  */
 function devServerProxy(): Plugin {
   return {
-    name: "navify-dev-proxy",
+    name: "musify-dev-proxy",
     apply: "serve",
     configureServer(server) {
       server.middlewares.use("/__proxy", async (req, res) => {

@@ -47,7 +47,7 @@ export function previewLines(lyrics: Lyrics, timeMs: number, count = PREVIEW_LIN
 
 export const OFFSET_STEP_MS = 100;
 export const OFFSET_LIMIT_MS = 10_000;
-const OFFSET_PREFIX = "navify.lyrics.offset.";
+const OFFSET_PREFIX = "musify.lyrics.offset.";
 
 /** Fallback when localStorage is unavailable (private mode, blocked site data). */
 const memory = new Map<string, number>();

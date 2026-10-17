@@ -397,7 +397,7 @@ export const usePlayer = create<PlayerState>()(
       setBuffering: (buffering) => set({ buffering }),
     }),
     {
-      name: "navify.player",
+      name: "musify.player",
       version: 1,
       storage: createJSONStorage(() => storage),
       // Persist the queue and transport settings; never resume playing on startup by itself.

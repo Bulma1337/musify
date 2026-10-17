@@ -15,7 +15,7 @@ use std::sync::{Arc, Condvar, Mutex, MutexGuard, RwLock, Weak};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use navify_audio::source::{BlockingClient, build_http_client};
+use musify_audio::source::{BlockingClient, build_http_client};
 use serde::{Deserialize, Serialize};
 
 use super::paths::{self, PARTIAL_DIR, TrackLayout};
@@ -218,13 +218,13 @@ impl Manager {
         for n in 0..PARALLEL {
             let inner = Arc::clone(&inner);
             thread::Builder::new()
-                .name(format!("navify-download-{n}"))
+                .name(format!("musify-download-{n}"))
                 .spawn(move || inner.worker())
                 .expect("spawn download worker");
         }
         let weak = Arc::downgrade(&inner);
         thread::Builder::new()
-            .name("navify-download-events".into())
+            .name("musify-download-events".into())
             .spawn(move || ticker(weak))
             .expect("spawn download event ticker");
         Self { inner }

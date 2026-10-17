@@ -108,7 +108,7 @@ export const usePlayerView = create<PlayerViewState>()(
       },
     }),
     {
-      name: "navify.player-view",
+      name: "musify.player-view",
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ miniOnTop: s.miniOnTop }),
     },

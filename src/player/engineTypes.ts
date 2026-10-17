@@ -1,5 +1,5 @@
 /**
- * TypeScript mirror of `src-tauri/crates/navify-audio/src/api.rs` (serde, camelCase, tagged enums).
+ * TypeScript mirror of `src-tauri/crates/musify-audio/src/api.rs` (serde, camelCase, tagged enums).
  * Keep both files in sync.
  */
 
