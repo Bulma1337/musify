@@ -274,7 +274,7 @@ export function LibrarySidebar() {
 
       {!collapsed && (
         <>
-          <div className="flex items-center gap-2 overflow-x-auto px-4 py-2">
+          <div className="flex flex-wrap items-center gap-2 px-4 py-2">
             {(filter || downloadedOnly) && (
               <IconButton
                 label={t("library.clearFilter")}
