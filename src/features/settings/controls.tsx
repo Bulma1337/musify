@@ -1,4 +1,5 @@
 import { useRef, type KeyboardEvent, type ReactNode } from "react";
+import { Info } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export interface SegmentedOption<T extends string | number> {
@@ -28,7 +29,11 @@ export function Segmented<T extends string | number>({
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     const step =
-      e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+      e.key === "ArrowRight" || e.key === "ArrowDown"
+        ? 1
+        : e.key === "ArrowLeft" || e.key === "ArrowUp"
+          ? -1
+          : 0;
     if (step === 0) return;
     e.preventDefault();
     const index = options.findIndex((o) => o.value === value);
@@ -44,7 +49,7 @@ export function Segmented<T extends string | number>({
       aria-label={label}
       aria-disabled={disabled || undefined}
       onKeyDown={disabled ? undefined : onKeyDown}
-      className={cn("flex flex-wrap gap-1.5", disabled && "pointer-events-none opacity-50")}
+      className={cn("flex flex-wrap gap-1.5", disabled && "cursor-not-allowed opacity-50")}
     >
       {options.map((option, i) => {
         const selected = option.value === value;
@@ -61,8 +66,12 @@ export function Segmented<T extends string | number>({
             disabled={disabled}
             onClick={() => onChange(option.value)}
             className={cn(
-              "inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors",
-              selected ? "bg-text text-black" : "bg-surface text-subdued hover:text-text",
+              "inline-flex h-9 disabled:pointer-events-none items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors",
+              selected
+                ? disabled
+                  ? "bg-muted text-text"
+                  : "bg-text text-black"
+                : "bg-surface text-subdued hover:text-text",
             )}
           >
             {option.icon}
@@ -80,11 +89,14 @@ export function SettingRow({
   description,
   children,
   stacked,
+  disabledReason,
 }: {
   title: string;
   description?: ReactNode;
   children: ReactNode;
   stacked?: boolean;
+  /** When set, the control is unavailable: this text says why (shown under the description). */
+  disabledReason?: string;
 }) {
   return (
     <div
@@ -96,10 +108,14 @@ export function SettingRow({
       <div className="min-w-0 flex-1">
         <p className="font-bold">{title}</p>
         {description && <p className="mt-0.5 max-w-prose text-[13px] text-subdued">{description}</p>}
+        {disabledReason && (
+          <p className="mt-1 flex max-w-prose items-center gap-1.5 text-[13px] text-subdued">
+            <Info size={14} className="shrink-0" aria-hidden="true" />
+            {disabledReason}
+          </p>
+        )}
       </div>
-      <div className={cn(!stacked && "sm:max-w-[60%] sm:shrink-0", stacked && "w-full max-w-md")}>
-        {children}
-      </div>
+      <div className={cn(!stacked && "sm:max-w-[60%] sm:shrink-0", stacked && "w-full")}>{children}</div>
     </div>
   );
 }

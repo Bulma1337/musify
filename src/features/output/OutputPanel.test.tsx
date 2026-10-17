@@ -133,7 +133,10 @@ describe("OutputPanel", () => {
 
     fireEvent.click(within(group).getByRole("radio", { name: /Sound Blaster X5/ }));
     expect(useSettings.getState().output.deviceId).toBe("dac");
-    expect(within(group).getByRole("radio", { name: /Sound Blaster X5/ })).toHaveAttribute("aria-checked", "true");
+    expect(within(group).getByRole("radio", { name: /Sound Blaster X5/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
   });
 
   it("refreshes the device list on demand", async () => {
@@ -190,7 +193,12 @@ describe("signal path helpers", () => {
 
   it("lists the active processing stages", () => {
     const dsp = structuredClone(DEFAULT_DSP);
-    const normalization = { mode: "off" as const, target: "normal" as const, preventClipping: true, analyzeUntagged: true };
+    const normalization = {
+      mode: "off" as const,
+      target: "normal" as const,
+      preventClipping: true,
+      analyzeUntagged: true,
+    };
     expect(activeProcessing(dsp, normalization)).toEqual([]);
     dsp.eq.enabled = true;
     dsp.bass.enabled = true;
@@ -204,7 +212,12 @@ describe("signal path helpers", () => {
   });
 
   it("finds no blockers for a clean exclusive path at full volume", () => {
-    const normalization = { mode: "off" as const, target: "normal" as const, preventClipping: true, analyzeUntagged: true };
+    const normalization = {
+      mode: "off" as const,
+      target: "normal" as const,
+      preventClipping: true,
+      analyzeUntagged: true,
+    };
     expect(
       bitPerfectBlockers({
         dsp: DEFAULT_DSP,

@@ -47,3 +47,18 @@ export function useLanguageController() {
     if (language && i18n.language !== language) void i18n.changeLanguage(language);
   }, [language]);
 }
+
+/**
+ * Loads the stored language and applies it. Awaited in `main.tsx` before the first render, so the
+ * onboarding and login screens already show the chosen language. A storage failure keeps the
+ * system language instead of blocking startup.
+ */
+export async function applyStoredLanguage(): Promise<void> {
+  try {
+    await useLanguage.persist.rehydrate();
+    const { language } = useLanguage.getState();
+    if (language && i18n.language !== language) await i18n.changeLanguage(language);
+  } catch {
+    // Keep the detected system language.
+  }
+}

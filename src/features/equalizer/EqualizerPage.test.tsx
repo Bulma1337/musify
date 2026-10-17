@@ -1,8 +1,8 @@
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import type { EqConfig } from "@/player/engineTypes";
 import { DEFAULT_DSP, useSettings } from "@/settings/store";
 import { renderPage } from "@/test/renderPage";
-import { clearEqMemory } from "./eqActions";
+import { clearEqMemory, snapshotDsp } from "./eqActions";
 import { EqualizerPage } from "./EqualizerPage";
 import { resampleGraphicGains } from "./eqMath";
 import { BUILT_IN_PRESETS } from "./presets";
@@ -44,6 +44,14 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+const presetTrigger = () => screen.getByRole("button", { name: "Preset" });
+
+/** Opens the preset menu with the keyboard and picks an entry by its visible name. */
+function choosePreset(name: string) {
+  fireEvent.keyDown(presetTrigger(), { key: "Enter" });
+  fireEvent.click(screen.getByRole("menuitemradio", { name }));
+}
+
 function renderEqualizer() {
   return renderPage(<EqualizerPage />, { path: "/equalizer", url: "/equalizer" });
 }
@@ -71,10 +79,80 @@ describe("EqualizerPage", () => {
     expect(engine.send).toHaveBeenLastCalledWith({ type: "setSpectrum", enabled: false });
   });
 
+  describe("mode tabs", () => {
+    const tabs = () =>
+      ["10 bands", "31 bands", "Parametric"].map((name) => screen.getByRole("tab", { name }));
+    const selectedStates = () => tabs().map((tab) => tab.getAttribute("aria-selected"));
+
+    it("marks exactly the tab of the current mode as selected, in every mode", () => {
+      renderEqualizer();
+      expect(selectedStates()).toEqual(["true", "false", "false"]);
+      fireEvent.click(screen.getByRole("tab", { name: "31 bands" }));
+      expect(selectedStates()).toEqual(["false", "true", "false"]);
+      expect(tabs().map((tab) => tab.tabIndex)).toEqual([-1, 0, -1]);
+      fireEvent.click(screen.getByRole("tab", { name: "Parametric" }));
+      expect(selectedStates()).toEqual(["false", "false", "true"]);
+      fireEvent.click(screen.getByRole("tab", { name: "10 bands" }));
+      expect(selectedStates()).toEqual(["true", "false", "false"]);
+      expect(screen.getByRole("tabpanel")).toHaveAccessibleName("10 bands");
+    });
+
+    it("follows a mode change that did not come from the tabs (preset, reset)", () => {
+      renderEqualizer();
+      fireEvent.click(screen.getByRole("tab", { name: "31 bands" }));
+      expect(selectedStates()).toEqual(["false", "true", "false"]);
+      act(() => {
+        useSettings.setState({ dsp: structuredClone(DEFAULT_DSP) });
+      });
+      expect(selectedStates()).toEqual(["true", "false", "false"]);
+    });
+
+    it("moves between the tabs with the arrow keys", () => {
+      renderEqualizer();
+      fireEvent.keyDown(screen.getByRole("tab", { name: "10 bands" }), { key: "ArrowRight" });
+      expect(selectedStates()).toEqual(["false", "true", "false"]);
+      expect(screen.getByRole("tab", { name: "31 bands" })).toHaveFocus();
+      fireEvent.keyDown(screen.getByRole("tab", { name: "31 bands" }), { key: "End" });
+      expect(selectedStates()).toEqual(["false", "false", "true"]);
+      fireEvent.keyDown(screen.getByRole("tab", { name: "Parametric" }), { key: "ArrowRight" });
+      expect(selectedStates()).toEqual(["true", "false", "false"]);
+    });
+  });
+
+  describe("preset menu", () => {
+    it("lists own presets and built-in presets in groups and checks the current one", () => {
+      useSettings.setState({
+        customPresets: [{ id: "c1", name: "Warm", dsp: snapshotDsp(structuredClone(DEFAULT_DSP)) }],
+        eqPresetId: "c1",
+      });
+      renderEqualizer();
+      expect(presetTrigger()).toHaveTextContent("Warm");
+      fireEvent.keyDown(presetTrigger(), { key: "Enter" });
+      expect(screen.getByText("My presets")).toBeInTheDocument();
+      expect(screen.getByText("Built-in presets")).toBeInTheDocument();
+      expect(screen.getByRole("menuitemradio", { name: "Warm" })).toHaveAttribute("aria-checked", "true");
+      expect(screen.getByRole("menuitemradio", { name: "Rock" })).toHaveAttribute("aria-checked", "false");
+    });
+
+    it("applies the preset chosen with the keyboard and shows it checked afterwards", () => {
+      renderEqualizer();
+      fireEvent.keyDown(presetTrigger(), { key: "ArrowDown" });
+      expect(screen.getByRole("menuitemradio", { name: "Custom curve" })).toHaveAttribute(
+        "aria-checked",
+        "true",
+      );
+      fireEvent.keyDown(screen.getByRole("menuitemradio", { name: "Jazz" }), { key: "Enter" });
+      expect(useSettings.getState().eqPresetId).toBe("jazz");
+      expect(presetTrigger()).toHaveTextContent("Jazz");
+      fireEvent.keyDown(presetTrigger(), { key: "Enter" });
+      expect(screen.getByRole("menuitemradio", { name: "Jazz" })).toHaveAttribute("aria-checked", "true");
+    });
+  });
+
   describe("presets", () => {
     it("applies a built-in preset: curve, EQ on, preset id", () => {
       renderEqualizer();
-      fireEvent.change(screen.getByRole("combobox", { name: "Preset" }), { target: { value: "rock" } });
+      choosePreset("Rock");
       const rock = BUILT_IN_PRESETS.find((p) => p.id === "rock")!;
       expect(eq().enabled).toBe(true);
       expect(eq().mode).toEqual({ type: "graphic", bands: "ten", gainsDb: [...rock.gainsDb] });
@@ -85,7 +163,7 @@ describe("EqualizerPage", () => {
 
     it("the Deep Bass preset also turns the bass enhancer on", () => {
       renderEqualizer();
-      fireEvent.change(screen.getByRole("combobox", { name: "Preset" }), { target: { value: "deepBass" } });
+      choosePreset("Deep Bass");
       const { bass } = useSettings.getState().dsp;
       expect(bass).toMatchObject({ enabled: true, boostDb: 6, frequencyHz: 80 });
       expect(screen.getByRole("switch", { name: "Deep Bass" })).toHaveAttribute("aria-checked", "true");
@@ -94,7 +172,7 @@ describe("EqualizerPage", () => {
     it("keeps the 31-band layout when a built-in preset is chosen", () => {
       renderEqualizer();
       fireEvent.click(screen.getByRole("tab", { name: "31 bands" }));
-      fireEvent.change(screen.getByRole("combobox", { name: "Preset" }), { target: { value: "vShape" } });
+      choosePreset("V shape");
       const vShape = BUILT_IN_PRESETS.find((p) => p.id === "vShape")!;
       expect(eq().mode).toEqual({
         type: "graphic",
@@ -105,12 +183,12 @@ describe("EqualizerPage", () => {
 
     it("editing a band leaves the built-in preset (shows a custom curve)", () => {
       renderEqualizer();
-      fireEvent.change(screen.getByRole("combobox", { name: "Preset" }), { target: { value: "flat" } });
+      choosePreset("Flat");
       expect(useSettings.getState().eqPresetId).toBe("flat");
       fireEvent.keyDown(screen.getByRole("slider", { name: "1 kHz" }), { key: "ArrowUp" });
       expect(gains()[5]).toBe(0.5);
       expect(useSettings.getState().eqPresetId).toBeNull();
-      expect(screen.getByRole("combobox", { name: "Preset" })).toHaveValue("");
+      expect(presetTrigger()).toHaveTextContent("Custom curve");
     });
 
     it("saves, updates, renames and deletes custom presets", async () => {
@@ -130,7 +208,7 @@ describe("EqualizerPage", () => {
       // Changing the curve keeps the custom preset selected and marks it as changed.
       fireEvent.keyDown(screen.getByRole("slider", { name: "250 Hz" }), { key: "ArrowDown" });
       expect(useSettings.getState().eqPresetId).toBe(saved?.id);
-      expect(screen.getByRole("option", { name: "Warm (changed)" })).toBeInTheDocument();
+      expect(presetTrigger()).toHaveTextContent("Warm (changed)");
       fireEvent.click(screen.getByRole("button", { name: "Save changes to this preset" }));
       expect(useSettings.getState().customPresets[0]?.dsp.eq.mode).toMatchObject({
         gainsDb: expect.arrayContaining([2.5]),
@@ -190,7 +268,10 @@ describe("EqualizerPage", () => {
     it("converts the curve when switching between 10 and 31 bands and back", () => {
       useSettings.getState().updateDsp((dsp) => ({
         ...dsp,
-        eq: { ...dsp.eq, mode: { type: "graphic", bands: "ten", gainsDb: [4, 3, 2, 1, 0, -1, -2, -3, -4, -5] } },
+        eq: {
+          ...dsp.eq,
+          mode: { type: "graphic", bands: "ten", gainsDb: [4, 3, 2, 1, 0, -1, -2, -3, -4, -5] },
+        },
       }));
       renderEqualizer();
       fireEvent.click(screen.getByRole("tab", { name: "31 bands" }));
@@ -443,6 +524,6 @@ describe("EqualizerPage", () => {
 /** Renders the page with the Rock preset applied (which also switches the EQ on). */
 function renderEqualizerWithRock() {
   const result = renderEqualizer();
-  fireEvent.change(screen.getByRole("combobox", { name: "Preset" }), { target: { value: "rock" } });
+  choosePreset("Rock");
   return result;
 }
