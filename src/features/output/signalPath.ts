@@ -1,5 +1,12 @@
 import i18n from "@/i18n";
-import type { DspConfig, NormalizationConfig, OutputFormat, SourceFormat } from "@/player/engineTypes";
+import type {
+  DeviceSampleFormat,
+  DspConfig,
+  ExclusiveCaps,
+  NormalizationConfig,
+  OutputFormat,
+  SourceFormat,
+} from "@/player/engineTypes";
 
 const number = (value: number, maxDigits: number) =>
   new Intl.NumberFormat(i18n.language, { maximumFractionDigits: maxDigits }).format(value);
@@ -18,13 +25,52 @@ export function formatSourceFormat(format: SourceFormat): string {
   return parts.join(" · ");
 }
 
-/** "Sound Blaster X5 · 192 kHz · exclusive" */
+/** "Sound Blaster X5 · 192 kHz · 32 Bit · exclusive" */
 export function formatOutputFormat(format: OutputFormat): string {
   return [
     format.deviceName,
     formatSampleRate(format.sampleRate),
+    format.sampleFormat ? formatDeviceFormat(format.sampleFormat) : null,
     i18n.t(format.exclusive ? "output.exclusive" : "output.shared"),
-  ].join(" · ");
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/** Valid bits of a device format; floats count their container. */
+export function deviceFormatBits(format: DeviceSampleFormat): number {
+  switch (format) {
+    case "int16":
+      return 16;
+    case "int24":
+    case "int24In32":
+      return 24;
+    case "int32":
+    case "float32":
+      return 32;
+    case "float64":
+      return 64;
+    default:
+      return 8;
+  }
+}
+
+/** "24 Bit", "32 Bit", "32 Bit Float". */
+export function formatDeviceFormat(format: DeviceSampleFormat): string {
+  const bits = `${deviceFormatBits(format)} Bit`;
+  return format === "float32" || format === "float64" ? `${bits} Float` : bits;
+}
+
+/** "Exklusiv bis 32 Bit / 384 kHz" from a device's probed capabilities (null if unknown). */
+export function exclusiveSummary(caps: ExclusiveCaps | null | undefined): string | null {
+  if (!caps || caps.modes.length === 0) return null;
+  const maxRate = Math.max(...caps.modes.map((m) => m.sampleRate));
+  const intBits = caps.modes
+    .flatMap((m) => m.formats)
+    .filter((f) => f.startsWith("int"))
+    .map(deviceFormatBits);
+  const bits = intBits.length > 0 ? Math.max(...intBits) : 32;
+  return i18n.t("output.exclusiveUpTo", { bits, rate: formatSampleRate(maxRate) });
 }
 
 export type ProcessingStage = "equalizer" | "bass" | "loudness" | "limiter" | "stereo" | "normalization";
@@ -42,7 +88,7 @@ export function activeProcessing(dsp: DspConfig, normalization: NormalizationCon
   return stages;
 }
 
-export type BitPerfectBlocker = ProcessingStage | "shared" | "volume" | "resampling";
+export type BitPerfectBlocker = ProcessingStage | "shared" | "volume" | "resampling" | "deviceFormat";
 
 /**
  * Likely reasons why the output is not bit-perfect, from the settings. The engine decides the actual
@@ -59,6 +105,14 @@ export function bitPerfectBlockers(input: {
   const blockers: BitPerfectBlocker[] = [...activeProcessing(input.dsp, input.normalization)];
   if (!input.output.exclusive) blockers.push("shared");
   if (input.muted || input.volume < 0.999) blockers.push("volume");
-  if (input.source && input.source.sampleRate !== input.output.sampleRate) blockers.push("resampling");
+  const sourceRate = input.output.sourceRate ?? input.source?.sampleRate;
+  if (input.output.resampled || (sourceRate && sourceRate !== input.output.sampleRate)) {
+    blockers.push("resampling");
+  }
+  const bits = input.source?.bitsPerSample;
+  const device = input.output.sampleFormat;
+  if (input.output.exclusive && bits && device && deviceFormatBits(device) < bits) {
+    blockers.push("deviceFormat");
+  }
   return blockers;
 }

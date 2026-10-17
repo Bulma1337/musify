@@ -17,10 +17,10 @@ use crossbeam_channel::{Receiver, Sender};
 use rtrb::Consumer;
 
 use crate::api::{
-    BassEnhancerConfig, DeviceInfo, DspConfig, EngineCommand, EngineEvent, EqConfig, EqResponse,
-    OutputConfig, SpectrumFrame,
+    BassEnhancerConfig, DeviceInfo, DeviceSampleFormat, DspConfig, EngineCommand, EngineEvent,
+    EqConfig, EqResponse, OutputConfig, SpectrumFrame,
 };
-use crate::output::{OutputError, OutputEvent, OutputRequest, OutputStream};
+use crate::output::{OutputError, OutputEvent, OutputRequest, OutputStream, SourceSpec};
 use crate::source::CacheConfig;
 
 /// Creates output streams. The default talks to real devices; tests use a null backend.
@@ -31,9 +31,19 @@ pub trait OutputFactory: Send {
         &mut self,
         config: &OutputConfig,
         request: OutputRequest,
-        ring: Consumer<f32>,
+        ring: Consumer<f64>,
         events: Sender<OutputEvent>,
     ) -> Result<Box<dyn OutputStream>, OutputError>;
+    /// Rate and sample format an exclusive stream for `source` would get on the configured device
+    /// (from its capabilities), so the engine knows whether the next track needs a reopen.
+    /// `None` = unknown; the engine then compares native rates.
+    fn exclusive_format_for(
+        &mut self,
+        _config: &OutputConfig,
+        _source: &SourceSpec,
+    ) -> Option<(u32, DeviceSampleFormat)> {
+        None
+    }
 }
 
 /// Real audio devices (cpal shared mode, WASAPI exclusive on Windows).
@@ -48,10 +58,18 @@ impl OutputFactory for DeviceOutput {
         &mut self,
         config: &OutputConfig,
         request: OutputRequest,
-        ring: Consumer<f32>,
+        ring: Consumer<f64>,
         events: Sender<OutputEvent>,
     ) -> Result<Box<dyn OutputStream>, OutputError> {
         crate::output::open(config, request, ring, events)
+    }
+
+    fn exclusive_format_for(
+        &mut self,
+        config: &OutputConfig,
+        source: &SourceSpec,
+    ) -> Option<(u32, DeviceSampleFormat)> {
+        crate::output::exclusive_format_for(config, source)
     }
 }
 

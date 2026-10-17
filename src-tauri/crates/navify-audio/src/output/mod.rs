@@ -1,14 +1,21 @@
 //! Audio output: cpal (shared mode, all platforms) and WASAPI exclusive mode (Windows, bit-perfect).
 //!
 //! Contract:
-//! - The output pulls interleaved stereo f32 from an `rtrb` ring filled by the engine's DSP thread.
-//!   The real-time callback only copies (no allocation, no locks); on underrun it plays silence and
-//!   counts an xrun.
+//! - The output pulls interleaved stereo **f64** from an `rtrb` ring filled by the engine's DSP
+//!   thread. f64 carries every integer source up to 32 bits exactly (f32 would round 32-bit
+//!   samples to 24 significant bits); the conversion to the device format happens in the callback
+//!   (`convert`, a few arithmetic operations per sample). The real-time callback only copies and
+//!   converts (no allocation, no locks); on underrun it plays silence and counts an xrun.
 //! - `pause`/`play` apply a ~5 ms ramp in the callback so stopping is click-free and instant.
 //! - Devices with more than two channels receive stereo on the first two channels, silence elsewhere.
-//! - Exclusive mode opens the device at the requested native rate with the best integer/float format
-//!   it supports; f32 samples of ≤ 24-bit sources convert to the device format bit-exactly.
-//!   If exclusive fails (unsupported format, device busy), fall back to shared mode and report it.
+//! - Exclusive mode opens the device for a [`SourceSpec`]: at its native rate if the device accepts
+//!   it, otherwise at the best supported rate ([`negotiate`]); the sample format is the highest
+//!   integer resolution available (float for float sources). 24- and 32-bit integer sources and
+//!   32-bit float sources convert to a suitable device format bit-exactly. If exclusive mode can't
+//!   be opened at all (device busy, not allowed, no format), fall back to shared mode and report
+//!   it (`OutputEvent::Error` and `OutputFormat::exclusive_fallback`).
+//! - Shared mode always runs at the system mixer's rate and format (Windows: the format chosen in
+//!   the sound settings); the engine resamples to it.
 //! - Device loss / default-device changes are reported via `OutputEvent`; the engine reopens.
 //!
 //! Implementation notes:
@@ -24,18 +31,21 @@
 
 use crossbeam_channel::Sender;
 
-use crate::api::{DeviceInfo, OutputConfig, OutputFormat};
+use crate::api::{DeviceInfo, DeviceSampleFormat, OutputConfig, OutputFormat};
 
 pub mod convert;
 mod cpal_out;
 mod devices;
 #[cfg(windows)]
 pub(crate) mod mmcss;
+pub mod negotiate;
 pub mod null;
 pub mod ramp;
 pub mod render;
 #[cfg(windows)]
 mod wasapi_exclusive;
+
+pub use negotiate::SourceSpec;
 
 #[derive(Debug, thiserror::Error)]
 pub enum OutputError {
@@ -60,10 +70,11 @@ pub enum OutputEvent {
     Error(String),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct OutputRequest {
-    /// For exclusive mode: open at this rate (the track's native rate). Ignored in shared mode.
-    pub exclusive_rate: Option<u32>,
+    /// Exclusive mode: the track to open the device for (its native rate is preferred, see
+    /// [`negotiate`]). Ignored in shared mode.
+    pub exclusive_source: Option<SourceSpec>,
     /// Target device buffer / latency.
     pub buffer_ms: u32,
 }
@@ -78,9 +89,16 @@ pub trait OutputStream: Send {
     fn xruns(&self) -> u64;
     /// Drops all audio queued in the ring (used when seeking while paused). Lock-free.
     fn flush(&mut self);
+    /// Frames that are still to be heard once the ring has been read empty (device buffers).
+    /// The engine waits this long before closing a stream at a track boundary.
+    fn latency_frames(&self) -> u32 {
+        0
+    }
 }
 
-/// Lists output devices (default first). Never panics; empty if there is no device.
+/// Lists output devices (default first), including their exclusive-mode capabilities (probed
+/// with format queries only, cached). Never panics; empty if there is no device. Can take a
+/// moment on first call: keep it off the UI thread.
 pub fn list_devices() -> Vec<DeviceInfo> {
     devices::list_devices()
 }
@@ -90,23 +108,50 @@ pub fn device_sample_rate(config: &OutputConfig) -> Result<u32, OutputError> {
     devices::device_sample_rate(config)
 }
 
-/// Opens the configured device. `ring` delivers interleaved stereo f32 at the stream's sample rate.
+/// Rate and sample format an exclusive stream for `source` would use on the configured device,
+/// from its (cached) capabilities. `None` if unknown (not Windows, not probed, no exclusive mode).
+pub fn exclusive_format_for(
+    config: &OutputConfig,
+    source: &SourceSpec,
+) -> Option<(u32, DeviceSampleFormat)> {
+    #[cfg(windows)]
+    {
+        let (device, _) = devices::resolve_device(config).ok()?;
+        let endpoint =
+            devices::device_id_string(&device).and_then(|id| devices::wasapi_endpoint_id(&id))?;
+        let caps = match wasapi_exclusive::cached_caps(&endpoint) {
+            Some(caps) => caps,
+            None => wasapi_exclusive::probe_exclusive_caps(vec![endpoint])
+                .pop()
+                .flatten()?,
+        };
+        negotiate::choose(&caps, source)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (config, source);
+        None
+    }
+}
+
+/// Opens the configured device. `ring` delivers interleaved stereo f64 at the stream's sample rate.
 ///
-/// Exclusive mode is attempted when `config.exclusive` and `request.exclusive_rate` are set. If it
-/// fails for any reason the device is opened in shared mode instead (`format().exclusive == false`)
-/// and an `OutputEvent::Error` with the reason is sent.
+/// Exclusive mode is attempted when `config.exclusive` and `request.exclusive_source` are set. If
+/// it fails for any reason the device is opened in shared mode instead (`format().exclusive ==
+/// false`, `exclusive_fallback` set) and an `OutputEvent::Error` with the reason is sent.
 pub fn open(
     config: &OutputConfig,
     request: OutputRequest,
-    ring: rtrb::Consumer<f32>,
+    ring: rtrb::Consumer<f64>,
     events: Sender<OutputEvent>,
 ) -> Result<Box<dyn OutputStream>, OutputError> {
     let (device, following_default) = devices::resolve_device(config)?;
     #[allow(unused_mut)]
     let mut ring = ring;
+    let mut fallback = None;
 
     if config.exclusive
-        && let Some(rate) = request.exclusive_rate
+        && let Some(source) = request.exclusive_source
     {
         #[cfg(windows)]
         {
@@ -116,7 +161,7 @@ pub fn open(
                 Some(endpoint) => match wasapi_exclusive::ExclusiveOutput::open(
                     endpoint,
                     devices::device_name(&device),
-                    rate,
+                    source,
                     following_default,
                     request,
                     ring,
@@ -135,16 +180,21 @@ pub fn open(
             let _ = events.try_send(OutputEvent::Error(
                 OutputError::ExclusiveUnavailable(reason.clone()).to_string(),
             ));
-            ring = recovered.ok_or(OutputError::ExclusiveUnavailable(reason))?;
+            ring = recovered.ok_or(OutputError::ExclusiveUnavailable(reason.clone()))?;
+            fallback = Some(reason);
         }
         #[cfg(not(windows))]
         {
-            let _ = rate;
-            let reason = OutputError::ExclusiveUnavailable("only supported on Windows".into());
-            let _ = events.try_send(OutputEvent::Error(reason.to_string()));
+            let _ = source;
+            let reason = "only supported on Windows".to_string();
+            let _ = events.try_send(OutputEvent::Error(
+                OutputError::ExclusiveUnavailable(reason.clone()).to_string(),
+            ));
+            fallback = Some(reason);
         }
     }
 
-    let stream = cpal_out::CpalOutput::open(&device, following_default, request, ring, events)?;
+    let mut stream = cpal_out::CpalOutput::open(&device, following_default, request, ring, events)?;
+    stream.format.exclusive_fallback = fallback;
     Ok(Box::new(stream))
 }

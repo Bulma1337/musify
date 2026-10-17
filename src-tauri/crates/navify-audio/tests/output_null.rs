@@ -27,7 +27,7 @@ mod output_null {
         let out = NullOutput::new(c, RATE, NullPacing::Unpaced);
         assert_eq!(out.format().sample_rate, RATE);
         assert_eq!(out.format().channels, 2);
-        let pushed: Vec<f32> = (0..50_000).map(|i| (i as f32 * 1.0e-5).sin()).collect();
+        let pushed: Vec<f64> = (0..50_000).map(|i| (i as f64 * 1.0e-5).sin()).collect();
         let mut rest = &pushed[..];
         while !rest.is_empty() {
             let n = p.slots().min(rest.len()) & !1;
@@ -89,8 +89,8 @@ mod output_null {
     fn real_time_pacing_pads_underruns_with_silence() {
         let (mut p, c) = RingBuffer::new(1 << 14);
         for i in 0..200 {
-            p.push(i as f32).unwrap();
-            p.push(-(i as f32)).unwrap();
+            p.push(i as f64).unwrap();
+            p.push(-(i as f64)).unwrap();
         }
         let out: Box<dyn OutputStream> = {
             let null = NullOutput::new(c, RATE, NullPacing::RealTime);

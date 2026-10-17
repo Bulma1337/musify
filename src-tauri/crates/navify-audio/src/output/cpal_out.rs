@@ -124,7 +124,7 @@ pub(crate) struct CpalOutput {
     _stream: cpal::Stream,
     _watcher: Option<DefaultWatcher>,
     control: Arc<Control>,
-    format: OutputFormat,
+    pub(crate) format: OutputFormat,
 }
 
 impl CpalOutput {
@@ -132,7 +132,7 @@ impl CpalOutput {
         device: &cpal::Device,
         following_default: bool,
         _request: OutputRequest,
-        mut ring: Consumer<f32>,
+        mut ring: Consumer<f64>,
         events: Sender<OutputEvent>,
     ) -> Result<Self, OutputError> {
         let (config, sample_format, encoding) = choose_config(device)?;
@@ -140,7 +140,7 @@ impl CpalOutput {
         let control = Control::new();
         let mut renderer = Renderer::new(channels, config.sample_rate, control.clone());
         let mut encoder = Encoder::new(encoding);
-        let mut scratch = vec![0.0f32; CHUNK_FRAMES * channels as usize];
+        let mut scratch = vec![0.0f64; CHUNK_FRAMES * channels as usize];
         let chunk_bytes = CHUNK_FRAMES * channels as usize * encoding.bytes_per_sample();
         let bytes_per_sample = encoding.bytes_per_sample();
 
@@ -152,12 +152,8 @@ impl CpalOutput {
                 mmcss_done = true;
                 super::mmcss::register_current_thread();
             }
-            if encoding == SampleEncoding::F32
-                && let Some(out) = data.as_slice_mut::<f32>()
-            {
-                renderer.render(&mut ring, out);
-                return;
-            }
+            // f64 from the ring → device format (f32 for the usual float mix format), one bounded
+            // chunk at a time.
             for chunk in data.bytes_mut().chunks_mut(chunk_bytes) {
                 let n = chunk.len() / bytes_per_sample;
                 let src = &mut scratch[..n];
@@ -207,6 +203,10 @@ impl CpalOutput {
             channels,
             exclusive: false,
             bit_perfect: false,
+            sample_format: Some(encoding.device_format()),
+            source_rate: None,
+            resampled: false,
+            exclusive_fallback: None,
         };
         log::info!(
             "audio output: shared mode, {} Hz, {} ch, {:?} on {}",

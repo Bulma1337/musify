@@ -97,9 +97,14 @@ pub fn audio_spectrum_subscribe(
         .expect("spawn audio spectrum forwarder");
 }
 
+/// Output devices with their exclusive-mode capabilities. Probing the formats takes a moment the
+/// first time, so it runs on the blocking pool, not on the main thread.
 #[tauri::command]
-pub fn audio_devices(state: tauri::State<'_, AudioState>) -> Vec<DeviceInfo> {
-    state.engine.list_devices()
+pub async fn audio_devices(state: tauri::State<'_, AudioState>) -> Result<Vec<DeviceInfo>, String> {
+    let engine = state.engine.clone();
+    tauri::async_runtime::spawn_blocking(move || engine.list_devices())
+        .await
+        .map_err(|e| e.to_string())
 }
 
 /// Response of the EQ plus, when `bass` is given, the bass enhancer's low shelf (what the chain
