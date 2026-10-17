@@ -1,0 +1,104 @@
+Musify License
+Version 1.0, October 2026
+
+Copyright (c) 2026 Bulma1337
+https://github.com/Bulma1337/musify
+
+Musify is free to use, privately and commercially. It is not open source: you
+may not distribute modified versions of it, and you may not sell it.
+
+"The Software" means Musify: the source code in this repository, the programs,
+installers and updates built from it, and the Musify name and logo. "The
+Licensor" is Bulma1337 (https://github.com/Bulma1337), the owner of the Musify
+project. Third-party components included in the Software are not covered by
+this license; see section 4.
+
+
+1. What you may do
+
+   a) Use. You may install and use the Software free of charge on any number of
+      devices and for any purpose, private or commercial, including within a
+      company or other organization.
+
+   b) Build. You may read the source code and build the Software from the
+      unmodified source code.
+
+   c) Share. You may pass on unmodified copies of the Software to others, free
+      of charge, as long as this license comes with them and no copyright,
+      license or brand notice is removed or changed. Pointing people to the
+      official releases (https://github.com/Bulma1337/musify/releases) is
+      preferred.
+
+   d) Contribute. You may fork the official repository and change the source
+      code in your fork for the sole purpose of proposing those changes for
+      inclusion in the official Software, for example as a pull request.
+
+
+2. What you may not do
+
+   Unless the Licensor has given you permission in writing:
+
+   a) No modified versions. You may not distribute, publish or otherwise make
+      available a modified version of the Software, a work based on it, or any
+      part of its source code as part of another product. A fork that exists
+      only for the purpose described in section 1 d) is not a distribution
+      under this clause.
+
+   b) No selling. You may not sell, resell, rent, lease or sublicense the
+      Software, charge for copies of it or for access to it, or include it in a
+      product, bundle or service that is sold. You may charge for your own
+      work (for example, setting up a computer) as long as the Software itself
+      is provided free of charge and under this license.
+
+   c) No misrepresentation. You may not present the Software, or a part of it,
+      as your own work, or use the Musify name or logo for anything other than
+      referring to the official Software.
+
+
+3. Contributions
+
+   If you submit a contribution to the official repository (code,
+   translations, documentation or other material), you confirm that you have
+   the right to do so, and you grant the Licensor a perpetual, worldwide,
+   non-exclusive, royalty-free and irrevocable license to use, change and
+   distribute your contribution as part of the Software, under this license or
+   under any other license terms the Licensor chooses.
+
+
+4. Third-party components
+
+   The Software includes components from other authors, such as audio
+   decoders, the application framework, libraries and fonts. Each of them is
+   provided under its own license (for example MIT, Apache-2.0, BSD, ISC,
+   Zlib, MPL-2.0 or the SIL Open Font License). Those licenses apply to those
+   components instead of this license, and nothing in this license limits the
+   rights they give you. The source code of the MPL-2.0 components is
+   available from their original projects.
+
+
+5. Ending of rights
+
+   If you break the terms of this license, your rights under it end
+   automatically. If you stop within 30 days after the Licensor has notified
+   you, your rights are restored. This applies only the first time you are
+   notified.
+
+
+6. No warranty
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. TO THE EXTENT
+   PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE LICENSOR OR THE
+   CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+   AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+   CONNECTION WITH THE SOFTWARE OR THE USE OF OR OTHER DEALINGS IN THE
+   SOFTWARE. This does not limit liability that cannot be limited under
+   applicable law, such as liability for intent or gross negligence.
+
+
+7. Anything else
+
+   For anything this license does not allow, such as distributing a modified
+   version or including the Software in a paid product, ask the Licensor by
+   opening an issue at https://github.com/Bulma1337/musify/issues.
