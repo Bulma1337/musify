@@ -23,27 +23,14 @@ export const yToDb = (y: number, height: number): number =>
   clamp(DB_RANGE - (height > 0 ? y / height : 0) * 2 * DB_RANGE, -DB_RANGE, DB_RANGE);
 
 /** SVG path through the response points, `M x y L x y …`. */
-export function responsePath(
-  frequencies: readonly number[],
-  magnitudeDb: readonly number[],
-  w: number,
-  h: number,
-) {
+export function responsePath(frequencies: readonly number[], magnitudeDb: readonly number[], w: number, h: number) {
   return frequencies
-    .map(
-      (f, i) =>
-        `${i === 0 ? "M" : "L"}${freqToX(f, w).toFixed(1)} ${dbToY(magnitudeDb[i] ?? 0, h).toFixed(1)}`,
-    )
+    .map((f, i) => `${i === 0 ? "M" : "L"}${freqToX(f, w).toFixed(1)} ${dbToY(magnitudeDb[i] ?? 0, h).toFixed(1)}`)
     .join(" ");
 }
 
 /** Closed shape between the response and the 0 dB line (for the soft fill). */
-export function responseArea(
-  frequencies: readonly number[],
-  magnitudeDb: readonly number[],
-  w: number,
-  h: number,
-) {
+export function responseArea(frequencies: readonly number[], magnitudeDb: readonly number[], w: number, h: number) {
   if (frequencies.length === 0) return "";
   const zero = dbToY(0, h).toFixed(1);
   const first = freqToX(frequencies[0] ?? F_MIN, w).toFixed(1);
@@ -52,10 +39,7 @@ export function responseArea(
 }
 
 const number = (value: number, minDigits: number, maxDigits: number) =>
-  new Intl.NumberFormat(i18n.language, {
-    minimumFractionDigits: minDigits,
-    maximumFractionDigits: maxDigits,
-  }).format(value);
+  new Intl.NumberFormat(i18n.language, { minimumFractionDigits: minDigits, maximumFractionDigits: maxDigits }).format(value);
 
 /** "20", "500", "1k", "1.25k" (locale decimal separator) */
 export function formatFrequencyShort(freqHz: number): string {
