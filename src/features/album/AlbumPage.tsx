@@ -5,6 +5,7 @@ import { Ellipsis, Heart, ListEnd, ListStart, Mic2, Shuffle } from "lucide-react
 import { describeError } from "@/api/errors";
 import { ProviderError, type AlbumDetail } from "@/api/provider";
 import { useAlbum, useArtist, useSetStarred } from "@/api/queries";
+import { useIsOffline } from "@/api/session";
 import { Cover } from "@/components/media/Cover";
 import { MediaCard } from "@/components/media/MediaCard";
 import { PageHeader } from "@/components/media/PageHeader";
@@ -14,6 +15,8 @@ import { menuContent, menuItem } from "@/components/media/TrackMenu";
 import { IconButton } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { toast, toastError } from "@/components/ui/toast";
+import { DownloadButton } from "@/features/downloads/DownloadButton";
+import { albumSpec } from "@/features/downloads/specs";
 import { formatLongDuration } from "@/lib/format";
 import { playOrToggle, useIsContextPlaying } from "@/player/actions";
 import { isLossless, qualityLabel } from "@/player/quality";
@@ -52,6 +55,7 @@ function AlbumView({ album }: { album: AlbumDetail }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const setStarred = useSetStarred();
+  const offline = useIsOffline();
   const playing = useIsContextPlaying("album", album.id);
   const primaryArtist = album.artists[0];
   const artist = useArtist(primaryArtist?.id);
@@ -131,10 +135,12 @@ function AlbumView({ album }: { album: AlbumDetail }) {
         label={album.starred ? t("album.unsave") : t("album.save")}
         size={40}
         active={album.starred}
+        disabled={offline}
         onClick={toggleSaved}
       >
         <Heart size={28} className={album.starred ? "fill-current" : undefined} />
       </IconButton>
+      <DownloadButton spec={albumSpec(album)} />
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
           <IconButton label={t("album.more")} size={40}>

@@ -1,0 +1,88 @@
+{
+  "downloads": {
+    "title": "Downloads",
+    "unavailable": "Downloads gibt es nur in der Desktop-App.",
+    "filterChip": "Heruntergeladen",
+    "toggle": {
+      "download": "Herunterladen",
+      "downloading": "Wird heruntergeladen, {{percent}} %. Klicken zum Abbrechen.",
+      "downloaded": "Heruntergeladen. Klicken, um den Download zu entfernen.",
+      "failed": "Einige Titel konnten nicht geladen werden. Klicken für einen neuen Versuch.",
+      "needsConnection": "Zum Herunterladen ist eine Verbindung zum Server nötig."
+    },
+    "started": "Download gestartet",
+    "cancelled": "Download abgebrochen",
+    "removed": "Download entfernt",
+    "error": "Der Download konnte nicht geändert werden: {{message}}",
+    "menu": {
+      "download": "Herunterladen",
+      "remove": "Download entfernen",
+      "started_one": "{{count}} Titel wird heruntergeladen",
+      "started_other": "{{count}} Titel werden heruntergeladen",
+      "removed_one": "{{count}} Download entfernt",
+      "removed_other": "{{count}} Downloads entfernt",
+      "kept": "Teil eines heruntergeladenen Albums, einer Playlist oder deiner Favoriten. Entferne diesen Download, um den Titel zu löschen."
+    },
+    "indicator": {
+      "done": "Heruntergeladen",
+      "pending": "Wartet auf den Download"
+    },
+    "page": {
+      "emptyTitle": "Noch nichts heruntergeladen",
+      "emptyHint": "Mit dem Download-Knopf bei Alben, Playlists und deinen Favoriten oder im Titelmenü hörst du Musik auch ohne Verbindung.",
+      "active": "In Arbeit",
+      "failed": "Fehlgeschlagen",
+      "collections": "Alben, Playlists und Favoriten",
+      "tracks": "Heruntergeladene Titel",
+      "summary_one": "{{count}} Titel • {{size}}",
+      "summary_other": "{{count}} Titel • {{size}}",
+      "collectionProgress": "{{done}} von {{total}} Titeln",
+      "favorites": "Favoriten",
+      "kindAlbum": "Album",
+      "kindPlaylist": "Playlist",
+      "kindFavorites": "Sammlung"
+    },
+    "state": {
+      "queued": "Wartet",
+      "downloading": "{{percent}} %",
+      "failed": "Fehlgeschlagen"
+    },
+    "retry": "Erneut versuchen",
+    "retryAll": "Alle erneut versuchen",
+    "cancel": "Abbrechen",
+    "remove": "Entfernen",
+    "storage": {
+      "title": "Speicher",
+      "folder": "Download-Ordner",
+      "change": "Ordner ändern",
+      "open": "Ordner öffnen",
+      "moving": "Dateien werden verschoben … {{moved}} von {{total}}",
+      "moved": "Download-Ordner geändert",
+      "moveBusy": "Warte, bis die laufenden Downloads fertig sind.",
+      "moveFailed": "Die Downloads konnten nicht verschoben werden: {{message}}",
+      "downloads": "Heruntergeladene Musik",
+      "downloadsDetail_one": "{{count}} Titel",
+      "downloadsDetail_other": "{{count}} Titel",
+      "cache": "Streaming-Cache",
+      "cacheHint": "Zuletzt gespielte Titel bleiben gespeichert, damit sie schneller starten und auch ohne Server erneut laufen.",
+      "cacheLimit": "Maximale Cache-Größe",
+      "clearCache": "Cache leeren",
+      "cacheCleared": "Cache geleert",
+      "removeAll": "Alle Downloads entfernen",
+      "removeAllTitle": "Alle Downloads entfernen?",
+      "removeAllBody": "Die gesamte heruntergeladene Musik wird von diesem Computer gelöscht. Deine Bibliothek auf dem Server bleibt unverändert.",
+      "removeAllDone": "Alle Downloads entfernt",
+      "cancel": "Abbrechen",
+      "unavailable": "Die Speichereinstellungen gibt es nur in der Desktop-App.",
+      "gigabytes": "{{count}} GB"
+    },
+    "offline": {
+      "banner": "Du bist offline. Es ist nur heruntergeladene Musik verfügbar.",
+      "reconnect": "Erneut verbinden",
+      "reconnecting": "Verbindung wird aufgebaut …",
+      "unavailable": "Offline nicht verfügbar",
+      "emptyTitle": "Offline gibt es nichts zu hören",
+      "emptyHint": "Lade Alben, Playlists oder deine Favoriten herunter, solange du verbunden bist, um sie hier zu hören."
+    }
+  }
+}

@@ -41,6 +41,11 @@ export const router = createHashRouter([
         lazy: () => import("@/features/genre/GenrePage").then((m) => ({ Component: m.GenrePage })),
       },
       {
+        path: "downloads",
+        lazy: () =>
+          import("@/features/downloads/DownloadsPage").then((m) => ({ Component: m.DownloadsPage })),
+      },
+      {
         path: "albums/:type",
         lazy: () => import("@/features/browse/AlbumGridPage").then((m) => ({ Component: m.AlbumGridPage })),
       },

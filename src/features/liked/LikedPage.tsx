@@ -5,6 +5,8 @@ import { useStarred } from "@/api/queries";
 import { useProvider } from "@/api/session";
 import { describeError } from "@/api/errors";
 import { PageHeader } from "@/components/media/PageHeader";
+import { DownloadButton } from "@/features/downloads/DownloadButton";
+import { favoritesSpec } from "@/features/downloads/specs";
 import { TrackList } from "@/components/media/TrackList";
 import { Spinner } from "@/components/ui/Spinner";
 import { formatRelativeDate } from "@/lib/format";
@@ -54,6 +56,7 @@ export function LikedPage() {
         }
         playing={playing}
         onPlay={() => playOrToggle(context, loaders.liked(provider))}
+        actions={<DownloadButton spec={favoritesSpec(tracks, t("liked.title"), provider.server.username)} />}
       />
       <div className="px-6 pb-8">
         {tracks.length === 0 ? (
