@@ -110,7 +110,9 @@ pub fn run() {
             downloads::downloads_cancel,
             downloads::downloads_remove_all,
             downloads::downloads_storage_info,
-            downloads::downloads_set_dir
+            downloads::downloads_set_dir,
+            downloads::downloads_lyrics_read,
+            downloads::downloads_lyrics_write
         ])
         .run(tauri::generate_context!())
         .expect("error while running Musify");

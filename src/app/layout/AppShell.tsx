@@ -3,6 +3,7 @@ import { useSettings } from "@/settings/store";
 import { startMediaSession } from "@/player/mediaSession";
 import { startSystemIntegration } from "@/app/systemIntegration";
 import { startCloseHandling } from "@/app/windowClose";
+import { startLyricsSidecars } from "@/features/downloads/lyricsSidecar";
 import { resumeAtStartup, startQueueSync } from "@/player/resume";
 import { NARROW_WINDOW_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { FullscreenPlayer } from "./FullscreenPlayer";
@@ -125,6 +126,7 @@ export function AppShell() {
   useEffect(() => startMediaSession(), []);
   useEffect(() => startCloseHandling(), []);
   useEffect(() => startSystemIntegration(), []);
+  useEffect(() => startLyricsSidecars(), []);
   useEffect(() => {
     void normalizeWindowAtStartup();
   }, []);

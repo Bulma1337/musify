@@ -1,4 +1,4 @@
-import { parseLrc, parseLrcDocument } from "./lrc";
+import { parseLrc, parseLrcDocument, toLrc } from "./lrc";
 
 describe("parseLrc", () => {
   it("parses centisecond, millisecond and whole-second stamps", () => {
@@ -99,5 +99,23 @@ describe("parseLrc", () => {
     expect(parseLrc("")).toBeNull();
     expect(parseLrc("[ar:Nobody]\n\n")).toBeNull();
     expect(parseLrc("[00:01.00]\n[00:02.00]")).toBeNull();
+  });
+});
+
+describe("toLrc", () => {
+  it("writes synced lyrics that parse back to the same lines and times", () => {
+    const lyrics = parseLrc("[00:01.50]One\n[01:02.25]Two\n[offset:+100]", "lrclib")!;
+    const back = parseLrc(toLrc(lyrics), "local")!;
+    expect(back.synced).toBe(true);
+    expect(back.offsetMs).toBe(0);
+    expect(back.lines.map((l) => [l.startMs! + back.offsetMs, l.text])).toEqual(
+      lyrics.lines.map((l) => [l.startMs! + lyrics.offsetMs, l.text]),
+    );
+  });
+
+  it("writes unsynced lyrics as plain lines", () => {
+    const lyrics = parseLrc("First line\nSecond line", "server")!;
+    expect(toLrc(lyrics)).toBe("First line\nSecond line\n");
+    expect(parseLrc(toLrc(lyrics), "local")?.synced).toBe(false);
   });
 });

@@ -276,3 +276,52 @@ pub fn serve_cover(app: &AppHandle, request: Request<Vec<u8>>, responder: UriSch
 
 #[cfg(test)]
 mod tests;
+
+/// The `.lrc` next to a downloaded file. Only files inside the downloads folder qualify, so the
+/// webview cannot read or write anywhere else through these commands.
+fn lyrics_sidecar(manager: &Manager, audio_path: &str) -> Result<PathBuf, String> {
+    let dir = manager.dir().canonicalize().map_err(|e| e.to_string())?;
+    let audio = PathBuf::from(audio_path)
+        .canonicalize()
+        .map_err(|e| e.to_string())?;
+    if !audio.starts_with(&dir) {
+        return Err("not a downloaded file".into());
+    }
+    Ok(audio.with_extension("lrc"))
+}
+
+/// Lyrics saved next to a downloaded track (`<track>.lrc`), if any.
+#[tauri::command]
+pub async fn downloads_lyrics_read(
+    state: tauri::State<'_, DownloadsState>,
+    audio_path: String,
+) -> Result<Option<String>, String> {
+    blocking(&state, move |m| {
+        let path = lyrics_sidecar(m, &audio_path)?;
+        match std::fs::read(&path) {
+            Ok(bytes) => Ok(Some(String::from_utf8_lossy(&bytes).into_owned())),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+            Err(e) => Err(e.to_string()),
+        }
+    })
+    .await
+}
+
+/// Saves lyrics next to a downloaded track unless a `.lrc` is already there (never overwrites the
+/// user's own files).
+#[tauri::command]
+pub async fn downloads_lyrics_write(
+    state: tauri::State<'_, DownloadsState>,
+    audio_path: String,
+    text: String,
+) -> Result<bool, String> {
+    blocking(&state, move |m| {
+        let path = lyrics_sidecar(m, &audio_path)?;
+        if path.exists() {
+            return Ok(false);
+        }
+        std::fs::write(&path, text.as_bytes()).map_err(|e| e.to_string())?;
+        Ok(true)
+    })
+    .await
+}
