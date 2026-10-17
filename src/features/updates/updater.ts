@@ -32,8 +32,11 @@ export const useUpdates = create<UpdateState>(() => ({
 let pending: Update | null = null;
 let busy = false;
 
-/** Checks for a new version and downloads it in the background. */
-export async function checkForUpdate(): Promise<void> {
+/**
+ * Checks for a new version and downloads it in the background. Background checks stay quiet when
+ * something fails (offline, no release published yet); a check the user started reports it.
+ */
+export async function checkForUpdate({ manual = false }: { manual?: boolean } = {}): Promise<void> {
   if (!inTauri || busy) return;
   const state = useUpdates.getState().status;
   if (state === "ready" || state === "installing") return;
@@ -64,7 +67,7 @@ export async function checkForUpdate(): Promise<void> {
     pending = update;
     useUpdates.setState({ status: "ready", progress: 1 });
   } catch (error) {
-    useUpdates.setState({ status: "error", error: String(error) });
+    useUpdates.setState(manual ? { status: "error", error: String(error) } : { status: "idle" });
   } finally {
     busy = false;
   }

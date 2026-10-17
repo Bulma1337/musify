@@ -62,7 +62,7 @@ export function AboutSection() {
             disabled={
               !inTauri || status === "checking" || status === "downloading" || status === "installing"
             }
-            onClick={() => void checkForUpdate()}
+            onClick={() => void checkForUpdate({ manual: true })}
           >
             {t("updates.check")}
           </Button>
