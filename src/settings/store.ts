@@ -39,6 +39,10 @@ export const DEFAULT_DSP: DspConfig = {
 };
 
 interface SettingsState {
+  /** "balanced" = fewer artist repeats, "random" = plain shuffle. */
+  shuffleAlgorithm: "balanced" | "random";
+  /** Continue with similar tracks when the queue ends. */
+  autoplay: boolean;
   streamingQuality: QualityPreset;
   downloadQuality: QualityPreset;
   normalization: NormalizationConfig;
@@ -64,6 +68,8 @@ const storage: StateStorage = {
 export const useSettings = create<SettingsState>()(
   persist(
     (set) => ({
+      shuffleAlgorithm: "balanced",
+      autoplay: true,
       streamingQuality: "original",
       downloadQuality: "original",
       normalization: { mode: "off", target: "normal", preventClipping: true, analyzeUntagged: true },

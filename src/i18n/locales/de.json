@@ -4,7 +4,10 @@
     "tagline": "Deine Musik. Dein Server.",
     "connecting": "Verbinde mit {{server}} …",
     "retry": "Erneut versuchen",
-    "signOut": "Anderen Server verwenden"
+    "signOut": "Anderen Server verwenden",
+    "crashTitle": "Da ist etwas schiefgelaufen",
+    "crashText": "Diese Ansicht konnte nicht angezeigt werden. Nach dem Neuladen geht es normalerweise weiter, deine Warteschlange bleibt erhalten.",
+    "reload": "Neu laden"
   },
   "common": {
     "showPassword": "Passwort anzeigen",
@@ -77,7 +80,9 @@
     "miniplayer": "Miniplayer öffnen",
     "fullscreen": "Vollbild",
     "playbackError": "Wiedergabefehler: {{message}}",
-    "deviceLost": "Das Ausgabegerät wurde getrennt. Die Wiedergabe läuft über das Standardgerät weiter."
+    "deviceLost": "Das Ausgabegerät wurde getrennt. Die Wiedergabe läuft über das Standardgerät weiter.",
+    "shuffleSmart": "Shuffle+ aktivieren (mit Empfehlungen)",
+    "recommended": "Empfehlung"
   },
   "track": {
     "title": "Titel",
@@ -85,7 +90,9 @@
     "added": "Hinzugefügt am",
     "duration": "Dauer",
     "explicit": "Explizite Inhalte",
-    "disc": "CD {{n}}"
+    "disc": "CD {{n}}",
+    "dragCount_one": "{{count}} Titel",
+    "dragCount_other": "{{count}} Titel"
   },
   "menu": {
     "addToQueue": "Zur Warteschlange hinzufügen",
@@ -128,7 +135,12 @@
     "nextInQueue": "Von dir eingereiht",
     "nextFrom": "Als Nächstes aus: {{name}}",
     "empty": "Füge Songs hinzu, um deine Warteschlange zu füllen.",
-    "historyEmpty": "Du hast in dieser Sitzung noch nichts gehört."
+    "historyEmpty": "Du hast in dieser Sitzung noch nichts gehört.",
+    "remove": "Aus der Warteschlange entfernen",
+    "clear": "Leeren",
+    "more_one": "und {{count}} weiterer Titel",
+    "more_other": "und {{count}} weitere Titel",
+    "dropHint": "Ziehe Titel hierher, um sie als Nächstes zu hören."
   },
   "devices": {
     "title": "Ausgabe",
