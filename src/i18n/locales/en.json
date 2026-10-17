@@ -7,7 +7,10 @@
     "signOut": "Use a different server",
     "crashTitle": "Something went wrong",
     "crashText": "This view could not be shown. Reloading usually fixes it; your queue is kept.",
-    "reload": "Reload"
+    "reload": "Reload",
+    "notFoundTitle": "Page not found",
+    "notFoundText": "This address does not exist in Musify.",
+    "toHome": "Go to home"
   },
   "common": {
     "showPassword": "Show password",

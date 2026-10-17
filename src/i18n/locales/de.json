@@ -7,7 +7,10 @@
     "signOut": "Anderen Server verwenden",
     "crashTitle": "Da ist etwas schiefgelaufen",
     "crashText": "Diese Ansicht konnte nicht angezeigt werden. Nach dem Neuladen geht es normalerweise weiter, deine Warteschlange bleibt erhalten.",
-    "reload": "Neu laden"
+    "reload": "Neu laden",
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundText": "Diese Adresse gibt es in Musify nicht.",
+    "toHome": "Zur Startseite"
   },
   "common": {
     "showPassword": "Passwort anzeigen",
