@@ -3,6 +3,7 @@ use tauri::Manager;
 mod audio;
 mod db;
 mod downloads;
+mod media;
 mod migrate;
 mod secrets;
 mod stats;
@@ -75,6 +76,7 @@ pub fn run() {
             app.manage(audio::AudioState::new(app.handle()));
             app.manage(db::DbState(db::open_app_db(app.handle())));
             app.manage(downloads::DownloadsState::new(app.handle()));
+            app.manage(media::MediaState::start(app.handle()));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -88,6 +90,9 @@ pub fn run() {
             audio::audio_devices,
             audio::audio_eq_response,
             audio::audio_parse_autoeq,
+            media::media_track,
+            media::media_playback,
+            media::media_clear,
             stats::history_record,
             stats::stats_summary,
             stats::stats_tracks,
