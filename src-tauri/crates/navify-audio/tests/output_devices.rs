@@ -54,10 +54,10 @@ mod output_devices {
         let config = OutputConfig::default();
         let rate = output::device_sample_rate(&config).expect("default device");
         let (mut producer, consumer) = RingBuffer::new(1 << 16);
-        while producer.push(0.0f32).is_ok() {}
+        while producer.push(0.0f64).is_ok() {}
         let (tx, rx) = crossbeam_channel::unbounded();
         let request = OutputRequest {
-            exclusive_rate: None,
+            exclusive_source: None,
             buffer_ms: 50,
         };
         let stream = output::open(&config, request, consumer, tx).expect("open shared");

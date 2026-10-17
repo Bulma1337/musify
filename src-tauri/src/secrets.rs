@@ -13,7 +13,9 @@ fn entry(server_id: &str) -> Result<keyring::Entry, String> {
 
 #[tauri::command]
 pub fn secret_set(server_id: String, secret: String) -> Result<(), String> {
-    entry(&server_id)?.set_password(&secret).map_err(|e| e.to_string())
+    entry(&server_id)?
+        .set_password(&secret)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

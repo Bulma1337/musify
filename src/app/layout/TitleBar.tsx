@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { ChevronLeft, ChevronRight, Copy, House, Minus, Search, Square, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, House, Minus, Search, Settings, Square, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { inTauri } from "@/lib/platform";
 import { FOCUS_SEARCH_EVENT } from "./shortcuts";
@@ -151,6 +151,28 @@ function Navigation() {
   );
 }
 
+/** Opens the settings page. Requires the router. */
+function SettingsButton() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const active = useLocation().pathname === "/settings";
+  return (
+    <button
+      type="button"
+      aria-label={t("settings.title")}
+      title={t("settings.title")}
+      aria-current={active ? "page" : undefined}
+      onClick={() => navigate("/settings")}
+      className={cn(
+        "mx-1 grid size-8 shrink-0 place-items-center self-center rounded-full transition-colors hover:text-text",
+        active ? "text-text" : "text-subdued",
+      )}
+    >
+      <Settings size={19} />
+    </button>
+  );
+}
+
 /** Frameless window title bar. `minimal` hides navigation (onboarding, outside the router). */
 export function TitleBar({ minimal = false }: { minimal?: boolean }) {
   return (
@@ -163,6 +185,7 @@ export function TitleBar({ minimal = false }: { minimal?: boolean }) {
         <Navigation />
       )}
       <div data-tauri-drag-region className="flex h-full flex-1 items-start justify-end">
+        {!minimal && <SettingsButton />}
         <WindowControls />
       </div>
     </header>

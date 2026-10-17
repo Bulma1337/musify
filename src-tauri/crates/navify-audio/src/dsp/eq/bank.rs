@@ -38,7 +38,7 @@ impl Bank {
                 .filters
                 .iter()
                 .zip(specs)
-                .all(|(f, s)| f.filter.spec().kind == s.kind)
+                .all(|(f, s)| f.filter.spec().same_shape(s))
     }
 
     pub fn set_targets(&mut self, specs: &[FilterSpec], preamp_gain: f64) {

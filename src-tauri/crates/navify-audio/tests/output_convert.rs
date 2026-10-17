@@ -1,11 +1,11 @@
-//! f32 → device format conversion: exactness, clipping, dither policy.
+//! f64 → device format conversion: exactness, clipping, dither policy.
 
 mod output_convert {
     use navify_audio::output::convert::{
-        Encoder, SampleEncoding, Tpdf, f32_to_i16_dithered, f32_to_i24, f32_to_i32,
+        Encoder, SampleEncoding, Tpdf, f64_to_i16_dithered, f64_to_i24, f64_to_i32,
     };
 
-    const S24: f32 = 8_388_608.0;
+    const S24: f64 = 8_388_608.0;
 
     /// Every 24-bit value at a coprime stride plus the edges.
     fn i24_values() -> impl Iterator<Item = i32> {
@@ -24,16 +24,16 @@ mod output_convert {
     #[test]
     fn i24_and_i32_are_exact_for_24_bit_content() {
         for k in i24_values() {
-            let x = k as f32 / S24;
-            assert_eq!(f32_to_i24(x), k, "i24 {k}");
-            assert_eq!(f32_to_i32(x), k << 8, "i32 {k}");
+            let x = k as f64 / S24;
+            assert_eq!(f64_to_i24(x), k, "i24 {k}");
+            assert_eq!(f64_to_i32(x), k << 8, "i32 {k}");
         }
     }
 
     #[test]
     fn encoders_write_exact_24_bit_layouts() {
         let ks: Vec<i32> = i24_values().collect();
-        let src: Vec<f32> = ks.iter().map(|&k| k as f32 / S24).collect();
+        let src: Vec<f64> = ks.iter().map(|&k| k as f64 / S24).collect();
         let check = |enc: SampleEncoding, expect: &dyn Fn(i32) -> Vec<u8>| {
             let bps = enc.bytes_per_sample();
             let mut dst = vec![0u8; src.len() * bps];
@@ -55,7 +55,7 @@ mod output_convert {
             k.to_le_bytes()[..3].to_vec()
         });
         check(SampleEncoding::F32, &|k| {
-            (k as f32 / S24).to_ne_bytes().to_vec()
+            ((k as f64 / S24) as f32).to_ne_bytes().to_vec()
         });
     }
 
@@ -64,8 +64,8 @@ mod output_convert {
         let mut dither = Tpdf::default();
         let mut src = Vec::new();
         for k in i16::MIN..=i16::MAX {
-            let x = f32::from(k) / 32_768.0;
-            assert_eq!(f32_to_i16_dithered(x, &mut dither), k);
+            let x = f64::from(k) / 32_768.0;
+            assert_eq!(f64_to_i16_dithered(x, &mut dither), k);
             src.push(x);
         }
         let mut dst = vec![0u8; src.len() * 2];
@@ -77,21 +77,21 @@ mod output_convert {
 
     #[test]
     fn out_of_range_values_clip() {
-        assert_eq!(f32_to_i24(1.0), (1 << 23) - 1);
-        assert_eq!(f32_to_i24(1.5), (1 << 23) - 1);
-        assert_eq!(f32_to_i24(-1.0), -(1 << 23));
-        assert_eq!(f32_to_i24(-7.0), -(1 << 23));
-        assert_eq!(f32_to_i24(f32::INFINITY), (1 << 23) - 1);
-        assert_eq!(f32_to_i24(f32::NAN), 0);
-        assert_eq!(f32_to_i32(1.0), i32::MAX);
-        assert_eq!(f32_to_i32(-1.0), i32::MIN);
-        assert_eq!(f32_to_i32(-3.0), i32::MIN);
-        assert_eq!(f32_to_i32(f32::NAN), 0);
+        assert_eq!(f64_to_i24(1.0), (1 << 23) - 1);
+        assert_eq!(f64_to_i24(1.5), (1 << 23) - 1);
+        assert_eq!(f64_to_i24(-1.0), -(1 << 23));
+        assert_eq!(f64_to_i24(-7.0), -(1 << 23));
+        assert_eq!(f64_to_i24(f64::INFINITY), (1 << 23) - 1);
+        assert_eq!(f64_to_i24(f64::NAN), 0);
+        assert_eq!(f64_to_i32(1.0), i32::MAX);
+        assert_eq!(f64_to_i32(-1.0), i32::MIN);
+        assert_eq!(f64_to_i32(-3.0), i32::MIN);
+        assert_eq!(f64_to_i32(f64::NAN), 0);
         let mut d = Tpdf::default();
-        assert_eq!(f32_to_i16_dithered(1.0, &mut d), i16::MAX);
-        assert_eq!(f32_to_i16_dithered(2.0, &mut d), i16::MAX);
-        assert_eq!(f32_to_i16_dithered(-1.5, &mut d), i16::MIN);
-        assert_eq!(f32_to_i16_dithered(f32::NAN, &mut d), 0);
+        assert_eq!(f64_to_i16_dithered(1.0, &mut d), i16::MAX);
+        assert_eq!(f64_to_i16_dithered(2.0, &mut d), i16::MAX);
+        assert_eq!(f64_to_i16_dithered(-1.5, &mut d), i16::MIN);
+        assert_eq!(f64_to_i16_dithered(f64::NAN, &mut d), 0);
     }
 
     #[test]
@@ -108,11 +108,11 @@ mod output_convert {
         }
 
         // Off the 16-bit grid: TPDF dither → values spread over neighbours, mean preserved.
-        let x = 0.300_007_f32;
-        let target = f64::from(x) * 32_768.0;
+        let x = 0.300_007_f64;
+        let target = x * 32_768.0;
         let mut d = Tpdf::new(12345);
         let outs: Vec<i16> = (0..20_000)
-            .map(|_| f32_to_i16_dithered(x, &mut d))
+            .map(|_| f64_to_i16_dithered(x, &mut d))
             .collect();
         let min = *outs.iter().min().unwrap();
         let max = *outs.iter().max().unwrap();
@@ -137,10 +137,7 @@ mod output_convert {
             Encoder::new(enc).encode(&fine, &mut b);
             assert_eq!(a, b, "{enc:?} must not dither");
         }
-        assert_eq!(
-            f32_to_i24(x),
-            (f64::from(x) * f64::from(S24)).round() as i32
-        );
+        assert_eq!(f64_to_i24(x), (x * S24).round() as i32);
 
         // Digital silence stays digital silence.
         let mut dst = vec![0xAAu8; 2 * 64];

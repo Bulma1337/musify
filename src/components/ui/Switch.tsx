@@ -20,13 +20,19 @@ export function Switch({ checked, onCheckedChange, label, disabled, id }: Switch
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "relative h-6 w-10 shrink-0 rounded-full transition-colors disabled:opacity-50",
-        checked ? "bg-accent hover:bg-accent-hover" : "bg-muted hover:bg-subdued",
+        "relative h-6 w-10 shrink-0 rounded-full transition-colors",
+        // Disabled: grey, no hover, not-allowed cursor, so it never reads as "on".
+        disabled
+          ? "cursor-not-allowed bg-muted/50"
+          : checked
+            ? "bg-accent hover:bg-accent-hover"
+            : "bg-muted hover:bg-subdued",
       )}
     >
       <span
         className={cn(
-          "absolute top-1 left-1 size-4 rounded-full bg-text shadow transition-transform",
+          "absolute top-1 left-1 size-4 rounded-full shadow transition-transform",
+          disabled ? "bg-subdued" : "bg-text",
           checked && "translate-x-4",
         )}
       />

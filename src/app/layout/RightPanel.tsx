@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Heart, Laptop, X } from "lucide-react";
+import { Heart, X } from "lucide-react";
 import type { Track } from "@/api/provider";
 import { useArtistInfo, useSetStarred } from "@/api/queries";
 import { Cover } from "@/components/media/Cover";
 import { LyricsPreviewCard } from "@/features/lyrics/LyricsPreviewCard";
 import { IconButton } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
+import { OutputPanel } from "@/features/output/OutputPanel";
 import { formatDate, formatDuration } from "@/lib/format";
 import { isLossless, qualityLabel } from "@/player/quality";
 import { upcomingContextItems, usePlayer, type QueueItem } from "@/player/store";
@@ -209,24 +210,6 @@ function QueuePanel() {
   );
 }
 
-function DevicesPanel() {
-  const { t } = useTranslation();
-  return (
-    <>
-      <PanelHeader title={t("devices.title")} />
-      <div className="px-4">
-        <div className="flex items-center gap-3 rounded-lg bg-elevated p-4">
-          <Laptop size={28} className="text-accent" />
-          <div>
-            <p className="font-bold text-accent">{t("devices.thisComputer")}</p>
-            <p className="text-sm text-subdued">{t("devices.systemDefault")}</p>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
 /** Right side panel: now playing, queue or output devices. */
 export function RightPanel() {
   const panel = useLayout((s) => s.rightPanel);
@@ -235,7 +218,7 @@ export function RightPanel() {
     <aside className="relative flex h-full min-h-0 flex-col rounded-lg bg-surface">
       {panel === "nowPlaying" && <NowPlayingPanel />}
       {panel === "queue" && <QueuePanel />}
-      {panel === "devices" && <DevicesPanel />}
+      {panel === "devices" && <OutputPanel />}
     </aside>
   );
 }

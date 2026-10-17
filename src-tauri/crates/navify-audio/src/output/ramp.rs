@@ -113,20 +113,20 @@ impl Ramp {
 
     /// Current gain without advancing.
     #[inline]
-    pub fn gain(&self) -> f32 {
+    pub fn gain(&self) -> f64 {
         if self.pos >= self.len {
             return 1.0;
         }
         if self.pos == 0 {
             return 0.0;
         }
-        let t = self.pos as f32 / self.len as f32;
+        let t = f64::from(self.pos) / f64::from(self.len);
         t * t * (3.0 - 2.0 * t)
     }
 
     /// Advances one frame towards the target and returns the gain for that frame.
     #[inline]
-    pub fn step(&mut self) -> f32 {
+    pub fn step(&mut self) -> f64 {
         if self.up {
             if self.pos < self.len {
                 self.pos += 1;

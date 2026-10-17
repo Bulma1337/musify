@@ -1,0 +1,48 @@
+{
+  "output": {
+    "signalPath": "Signalweg",
+    "source": "Quelle",
+    "processing": "Bearbeitung",
+    "destination": "Ausgabe",
+    "nothingPlaying": "Es läuft nichts",
+    "unchanged": "Keine, Signal unverändert",
+    "bitPerfect": "Bit-perfect",
+    "notBitPerfect": "Nicht bit-perfect",
+    "exclusive": "exklusiv",
+    "shared": "geteilt",
+    "stages": {
+      "equalizer": "Equalizer",
+      "bass": "Deep Bass",
+      "loudness": "Lautstärke-Ausgleich",
+      "limiter": "Begrenzer",
+      "stereo": "Stereo-Anpassung",
+      "normalization": "Lautstärke-Angleichung"
+    },
+    "reasonsTitle": "Warum nicht bit-perfect:",
+    "reasons": {
+      "equalizer": "Der Equalizer ist an.",
+      "bass": "Deep Bass ist an.",
+      "loudness": "Der Lautstärke-Ausgleich ist an.",
+      "limiter": "Der Begrenzer ist an.",
+      "stereo": "Mono, Balance oder Stereobreite sind verändert.",
+      "normalization": "Die Lautstärke-Angleichung ist an.",
+      "shared": "Das Gerät wird im geteilten Modus genutzt.",
+      "volume": "Die Lautstärke liegt unter 100 %.",
+      "resampling": "Die Abtastrate des Titels weicht vom Gerät ab.",
+      "deviceFormat": "Das Gerät kann die Bit-Tiefe des Titels nicht vollständig wiedergeben."
+    },
+    "devices": "Geräte",
+    "default": "Standard",
+    "refresh": "Geräte aktualisieren",
+    "noDevices": "Keine Geräte gefunden. Es wird der Systemstandard genutzt.",
+    "deviceMissing": "Das gespeicherte Gerät ist nicht angeschlossen. Die Wiedergabe nutzt das Standardgerät.",
+    "exclusiveMode": "Exklusiver Modus",
+    "exclusiveHint": "Übernimmt das Gerät exklusiv und spielt jeden Titel in seiner Original-Abtastrate und Bit-Tiefe. Bit-perfect, solange Equalizer und Effekte aus sind und die Lautstärke bei 100 % liegt.",
+    "exclusiveUnsupported": "Dieses Gerät unterstützt den exklusiven Modus nicht.",
+    "openEqualizer": "Equalizer öffnen",
+    "exclusiveUpTo": "Exklusiv bis {{bits}} Bit / {{rate}}",
+    "resampledFrom": "Umgerechnet von {{from}} auf {{to}}",
+    "mixerLimits": "Der Windows-Mixer läuft mit {{rate}}. Für Hi-Res den exklusiven Modus nutzen oder in den Windows-Soundeinstellungen ein höheres Format wählen.",
+    "exclusiveFailed": "Exklusiver Modus nicht möglich, es wird der geteilte Modus genutzt: {{reason}}"
+  }
+}
