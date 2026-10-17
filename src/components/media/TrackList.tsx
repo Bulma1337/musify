@@ -1,4 +1,13 @@
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  memo,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type ReactNode,
+} from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -7,6 +16,7 @@ import type { Track } from "@/api/provider";
 import { useSetStarred } from "@/api/queries";
 import { useScrollContainer } from "@/app/layout/scrollContainer";
 import { cn } from "@/lib/cn";
+import { currentTrackDrag, endTrackDrag, readTrackDrop, startTrackDrag } from "@/lib/dnd";
 import { formatDuration } from "@/lib/format";
 import { usePlayer } from "@/player/store";
 import { Cover } from "./Cover";
@@ -32,6 +42,10 @@ export interface TrackListProps {
   useTrackNumbers?: boolean;
   /** Extra context-menu entries for the selected tracks. */
   menuExtra?: (tracks: Track[], indices: number[]) => ReactNode;
+  /** Drag origin id ("playlist:<id>", "album:<id>" …); rows can be dragged to playlists and the queue. */
+  dragOrigin?: string;
+  /** Enables reordering by drag and drop inside this list (same `dragOrigin`). */
+  onReorder?: (from: number[], to: number) => void;
 }
 
 function EqualizerBars() {
@@ -224,6 +238,8 @@ export function TrackList({
   discTitles,
   useTrackNumbers = false,
   menuExtra,
+  dragOrigin = "list",
+  onReorder,
 }: TrackListProps) {
   const { t } = useTranslation();
   const scrollElement = useScrollContainer();
@@ -232,6 +248,8 @@ export function TrackList({
   const [width, setWidth] = useState(1000);
   const [selection, setSelection] = useState<Set<number>>(new Set());
   const anchor = useRef<number | null>(null);
+  /** Insertion index (0…tracks.length) while a reorder drag hovers the list. */
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
 
   const currentId = usePlayer((s) => s.current?.track.id);
   const playing = usePlayer((s) => s.isPlaying);
@@ -342,6 +360,58 @@ export function TrackList({
   const selectedIndices = [...selection].sort((a, b) => a - b);
   const selectedTracks = selectedIndices.map((i) => tracks[i]!).filter(Boolean);
 
+  function handleDragStart(e: DragEvent, index: number) {
+    const indices = selection.has(index) ? selectedIndices : [index];
+    if (!selection.has(index)) {
+      setSelection(new Set([index]));
+      anchor.current = index;
+    }
+    const ids = indices.map((i) => tracks[i]?.id).filter((id): id is string => !!id);
+    const label =
+      ids.length === 1 ? (tracks[index]?.title ?? "") : t("track.dragCount", { count: ids.length });
+    startTrackDrag(
+      e,
+      { trackIds: ids, origin: dragOrigin, indices },
+      label,
+      indices.map((i) => tracks[i]!).filter(Boolean),
+    );
+  }
+
+  function handleDragOver(e: DragEvent, index: number) {
+    const drag = currentTrackDrag();
+    if (!onReorder || !drag || drag.origin !== dragOrigin) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    const rect = e.currentTarget.getBoundingClientRect();
+    const target = e.clientY > rect.top + rect.height / 2 ? index + 1 : index;
+    if (target !== dropIndex) setDropIndex(target);
+  }
+
+  function handleDrop(e: DragEvent) {
+    const drag = readTrackDrop(e);
+    if (onReorder && drag && drag.origin === dragOrigin && dropIndex !== null) {
+      e.preventDefault();
+      const moved =
+        drag.indices.length > 0 &&
+        !(drag.indices.length === 1 && [drag.indices[0], drag.indices[0]! + 1].includes(dropIndex));
+      if (moved) onReorder(drag.indices, dropIndex);
+    }
+    setDropIndex(null);
+    endTrackDrag();
+  }
+
+  /** Y position (inside the list) of the drop indicator line. */
+  const dropLineY = (() => {
+    if (dropIndex === null) return null;
+    const rowIndex = rows.findIndex(
+      (r) => r.kind === "track" && r.index === Math.min(dropIndex, tracks.length - 1),
+    );
+    const item = virtualizer.getVirtualItems().find((v) => v.index === rowIndex);
+    if (!item) return null;
+    const top = item.start - scrollMargin;
+    return dropIndex >= tracks.length ? top + ROW_HEIGHT : top;
+  })();
+
   return (
     <div
       role="grid"
@@ -364,7 +434,20 @@ export function TrackList({
         </span>
       </div>
 
-      <div ref={listRef} className="relative" style={{ height: virtualizer.getTotalSize() }}>
+      <div
+        ref={listRef}
+        className="relative"
+        style={{ height: virtualizer.getTotalSize() }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropIndex(null);
+        }}
+      >
+        {dropLineY !== null && (
+          <div
+            className="pointer-events-none absolute right-2 left-2 z-10 h-0.5 rounded-full bg-accent"
+            style={{ top: dropLineY - 1 }}
+          />
+        )}
         {virtualizer.getVirtualItems().map((item) => {
           const row = rows[item.index];
           if (!row) return null;
@@ -396,7 +479,18 @@ export function TrackList({
           const menuTracks = selected && selectedTracks.length > 0 ? selectedTracks : [row.track];
           const menuIndices = selected && selectedTracks.length > 0 ? selectedIndices : [row.index];
           return (
-            <div key={`${row.track.id}-${row.index}`} style={{ ...style, height: ROW_HEIGHT }}>
+            <div
+              key={`${row.track.id}-${row.index}`}
+              style={{ ...style, height: ROW_HEIGHT }}
+              draggable
+              onDragStart={(e) => handleDragStart(e, row.index)}
+              onDragOver={(e) => handleDragOver(e, row.index)}
+              onDrop={handleDrop}
+              onDragEnd={() => {
+                setDropIndex(null);
+                endTrackDrag();
+              }}
+            >
               <TrackMenu tracks={menuTracks} extra={menuExtra?.(menuTracks, menuIndices)}>
                 <div>
                   <TrackRow

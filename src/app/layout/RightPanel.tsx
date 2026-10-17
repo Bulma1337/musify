@@ -10,6 +10,7 @@ import { cn } from "@/lib/cn";
 import { formatDate, formatDuration } from "@/lib/format";
 import { isLossless, qualityLabel } from "@/player/quality";
 import { upcomingContextItems, usePlayer, type QueueItem } from "@/player/store";
+import { HistoryView, QueueView } from "@/features/queue/QueuePanel";
 import { useLayout } from "./layoutStore";
 
 function PanelHeader({ title, children }: { title: string; children?: ReactNode }) {
@@ -178,12 +179,6 @@ function QueueRow({ item, current }: { item: QueueItem; current?: boolean }) {
 function QueuePanel() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<"queue" | "history">("queue");
-  const current = usePlayer((s) => s.current);
-  const manual = usePlayer((s) => s.manualQueue);
-  const context = usePlayer((s) => s.context);
-  const history = usePlayer((s) => s.history);
-  const upcoming = usePlayer(upcomingContextItems);
-
   const tabButton = (value: typeof tab, label: string) => (
     <button
       type="button"
@@ -206,39 +201,7 @@ function QueuePanel() {
         </div>
       </PanelHeader>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
-        {tab === "queue" ? (
-          <>
-            {current && (
-              <section>
-                <h3 className="px-2 pt-2 pb-1 font-bold">{t("queue.nowPlaying")}</h3>
-                <QueueRow item={current} current />
-              </section>
-            )}
-            {manual.length > 0 && (
-              <section>
-                <h3 className="px-2 pt-4 pb-1 font-bold">{t("queue.nextInQueue")}</h3>
-                {manual.map((item) => (
-                  <QueueRow key={item.key} item={item} />
-                ))}
-              </section>
-            )}
-            {upcoming.length > 0 && (
-              <section>
-                <h3 className="truncate px-2 pt-4 pb-1 font-bold">
-                  {t("queue.nextFrom", { name: context?.name ?? "" })}
-                </h3>
-                {upcoming.slice(0, 100).map((item) => (
-                  <QueueRow key={item.key} item={item} />
-                ))}
-              </section>
-            )}
-            {!current && <p className="px-2 pt-2 text-sm text-subdued">{t("queue.empty")}</p>}
-          </>
-        ) : history.length > 0 ? (
-          history.map((item) => <QueueRow key={item.key} item={item} />)
-        ) : (
-          <p className="px-2 pt-2 text-sm text-subdued">{t("queue.historyEmpty")}</p>
-        )}
+        {tab === "queue" ? <QueueView /> : <HistoryView />}
       </div>
     </>
   );
