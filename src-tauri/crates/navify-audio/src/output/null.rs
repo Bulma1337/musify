@@ -13,7 +13,7 @@ use super::OutputStream;
 use super::ramp::Control;
 use super::render::{FillMode, Renderer};
 use crate::ENGINE_CHANNELS;
-use crate::api::OutputFormat;
+use crate::api::{DeviceSampleFormat, OutputFormat};
 
 /// Frames per simulated device callback.
 pub const NULL_BLOCK_FRAMES: usize = 512;
@@ -31,7 +31,7 @@ pub enum NullPacing {
 }
 
 /// Shared handle to the recorded interleaved stereo samples.
-pub type NullSamples = Arc<Mutex<Vec<f32>>>;
+pub type NullSamples = Arc<Mutex<Vec<f64>>>;
 
 pub struct NullOutput {
     format: OutputFormat,
@@ -42,9 +42,9 @@ pub struct NullOutput {
 }
 
 impl NullOutput {
-    /// Starts consuming `ring` (interleaved stereo f32 at `sample_rate`) immediately, playing at
+    /// Starts consuming `ring` (interleaved stereo f64 at `sample_rate`) immediately, playing at
     /// unity gain. The same pause/play ramp and underrun logic as the real backends applies.
-    pub fn new(ring: Consumer<f32>, sample_rate: u32, pacing: NullPacing) -> Self {
+    pub fn new(ring: Consumer<f64>, sample_rate: u32, pacing: NullPacing) -> Self {
         let control = Control::new();
         let samples: NullSamples = Arc::new(Mutex::new(Vec::new()));
         let stop = Arc::new(AtomicBool::new(false));
@@ -63,6 +63,10 @@ impl NullOutput {
             channels: ENGINE_CHANNELS as u16,
             exclusive: false,
             bit_perfect: false,
+            sample_format: Some(DeviceSampleFormat::Float64),
+            source_rate: None,
+            resampled: false,
+            exclusive_fallback: None,
         };
         Self {
             format,
@@ -73,24 +77,30 @@ impl NullOutput {
         }
     }
 
+    /// Reports `format` instead of the default description (test doubles of real devices).
+    pub fn with_format(mut self, format: OutputFormat) -> Self {
+        self.format = format;
+        self
+    }
+
     /// Handle to the recording; keep it before boxing the stream as `Box<dyn OutputStream>`.
     pub fn sample_buffer(&self) -> NullSamples {
         self.samples.clone()
     }
 
     /// Copy of everything recorded so far.
-    pub fn samples(&self) -> Vec<f32> {
+    pub fn samples(&self) -> Vec<f64> {
         self.samples.lock().clone()
     }
 
     /// Removes and returns everything recorded so far.
-    pub fn take_samples(&self) -> Vec<f32> {
+    pub fn take_samples(&self) -> Vec<f64> {
         std::mem::take(&mut *self.samples.lock())
     }
 }
 
 fn run(
-    mut ring: Consumer<f32>,
+    mut ring: Consumer<f64>,
     sample_rate: u32,
     pacing: NullPacing,
     control: Arc<Control>,
@@ -98,7 +108,7 @@ fn run(
     stop: Arc<AtomicBool>,
 ) {
     let mut renderer = Renderer::new(ENGINE_CHANNELS as u16, sample_rate, control);
-    let mut block = vec![0.0f32; NULL_BLOCK_FRAMES * ENGINE_CHANNELS];
+    let mut block = vec![0.0f64; NULL_BLOCK_FRAMES * ENGINE_CHANNELS];
     let period = Duration::from_secs_f64(NULL_BLOCK_FRAMES as f64 / f64::from(sample_rate.max(1)));
     let mut deadline = Instant::now();
     while !stop.load(Ordering::Acquire) {

@@ -1,4 +1,4 @@
-//! The device-independent part of every output callback: pull interleaved stereo f32 from the ring,
+//! The device-independent part of every output callback: pull interleaved stereo f64 from the ring,
 //! apply the pause/play ramp, map to the device channel layout, handle underruns.
 //!
 //! Everything here is allocation-, lock- and log-free and runs inside real-time callbacks.
@@ -13,7 +13,7 @@ use crate::ENGINE_CHANNELS;
 /// Writes one stereo frame into a device frame of `out.len()` channels:
 /// mono gets `(L + R) / 2`, otherwise the first two channels get L/R and the rest silence.
 #[inline]
-pub fn map_stereo_frame(l: f32, r: f32, out: &mut [f32]) {
+pub fn map_stereo_frame(l: f64, r: f64, out: &mut [f64]) {
     match out.len() {
         0 => {}
         1 => out[0] = (l + r) * 0.5,
@@ -27,7 +27,7 @@ pub fn map_stereo_frame(l: f32, r: f32, out: &mut [f32]) {
 
 /// Converts interleaved stereo into interleaved `channels`-channel frames (see [`map_stereo_frame`]).
 /// Processes `min(stereo frames, out frames)` frames.
-pub fn map_stereo(stereo: &[f32], channels: usize, out: &mut [f32]) {
+pub fn map_stereo(stereo: &[f64], channels: usize, out: &mut [f64]) {
     for (src, dst) in stereo
         .as_chunks::<ENGINE_CHANNELS>()
         .0
@@ -80,7 +80,7 @@ impl Renderer {
     }
 
     /// Fills all of `out` (interleaved, `channels` per frame). See [`FillMode::Device`].
-    pub fn render(&mut self, ring: &mut Consumer<f32>, out: &mut [f32]) {
+    pub fn render(&mut self, ring: &mut Consumer<f64>, out: &mut [f64]) {
         self.render_with(ring, out, FillMode::Device);
     }
 
@@ -88,8 +88,8 @@ impl Renderer {
     /// [`FillMode::Device`]).
     pub fn render_with(
         &mut self,
-        ring: &mut Consumer<f32>,
-        out: &mut [f32],
+        ring: &mut Consumer<f64>,
+        out: &mut [f64],
         mode: FillMode,
     ) -> usize {
         let ch = self.channels;

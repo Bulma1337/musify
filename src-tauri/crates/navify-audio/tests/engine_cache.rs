@@ -27,7 +27,7 @@ impl OutputFactory for NullFactory {
         &mut self,
         _config: &OutputConfig,
         _request: OutputRequest,
-        ring: rtrb::Consumer<f32>,
+        ring: rtrb::Consumer<f64>,
         _events: Sender<OutputEvent>,
     ) -> Result<Box<dyn OutputStream>, OutputError> {
         Ok(Box::new(NullOutput::new(ring, RATE, NullPacing::RealTime)))

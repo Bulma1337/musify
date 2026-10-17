@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use navify_audio::api::{
-    DeviceInfo, EngineCommand, EngineEvent, EqConfig, EqResponse, SpectrumFrame,
+    BassEnhancerConfig, DeviceInfo, EngineCommand, EngineEvent, EqConfig, EqResponse, SpectrumFrame,
 };
 use navify_audio::source::CacheConfig;
 use navify_audio::{AudioEngine, EngineInit};
@@ -102,18 +102,28 @@ pub fn audio_spectrum_subscribe(
         .expect("spawn audio spectrum forwarder");
 }
 
+/// Output devices with their exclusive-mode capabilities. Probing the formats takes a moment the
+/// first time, so it runs on the blocking pool, not on the main thread.
 #[tauri::command]
-pub fn audio_devices(state: tauri::State<'_, AudioState>) -> Vec<DeviceInfo> {
-    state.engine.list_devices()
+pub async fn audio_devices(state: tauri::State<'_, AudioState>) -> Result<Vec<DeviceInfo>, String> {
+    let engine = state.engine.clone();
+    tauri::async_runtime::spawn_blocking(move || engine.list_devices())
+        .await
+        .map_err(|e| e.to_string())
 }
 
+/// Response of the EQ plus, when `bass` is given, the bass enhancer's low shelf (what the chain
+/// applies; the enhancer's harmonics are nonlinear and not part of it).
 #[tauri::command]
 pub fn audio_eq_response(
     state: tauri::State<'_, AudioState>,
     config: EqConfig,
+    bass: Option<BassEnhancerConfig>,
     points: usize,
 ) -> EqResponse {
-    state.engine.eq_response(&config, points.clamp(16, 2048))
+    state
+        .engine
+        .eq_response(&config, bass.as_ref(), points.clamp(16, 2048))
 }
 
 #[tauri::command]

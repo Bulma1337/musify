@@ -17,9 +17,10 @@ use crossbeam_channel::{Receiver, Sender};
 use rtrb::Consumer;
 
 use crate::api::{
-    DeviceInfo, EngineCommand, EngineEvent, EqConfig, EqResponse, OutputConfig, SpectrumFrame,
+    BassEnhancerConfig, DeviceInfo, DeviceSampleFormat, DspConfig, EngineCommand, EngineEvent,
+    EqConfig, EqResponse, OutputConfig, SpectrumFrame,
 };
-use crate::output::{OutputError, OutputEvent, OutputRequest, OutputStream};
+use crate::output::{OutputError, OutputEvent, OutputRequest, OutputStream, SourceSpec};
 use crate::source::{CacheConfig, SourceEventSink, SourceManager};
 
 /// Creates output streams. The default talks to real devices; tests use a null backend.
@@ -30,9 +31,19 @@ pub trait OutputFactory: Send {
         &mut self,
         config: &OutputConfig,
         request: OutputRequest,
-        ring: Consumer<f32>,
+        ring: Consumer<f64>,
         events: Sender<OutputEvent>,
     ) -> Result<Box<dyn OutputStream>, OutputError>;
+    /// Rate and sample format an exclusive stream for `source` would get on the configured device
+    /// (from its capabilities), so the engine knows whether the next track needs a reopen.
+    /// `None` = unknown; the engine then compares native rates.
+    fn exclusive_format_for(
+        &mut self,
+        _config: &OutputConfig,
+        _source: &SourceSpec,
+    ) -> Option<(u32, DeviceSampleFormat)> {
+        None
+    }
 }
 
 /// Real audio devices (cpal shared mode, WASAPI exclusive on Windows).
@@ -47,10 +58,18 @@ impl OutputFactory for DeviceOutput {
         &mut self,
         config: &OutputConfig,
         request: OutputRequest,
-        ring: Consumer<f32>,
+        ring: Consumer<f64>,
         events: Sender<OutputEvent>,
     ) -> Result<Box<dyn OutputStream>, OutputError> {
         crate::output::open(config, request, ring, events)
+    }
+
+    fn exclusive_format_for(
+        &mut self,
+        config: &OutputConfig,
+        source: &SourceSpec,
+    ) -> Option<(u32, DeviceSampleFormat)> {
+        crate::output::exclusive_format_for(config, source)
     }
 }
 
@@ -154,9 +173,20 @@ impl AudioEngine {
         self.sources.clear_cache()
     }
 
-    /// Frequency response of `config` at the current output rate.
-    pub fn eq_response(&self, config: &EqConfig, points: usize) -> EqResponse {
-        crate::dsp::eq_response(config, self.sample_rate.load(Ordering::Relaxed), points)
+    /// Frequency response of the EQ (and, if given, the bass enhancer's shelf) at the current output
+    /// rate: exactly what the chain applies (see [`crate::dsp::dsp_response`]).
+    pub fn eq_response(
+        &self,
+        eq: &EqConfig,
+        bass: Option<&BassEnhancerConfig>,
+        points: usize,
+    ) -> EqResponse {
+        let config = DspConfig {
+            eq: eq.clone(),
+            bass: bass.copied().unwrap_or_default(),
+            ..DspConfig::default()
+        };
+        crate::dsp::dsp_response(&config, self.sample_rate.load(Ordering::Relaxed), points)
     }
 }
 

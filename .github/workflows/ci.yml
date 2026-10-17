@@ -27,8 +27,9 @@ jobs:
 
   rust:
     name: Rust (clippy, tests)
-    # Windows runners cost double on private repos, so only run them for pull requests.
-    if: github.event_name == 'pull_request'
+    # Windows runners cost double on private repos: run for pull requests, and on main so the build
+    # cache exists there (branches can only restore caches from the default branch).
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7

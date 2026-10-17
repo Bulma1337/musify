@@ -1,0 +1,27 @@
+{
+  "lyrics": {
+    "title": "Lyrics",
+    "close": "Close lyrics",
+    "nothingPlaying": "Play a song to see its lyrics here.",
+    "loading": "Looking for lyrics",
+    "none": "No lyrics found for this song.",
+    "noneHint": "Lyrics shown here come from your server or from LRCLIB.",
+    "instrumental": "This song is instrumental.",
+    "unsyncedHint": "These lyrics have no timing, so they cannot follow the music.",
+    "backToCurrent": "Jump to current line",
+    "offsetLabel": "Timing",
+    "earlier": "Show lyrics 0.1 s earlier",
+    "later": "Show lyrics 0.1 s later",
+    "resetOffset": "Reset timing",
+    "offsetValue": "{{value}} s",
+    "credit": "Lyrics: {{source}}",
+    "sources": {
+      "server": "Server",
+      "lrclib": "LRCLIB",
+      "local": "File"
+    },
+    "interlude": "Instrumental break",
+    "previewTitle": "Lyrics",
+    "openFull": "Open lyrics"
+  }
+}

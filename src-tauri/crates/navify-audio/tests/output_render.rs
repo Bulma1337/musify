@@ -7,7 +7,7 @@ mod output_render {
 
     const RATE: u32 = 48_000;
 
-    fn push_frames(p: &mut rtrb::Producer<f32>, frames: usize, l: f32, r: f32) {
+    fn push_frames(p: &mut rtrb::Producer<f64>, frames: usize, l: f64, r: f64) {
         for _ in 0..frames {
             p.push(l).unwrap();
             p.push(r).unwrap();
@@ -62,7 +62,7 @@ mod output_render {
         let mut r = Renderer::new(1, RATE, Control::new());
         let mut out = vec![9.0; 2];
         r.render(&mut c, &mut out);
-        assert_eq!(out, vec![(0.1f32 + 0.2) * 0.5, (0.3f32 + 0.4) * 0.5]);
+        assert_eq!(out, vec![(0.1f64 + 0.2) * 0.5, (0.3f64 + 0.4) * 0.5]);
     }
 
     #[test]
@@ -84,7 +84,7 @@ mod output_render {
         control.set_paused(true);
         let mut out = vec![9.0; 2 * 512];
         r.render(&mut c, &mut out);
-        let left: Vec<f32> = out.chunks(2).map(|f| f[0]).collect();
+        let left: Vec<f64> = out.chunks(2).map(|f| f[0]).collect();
         assert!(left.windows(2).all(|w| w[1] <= w[0]), "monotonic");
         let first_zero = left.iter().position(|&s| s == 0.0).expect("reaches zero");
         assert!(first_zero <= ramp, "zero after {first_zero} frames");
@@ -102,7 +102,7 @@ mod output_render {
         control.set_paused(false);
         let mut out = vec![9.0; 2 * 512];
         r.render(&mut c, &mut out);
-        let left: Vec<f32> = out.chunks(2).map(|f| f[0]).collect();
+        let left: Vec<f64> = out.chunks(2).map(|f| f[0]).collect();
         assert!(left[0] > 0.0 && left[0] < 0.01);
         assert!(left.windows(2).all(|w| w[1] >= w[0]), "monotonic");
         assert!(

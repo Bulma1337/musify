@@ -7,6 +7,7 @@ import { DownloadsController } from "@/features/downloads/DownloadsController";
 import { OfflineBanner } from "@/features/downloads/OfflineBanner";
 import { inTauri } from "@/lib/platform";
 import { startEngineBridge } from "@/player/bridge";
+import { useAppearance } from "@/settings/appearance";
 import { startEngineSettingsSync } from "@/settings/engineSync";
 import { LIBRARY_COLLAPSED_WIDTH, useLayout } from "./layoutStore";
 import { LibrarySidebar } from "./LibrarySidebar";
@@ -94,6 +95,7 @@ export function AppShell() {
     useLayout();
   useZoom();
   useGlobalShortcuts();
+  useAppearance();
   useEffect(() => startEngineBridge(), []);
   useEffect(() => startEngineSettingsSync(), []);
 

@@ -4,6 +4,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, Ordering};
+use std::time::Duration;
 
 use crossbeam_channel::{Receiver, Sender, select};
 
@@ -14,16 +15,19 @@ use super::{EngineInit, OutputFactory};
 use crate::api::{
     CrossfadeConfig, DspConfig, EngineCommand, EngineEvent, ErrorKind, NormalizationConfig,
     OutputConfig, PlaybackState, SourceFormat, SourceLocation, SpectrumFrame, TrackId, TrackSource,
+    Transition,
 };
 use crate::decode::{DecodeError, DecodedInfo, TrackWorker, TrackWorkerConfig, WorkerEvent};
 use crate::dsp::volume_to_gain;
-use crate::output::OutputEvent;
+use crate::output::{OutputEvent, SourceSpec};
 use crate::source::{SourceError, SourceEvent, SourceManager};
 
 /// Decoded audio buffered per track.
 const RING_SECONDS: f64 = 2.0;
 /// Ask the UI for the next track this long before the current one ends.
 const NEED_NEXT_BEFORE_MS: u64 = 20_000;
+/// Longest wait for the device to play out its buffers before it is reopened at a track boundary.
+const MAX_DRAIN_WAIT: Duration = Duration::from_millis(250);
 
 struct Track {
     source: TrackSource,
@@ -76,7 +80,28 @@ fn unknown_format() -> SourceFormat {
         channels: 2,
         bitrate_kbps: None,
         lossless: false,
+        float: false,
     }
+}
+
+/// What an exclusive stream has to carry for a decoded track.
+fn spec_of(format: &SourceFormat) -> SourceSpec {
+    SourceSpec {
+        sample_rate: format.sample_rate,
+        bits: if format.lossless {
+            format.bits_per_sample
+        } else {
+            None
+        },
+        float: format.float,
+    }
+}
+
+/// The next track needs the device at another rate or format (exclusive mode): it is started on a
+/// reopened device once the current track has been played out completely.
+struct PendingReopen {
+    token: u64,
+    spec: SourceSpec,
 }
 
 struct Controller {
@@ -103,8 +128,10 @@ struct Controller {
     retired: HashMap<u64, Track>,
     /// Old slots of the current track after a seek → frames still to be credited to it.
     seek_slots: HashMap<u64, TrackId>,
-    /// Exclusive rate already tried for the current track (avoids reopen loops on fallback).
-    exclusive_attempt: Option<u32>,
+    /// Exclusive stream already requested for the current track (avoids reopen loops on fallback).
+    exclusive_attempt: Option<SourceSpec>,
+    pending_reopen: Option<PendingReopen>,
+    drain_tokens: u64,
     state: PlaybackState,
     paused: bool,
     slot_counter: u64,
@@ -144,6 +171,8 @@ pub(super) fn run(
         retired: HashMap::new(),
         seek_slots: HashMap::new(),
         exclusive_attempt: None,
+        pending_reopen: None,
+        drain_tokens: 0,
         state: PlaybackState::Idle,
         paused: false,
         slot_counter: 0,
@@ -201,11 +230,40 @@ impl Controller {
     // Pipeline
     // --------------------------------------------------------------------------------------------
 
+    /// Exclusive mode follows the setting alone: with DSP or volume active the device still runs at
+    /// the track's native rate, the output is just not bit-perfect then.
     fn wants_exclusive(&self) -> bool {
-        self.output.exclusive && self.dsp.is_bypass()
+        self.output.exclusive
     }
 
-    fn build_pipeline(&mut self, exclusive_rate: Option<u32>) -> bool {
+    fn current_spec(&self) -> Option<SourceSpec> {
+        self.current
+            .as_ref()
+            .and_then(|t| t.info.as_ref())
+            .map(|i| spec_of(&i.format))
+            .filter(|s| s.sample_rate > 0)
+    }
+
+    /// Whether the open exclusive stream differs from what `spec` would get (rate or format).
+    fn needs_reopen_for(&mut self, spec: &SourceSpec) -> bool {
+        if !self.wants_exclusive() || spec.sample_rate == 0 {
+            return false;
+        }
+        let Some((rate, format)) = self
+            .pipeline
+            .as_ref()
+            .map(|p| (p.rate, p.format.sample_format))
+        else {
+            return false;
+        };
+        match self.factory.exclusive_format_for(&self.output, spec) {
+            Some((want_rate, want_format)) => want_rate != rate || Some(want_format) != format,
+            // Capabilities unknown: open at the native rate and let the device negotiate.
+            None => spec.sample_rate != rate,
+        }
+    }
+
+    fn build_pipeline(&mut self, exclusive_source: Option<SourceSpec>) -> bool {
         // Release the device before opening it again (exclusive mode needs that).
         self.pipeline = None;
         let output = OutputConfig {
@@ -214,7 +272,7 @@ impl Controller {
         };
         let settings = PipelineSettings {
             output: &output,
-            exclusive_rate,
+            exclusive_source,
             dsp: &self.dsp,
             volume_gain: volume_to_gain(self.volume),
             crossfade_frames_ms: self.crossfade.duration_ms,
@@ -255,23 +313,36 @@ impl Controller {
     fn emit_output_format(&self) {
         let Some(p) = &self.pipeline else { return };
         let mut format = p.format.clone();
+        let source = self.current_spec();
+        format.source_rate = source.map(|s| s.sample_rate);
+        format.resampled = source.is_some_and(|s| s.sample_rate != format.sample_rate);
         let unity_gain = self
             .current
             .as_ref()
             .is_none_or(|t| (t.gain - 1.0).abs() < 1e-12);
-        format.bit_perfect =
-            format.bit_perfect && self.dsp.is_bypass() && self.volume >= 1.0 && unity_gain;
+        let carried = match (source, format.sample_format) {
+            (Some(s), Some(f)) => f.carries(s.bits, s.float),
+            (None, Some(f)) => !f.is_float() && f.valid_bits() >= 24,
+            _ => false,
+        };
+        format.bit_perfect = format.exclusive
+            && !format.resampled
+            && carried
+            && self.dsp.is_bypass()
+            && self.volume >= 1.0
+            && unity_gain;
         self.emit(EngineEvent::OutputChanged { format });
     }
 
     /// Rebuilds the output (device change, output settings, exclusive rate) and resumes the current
     /// track at its position.
-    fn rebuild(&mut self, exclusive_rate: Option<u32>) {
+    fn rebuild(&mut self, exclusive_source: Option<SourceSpec>) {
         let resume = self.current.take();
         let next = self.next.take().map(|n| n.source);
+        self.pending_reopen = None;
         self.retired.clear();
         self.seek_slots.clear();
-        if !self.build_pipeline(exclusive_rate) {
+        if !self.build_pipeline(exclusive_source) {
             return;
         }
         if let Some(mut track) = resume {
@@ -368,6 +439,7 @@ impl Controller {
     }
 
     fn drop_next(&mut self) {
+        self.pending_reopen = None;
         if self.next.take().is_some() {
             self.send(MixerMsg::SetNext(None));
         }
@@ -430,6 +502,7 @@ impl Controller {
             self.retired.insert(current.slot, current);
         }
         self.next = None;
+        self.pending_reopen = None;
         self.set_state(PlaybackState::Stopped);
     }
 
@@ -460,6 +533,15 @@ impl Controller {
     }
 
     fn skip_to_next(&mut self) {
+        if self.pending_reopen.take().is_some() {
+            // The next track waits for a device reopen: start it like a manual play, which opens
+            // the device for it.
+            if let Some(next) = self.next.take() {
+                let paused = self.paused;
+                self.play(next.source, 0, paused);
+            }
+            return;
+        }
         let Some(next) = self.next.take() else { return };
         if let Some(current) = self.current.take() {
             self.retired.insert(current.slot, current);
@@ -515,23 +597,10 @@ impl Controller {
                 self.emit_output_format();
             }
             EngineCommand::SetDsp { config } => {
-                let exclusive_before = self.wants_exclusive();
+                // Exclusive mode stays open with DSP on; only the bit-perfect flag changes.
                 self.dsp = config;
                 self.send(MixerMsg::Dsp(Box::new(self.dsp.clone())));
-                if self.output.exclusive
-                    && exclusive_before != self.wants_exclusive()
-                    && self.pipeline.is_some()
-                {
-                    // Exclusive (bit-perfect) output is only used while the DSP is bypassed.
-                    let rate = self
-                        .current
-                        .as_ref()
-                        .and_then(|t| t.info.as_ref())
-                        .map(|i| i.format.sample_rate);
-                    self.rebuild(rate);
-                } else {
-                    self.emit_output_format();
-                }
+                self.emit_output_format();
             }
             EngineCommand::SetNormalization { config } => {
                 self.normalization = config;
@@ -549,12 +618,9 @@ impl Controller {
                 self.output = config;
                 self.exclusive_attempt = None;
                 if self.pipeline.is_some() {
-                    let rate = self
-                        .current
-                        .as_ref()
-                        .and_then(|t| t.info.as_ref())
-                        .map(|i| i.format.sample_rate);
-                    self.rebuild(rate);
+                    let spec = self.current_spec();
+                    self.exclusive_attempt = spec;
+                    self.rebuild(spec);
                 }
             }
             EngineCommand::SetSpectrum { enabled } => {
@@ -593,9 +659,10 @@ impl Controller {
                     total_frames,
                 });
 
-                let native_rate = info.format.sample_rate;
+                let spec = spec_of(&info.format);
                 let normalization = self.normalization;
                 let is_current = self.current.as_ref().is_some_and(|t| t.slot == slot);
+                let is_next = self.next.as_ref().is_some_and(|t| t.slot == slot);
                 if let Some(track) = self.track_by_slot_mut(slot) {
                     track.gain = track_gain(
                         &normalization,
@@ -608,18 +675,32 @@ impl Controller {
                     self.send(MixerMsg::SetGain { id: slot, gain });
                 }
 
-                // Bit-perfect: reopen the device at the track's native rate.
-                if is_current
-                    && self.wants_exclusive()
-                    && native_rate > 0
-                    && self
-                        .pipeline
-                        .as_ref()
-                        .is_some_and(|p| p.rate != native_rate)
-                    && self.exclusive_attempt != Some(native_rate)
+                if is_current {
+                    // Exclusive mode: open the device for the track's native rate and format.
+                    if self.exclusive_attempt != Some(spec) && self.needs_reopen_for(&spec) {
+                        self.exclusive_attempt = Some(spec);
+                        self.rebuild(Some(spec));
+                    } else {
+                        self.emit_output_format();
+                    }
+                } else if is_next
+                    && self.pipeline.as_ref().is_some_and(|p| p.format.exclusive)
+                    && self.needs_reopen_for(&spec)
                 {
-                    self.exclusive_attempt = Some(native_rate);
-                    self.rebuild(Some(native_rate));
+                    // Rate change at the boundary (exclusive mode): rather than resampling the next
+                    // track, play the current one out, then reopen the device at the next track's
+                    // rate and start it there. Costs a short gap, keeps every track bit-perfect.
+                    // Tracks at the same rate (albums) still run gapless or crossfaded.
+                    if let Some(next) = self.next.as_mut() {
+                        next.worker = None;
+                    }
+                    self.send(MixerMsg::SetNext(None));
+                    self.drain_tokens += 1;
+                    self.pending_reopen = Some(PendingReopen {
+                        token: self.drain_tokens,
+                        spec,
+                    });
+                    self.send(MixerMsg::NotifyDrained(self.drain_tokens));
                 }
             }
             WorkerEvent::Finished { id, end_frame } => {
@@ -763,6 +844,7 @@ impl Controller {
                     });
                 }
             }
+            MixerEvent::Drained(token) => self.reopen_for_next(token),
             MixerEvent::Buffering(active) => self.emit(EngineEvent::Buffering { active }),
             MixerEvent::Idle => {
                 if self.next.is_none() {
@@ -770,6 +852,38 @@ impl Controller {
                     self.set_state(PlaybackState::Stopped);
                 }
             }
+        }
+    }
+
+    /// The current track has been played out completely: reopen the device for the waiting next
+    /// track and start it there (announced as a gapless transition, first sample unfaded).
+    fn reopen_for_next(&mut self, token: u64) {
+        let Some(pending) = self.pending_reopen.take_if(|p| p.token == token) else {
+            return;
+        };
+        let Some(next) = self.next.take() else { return };
+        if let Some(current) = self.current.take() {
+            self.retired.insert(current.slot, current);
+        }
+        // Let the device play what it still buffers before the stream is closed.
+        if let Some(p) = &self.pipeline {
+            std::thread::sleep(p.device_latency().min(MAX_DRAIN_WAIT));
+        }
+        self.exclusive_attempt = Some(pending.spec);
+        if !self.build_pipeline(Some(pending.spec)) {
+            return;
+        }
+        let Some((track, mix)) = self.new_track(next.source, 0) else {
+            return;
+        };
+        self.current = Some(track);
+        self.send(MixerMsg::Start {
+            slot: mix,
+            transition: Transition::Gapless,
+            fade_in: false,
+        });
+        if let Some(p) = self.pipeline.as_mut() {
+            if self.paused { p.pause() } else { p.play() }
         }
     }
 

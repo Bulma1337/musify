@@ -14,7 +14,7 @@ use crate::ENGINE_CHANNELS;
 use crate::analysis::SpectrumAnalyzer;
 use crate::api::{DspConfig, OutputConfig, OutputFormat, SpectrumFrame};
 use crate::dsp::DspChain;
-use crate::output::{OutputError, OutputEvent, OutputRequest, OutputStream};
+use crate::output::{OutputError, OutputEvent, OutputRequest, OutputStream, SourceSpec};
 
 /// Output ring size and how full the mixer keeps it.
 const OUTPUT_RING_MS: f64 = 200.0;
@@ -26,7 +26,8 @@ const SPECTRUM_INTERVAL: Duration = Duration::from_millis(33);
 
 pub(crate) struct PipelineSettings<'a> {
     pub output: &'a OutputConfig,
-    pub exclusive_rate: Option<u32>,
+    /// Exclusive mode: the track to open the device for (`None` = at the shared-mode rate).
+    pub exclusive_source: Option<SourceSpec>,
     pub dsp: &'a DspConfig,
     pub volume_gain: f64,
     pub crossfade_frames_ms: u32,
@@ -52,23 +53,27 @@ impl Pipeline {
         spectrum: Sender<SpectrumFrame>,
     ) -> Result<Self, OutputError> {
         let shared_rate = factory.sample_rate(settings.output)?;
-        let requested_rate = if settings.output.exclusive {
-            settings.exclusive_rate.unwrap_or(shared_rate)
-        } else {
-            shared_rate
-        };
+        let requested = settings.output.exclusive.then(|| {
+            settings.exclusive_source.unwrap_or(SourceSpec {
+                sample_rate: shared_rate,
+                bits: None,
+                float: false,
+            })
+        });
+        let ring_rate = requested.map_or(shared_rate, |s| s.sample_rate.max(shared_rate));
 
-        let ring_samples = ((f64::from(requested_rate) * OUTPUT_RING_MS / 1000.0) as usize)
-            .max(4096)
-            * ENGINE_CHANNELS;
-        let (out_tx, out_rx) = rtrb::RingBuffer::<f32>::new(ring_samples);
+        // f64 all the way to the device callback: see `output/mod.rs` (32-bit sources).
+        let ring_samples =
+            ((f64::from(ring_rate) * OUTPUT_RING_MS / 1000.0) as usize).max(4096) * ENGINE_CHANNELS;
+        let (out_tx, out_rx) = rtrb::RingBuffer::<f64>::new(ring_samples);
         let request = OutputRequest {
-            exclusive_rate: settings.output.exclusive.then_some(requested_rate),
+            exclusive_source: requested,
             buffer_ms: EXCLUSIVE_BUFFER_MS,
         };
         let output = factory.open(settings.output, request, out_rx, output_events)?;
         let format = output.format().clone();
-        // The stream decides the final rate (exclusive may have fallen back to shared mode).
+        // The stream decides the final rate (exclusive negotiates; it may also have fallen back
+        // to shared mode).
         let rate = format.sample_rate;
 
         let mut chain = DspChain::new(rate);
@@ -145,6 +150,13 @@ impl Pipeline {
     /// Discards audio already queued for the device (used when seeking while paused).
     pub fn flush(&mut self) {
         self.output.flush();
+    }
+
+    /// Time the device still plays after the output ring ran empty.
+    pub fn device_latency(&self) -> Duration {
+        Duration::from_secs_f64(
+            f64::from(self.output.latency_frames()) / f64::from(self.rate.max(1)),
+        )
     }
 }
 

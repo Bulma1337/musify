@@ -33,7 +33,7 @@ impl OutputFactory for NullFactory {
         &mut self,
         _config: &OutputConfig,
         _request: OutputRequest,
-        ring: rtrb::Consumer<f32>,
+        ring: rtrb::Consumer<f64>,
         _events: Sender<OutputEvent>,
     ) -> Result<Box<dyn OutputStream>, OutputError> {
         let output = NullOutput::new(ring, RATE, NullPacing::RealTime);
@@ -100,8 +100,8 @@ fn ended(seen: &[EngineEvent], id: &str) -> bool {
         .any(|e| matches!(e, EngineEvent::TrackEnded { id: i, .. } if i == id))
 }
 
-/// Decodes the 16-bit PCM WAV source into interleaved f32 (exact for 16-bit values).
-fn source_samples() -> Vec<f32> {
+/// Decodes the 16-bit PCM WAV source into interleaved f64 (exact for 16-bit values).
+fn source_samples() -> Vec<f64> {
     let bytes = std::fs::read(fixture("gapless_src.wav")).unwrap();
     let data = bytes
         .windows(4)
@@ -112,7 +112,7 @@ fn source_samples() -> Vec<f32> {
         .as_chunks::<2>()
         .0
         .iter()
-        .map(|b| f32::from(i16::from_le_bytes(*b)) / 32768.0)
+        .map(|b| f64::from(i16::from_le_bytes(*b)) / 32768.0)
         .collect()
 }
 

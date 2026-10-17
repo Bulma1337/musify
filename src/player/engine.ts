@@ -4,6 +4,7 @@ import type {
   DeviceInfo,
   EngineCommand,
   EngineEvent,
+  BassEnhancerConfig,
   EqConfig,
   EqResponse,
   SpectrumFrame,
@@ -17,7 +18,8 @@ export interface AudioEngineClient {
   subscribe(listener: (event: EngineEvent) => void): void;
   subscribeSpectrum(listener: (frame: SpectrumFrame) => void): void;
   devices(): Promise<DeviceInfo[]>;
-  eqResponse(config: EqConfig, points: number): Promise<EqResponse | null>;
+  /** EQ response; with `bass`, the bass enhancer's shelf is included (its harmonics are not). */
+  eqResponse(config: EqConfig, points: number, bass?: BassEnhancerConfig): Promise<EqResponse | null>;
   parseAutoEq(text: string): Promise<EqConfig>;
 }
 
@@ -43,8 +45,8 @@ class NativeEngine implements AudioEngineClient {
     return invoke<DeviceInfo[]>("audio_devices");
   }
 
-  eqResponse(config: EqConfig, points: number) {
-    return invoke<EqResponse>("audio_eq_response", { config, points });
+  eqResponse(config: EqConfig, points: number, bass?: BassEnhancerConfig) {
+    return invoke<EqResponse>("audio_eq_response", { config, bass: bass ?? null, points });
   }
 
   parseAutoEq(text: string) {

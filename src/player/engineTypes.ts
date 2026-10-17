@@ -98,6 +98,20 @@ export interface EqResponse {
   effectivePreampDb: number;
 }
 
+/** Sample layout of a device stream (`int24In32` = 24 valid bits in a 32-bit container). */
+export type DeviceSampleFormat = "int16" | "int24" | "int24In32" | "int32" | "float32" | "float64" | "other";
+
+export interface ExclusiveMode {
+  sampleRate: number;
+  /** In the engine's order of preference. */
+  formats: DeviceSampleFormat[];
+}
+
+/** What the driver accepts in exclusive mode, by rate (ascending). */
+export interface ExclusiveCaps {
+  modes: ExclusiveMode[];
+}
+
 export interface DeviceInfo {
   id: string;
   name: string;
@@ -105,6 +119,8 @@ export interface DeviceInfo {
   defaultSampleRate: number;
   maxChannels: number;
   supportsExclusive: boolean;
+  /** Probed exclusive-mode support (null = not probed or not available). */
+  exclusiveCaps?: ExclusiveCaps | null;
 }
 
 export interface OutputConfig {
@@ -114,10 +130,19 @@ export interface OutputConfig {
 
 export interface OutputFormat {
   deviceName: string;
+  /** Device rate; in shared mode the system mixer's rate. */
   sampleRate: number;
   channels: number;
   exclusive: boolean;
   bitPerfect: boolean;
+  /** Stream sample format (in shared mode the system mixer's). */
+  sampleFormat?: DeviceSampleFormat | null;
+  /** Native rate of the current track. */
+  sourceRate?: number | null;
+  /** The current track is resampled from `sourceRate` to `sampleRate`. */
+  resampled?: boolean;
+  /** Exclusive mode was requested but could not be opened; why. */
+  exclusiveFallback?: string | null;
 }
 
 export interface SourceFormat {
@@ -127,6 +152,8 @@ export interface SourceFormat {
   channels: number;
   bitrateKbps: number | null;
   lossless: boolean;
+  /** Floating-point PCM (e.g. 32-bit float WAV). */
+  float?: boolean;
 }
 
 export type PlaybackState = "idle" | "loading" | "playing" | "paused" | "stopped";
