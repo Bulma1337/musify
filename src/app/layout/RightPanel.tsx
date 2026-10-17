@@ -5,6 +5,7 @@ import { Heart, X } from "lucide-react";
 import type { Track } from "@/api/provider";
 import { useArtistInfo, useSetStarred } from "@/api/queries";
 import { Cover } from "@/components/media/Cover";
+import { LyricsPreviewCard } from "@/features/lyrics/LyricsPreviewCard";
 import { IconButton } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { OutputPanel } from "@/features/output/OutputPanel";
@@ -149,6 +150,7 @@ function NowPlayingPanel() {
             <Heart size={20} className={track.starred ? "fill-current" : ""} />
           </IconButton>
         </div>
+        <LyricsPreviewCard />
         <ArtistCard track={track} />
         <CreditsCard track={track} />
         {nextItem && (

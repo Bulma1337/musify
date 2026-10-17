@@ -17,6 +17,10 @@ export const router = createHashRouter([
         lazy: () => import("@/features/home/HomePage").then((m) => ({ Component: m.HomePage })),
       },
       {
+        path: "lyrics",
+        lazy: () => import("@/features/lyrics/LyricsPage").then((m) => ({ Component: m.LyricsPage })),
+      },
+      {
         path: "search",
         lazy: () => import("@/features/search/SearchPage").then((m) => ({ Component: m.SearchPage })),
       },
