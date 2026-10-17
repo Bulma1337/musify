@@ -2,6 +2,7 @@ import { startUpdateChecks } from "@/features/updates/updater";
 import { useSettings } from "@/settings/store";
 import { startMediaSession } from "@/player/mediaSession";
 import { resumeAtStartup, startQueueSync } from "@/player/resume";
+import { NARROW_WINDOW_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { FullscreenPlayer } from "./FullscreenPlayer";
 import { MiniPlayer } from "./MiniPlayer";
 import { normalizeWindowAtStartup, usePlayerView } from "./playerView";
@@ -98,8 +99,17 @@ function MainView() {
 
 /** Logged-in layout: title bar, library, main view, right panel, player bar. */
 export function AppShell() {
-  const { libraryWidth, libraryCollapsed, rightPanel, rightWidth, setLibraryWidth, setRightWidth } =
-    useLayout();
+  const narrow = useMediaQuery(NARROW_WINDOW_QUERY);
+  const {
+    libraryWidth,
+    libraryCollapsed: collapsedSetting,
+    rightPanel,
+    rightWidth,
+    setLibraryWidth,
+    setRightWidth,
+  } = useLayout();
+  // Narrow windows show the library as icons only (the setting is kept for wider windows).
+  const libraryCollapsed = collapsedSetting || narrow;
   useZoom();
   useGlobalShortcuts();
   useAppearance();

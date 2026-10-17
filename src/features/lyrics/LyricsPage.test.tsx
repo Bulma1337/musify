@@ -122,7 +122,9 @@ describe("LyricsPreviewCard", () => {
   it("is hidden when the track has no lyrics", async () => {
     const { container, queryClient } = renderPage(<LyricsPreviewCard />);
     play();
-    await vi.waitFor(() => expect(queryClient.getQueryData(["srv1", "lyrics", track.id, true])).toBeDefined());
+    await vi.waitFor(() =>
+      expect(queryClient.getQueryData(["srv1", "lyrics", track.id, true])).toBeDefined(),
+    );
     expect(container.querySelector("section")).toBeNull();
     expect(screen.queryByText("Lyrics")).not.toBeInTheDocument();
   });
