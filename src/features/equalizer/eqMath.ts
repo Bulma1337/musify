@@ -1,4 +1,5 @@
 import type {
+  BassEnhancerConfig,
   EqConfig,
   EqResponse,
   FilterKind,
@@ -10,9 +11,10 @@ import type {
  * Frequency response of an EQ configuration, computed in TypeScript.
  *
  * The native engine is the source of truth (`audioEngine().eqResponse`). This is the fallback for the
- * browser preview and mirrors the Rust implementation (`dsp/biquad.rs`, `dsp/eq/graphic.rs`): RBJ
- * Audio-EQ-Cookbook filters, the constant-Q graphic EQ with band-interaction correction (Newton
- * iteration) and the auto-headroom preamp.
+ * browser preview and mirrors the Rust implementation (`dsp/biquad.rs`, `dsp/eq/graphic.rs`,
+ * `dsp/eq/mod.rs`): RBJ Audio-EQ-Cookbook filters for parametric bands, magnitude-matched peaking
+ * filters fitted by least squares for the graphic EQ, the bass enhancer's shelf and the auto-headroom
+ * preamp. `eqGolden.json` (written by the Rust tests) keeps both implementations in sync.
  */
 
 export const EQ_SAMPLE_RATE = 48_000;
@@ -30,8 +32,6 @@ export const GRAPHIC_FREQUENCIES: Record<GraphicBands, readonly number[]> = {
   ],
 };
 
-const Q_OCTAVE = 1.41;
-const Q_THIRD_OCTAVE = 4.32;
 const BUTTERWORTH_Q = Math.SQRT1_2;
 const MAX_FREQ_RATIO = 0.49;
 const MIN_FREQ_HZ = 2;
@@ -43,11 +43,16 @@ const MAX_SOLVED_GAIN_DB = 36;
 const MAX_PREAMP_DB = 30;
 const HEADROOM_POINTS = 512;
 
+/** How the analog prototype becomes a biquad (see `dsp/biquad.rs`). */
+export type FilterDesign = "bilinear" | "matched";
+
 export interface FilterSpec {
   kind: FilterKind;
   freqHz: number;
   gainDb: number;
   q: number;
+  /** "bilinear" (RBJ, default) or "matched" (warping-free, peaking only; used by the graphic EQ). */
+  design?: FilterDesign;
 }
 
 /** Normalized biquad coefficients (a0 = 1). */
@@ -75,11 +80,21 @@ function clampSpec(spec: FilterSpec, fs: number): FilterSpec {
         ? clamp(spec.gainDb, -MAX_FILTER_GAIN_DB, MAX_FILTER_GAIN_DB)
         : 0,
     q: Number.isFinite(spec.q) && spec.q > 0 ? clamp(spec.q, MIN_Q, MAX_Q) : BUTTERWORTH_Q,
+    design: spec.design ?? "bilinear",
   };
 }
 
-/** RBJ cookbook biquad (shelves in Q form, like AutoEQ profiles). Parameters are clamped. */
-export function designBiquad(input: FilterSpec, fs: number = EQ_SAMPLE_RATE): Biquad {
+const validRate = (fs: number) => (Number.isFinite(fs) && fs > 0 ? fs : EQ_SAMPLE_RATE);
+
+/**
+ * Biquad for `input`: RBJ cookbook (shelves in Q form, like AutoEQ profiles), or the matched peaking
+ * design when `design` is "matched". Parameters are clamped.
+ */
+export function designBiquad(input: FilterSpec, sampleRate: number = EQ_SAMPLE_RATE): Biquad {
+  const fs = validRate(sampleRate);
+  if (input.design === "matched" && input.kind === "peaking") {
+    return matchedPeaking(input.freqHz, input.gainDb, input.q, fs);
+  }
   const s = clampSpec(input, fs);
   const w0 = (2 * Math.PI * s.freqHz) / fs;
   const sinW = Math.sin(w0);
@@ -150,16 +165,76 @@ export function designBiquad(input: FilterSpec, fs: number = EQ_SAMPLE_RATE): Bi
   return { b0: b0 * inv, b1: b1 * inv, b2: b2 * inv, a1: a1 * inv, a2: a2 * inv };
 }
 
-/** Magnitude of a biquad at `freqHz` in dB (numerically robust sin²(w/2) form). */
-export function biquadMagnitudeDb(c: Biquad, freqHz: number, fs: number = EQ_SAMPLE_RATE): number {
-  const sine = Math.sin((Math.PI * freqHz) / fs);
-  const phi = sine * sine;
+/** `|H(jΩ)|²` of the analog peaking prototype at `Ω² = omegaSq` (frequency normalized to f0), `a = 10^(gain/40)`. */
+export function analogPeakingMagSq(omegaSq: number, a: number, q: number): number {
+  const re = (1 - omegaSq) * (1 - omegaSq);
+  return (re + omegaSq * (a / q) * (a / q)) / (re + omegaSq / (a * q * (a * q)));
+}
+
+/** Minimum-phase `(b0, b1, b2)` with `|B|² = dc·cos²(w/2) + ny·sin²(w/2) + x·cos²(w/2)·sin²(w/2)`. */
+function factorMagnitude(dc: number, ny: number, x: number): [number, number, number] {
+  const p = Math.sqrt(Math.max(dc, 0));
+  const m = Math.sqrt(Math.max(ny, 0));
+  const w = 0.5 * (p + m);
+  const d = Math.sqrt(Math.max(w * w + 0.25 * x, 0));
+  return [0.5 * (w + d), 0.5 * (p - m), 0.5 * (w - d)];
+}
+
+/**
+ * Magnitude-matched peaking filter (M. Vicanek, "Matched Second Order Digital Filters", 2016):
+ * impulse-invariant poles, numerator matched to the analog prototype at DC, f0 and Nyquist, so the bell
+ * keeps its width up to Nyquist. A cut is the exact inverse of the matching boost.
+ */
+export function matchedPeaking(freqHz: number, gainDb: number, q: number, sampleRate: number): Biquad {
+  const fs = validRate(sampleRate);
+  const s = clampSpec({ kind: "peaking", freqHz, gainDb, q }, fs);
+  const w0 = (2 * Math.PI * s.freqHz) / fs;
+  const a = Math.pow(10, Math.abs(s.gainDb) / 40);
+  const zeta = 1 / (2 * a * s.q);
+  const r = Math.exp(-zeta * w0);
+  const a1 =
+    zeta <= 1
+      ? -2 * r * Math.cos(w0 * Math.sqrt(1 - zeta * zeta))
+      : -2 * r * Math.cosh(w0 * Math.sqrt(zeta * zeta - 1));
+  const a2 = r * r;
+  if (s.gainDb === 0) return { b0: 1, b1: a1, b2: a2, a1, a2 };
+  const denDc = (1 + a1 + a2) * (1 + a1 + a2);
+  const denNy = (1 - a1 + a2) * (1 - a1 + a2);
+  const denX = -16 * a2;
+  const half = Math.sin(0.5 * w0);
+  const phi1 = half * half;
+  const phi0 = 1 - phi1;
+  const g2 = a * a * a * a;
+  const omegaNy = (0.5 * fs) / s.freqHz;
+  const ny2 = analogPeakingMagSq(omegaNy * omegaNy, a, s.q);
+  const numDc = denDc;
+  const numNy = denNy * ny2;
+  const numX = ((g2 - 1) * denDc) / phi1 + ((g2 - ny2) * denNy) / phi0 + g2 * denX;
+  const [b0, b1, b2] = factorMagnitude(numDc, numNy, numX);
+  if (s.gainDb > 0) return { b0, b1, b2, a1, a2 };
+  const inv = 1 / b0;
+  return { b0: inv, b1: a1 * inv, b2: a2 * inv, a1: b1 * inv, a2: b2 * inv };
+}
+
+/** `φ = sin²(π·f/fs)`, the frequency variable of {@link magnitudeSqPhi}. */
+export function phiOf(freqHz: number, fs: number): number {
+  const s = Math.sin((Math.PI * freqHz) / fs);
+  return s * s;
+}
+
+/** Squared magnitude of a biquad at `φ = sin²(w/2)` (numerically robust cookbook form). */
+export function magnitudeSqPhi(c: Biquad, phi: number): number {
   const { b0, b1, b2, a1, a2 } = c;
   const bs = b0 + b1 + b2;
   const as = 1 + a1 + a2;
   const num = bs * bs - 4 * (b0 * b1 + 4 * b0 * b2 + b1 * b2) * phi + 16 * b0 * b2 * phi * phi;
   const den = as * as - 4 * (a1 + 4 * a2 + a1 * a2) * phi + 16 * a2 * phi * phi;
-  return 10 * Math.log10(Math.max(num, 1e-300) / Math.max(den, 1e-300));
+  return Math.max(num, 1e-300) / Math.max(den, 1e-300);
+}
+
+/** Magnitude of a biquad at `freqHz` in dB. */
+export function biquadMagnitudeDb(c: Biquad, freqHz: number, fs: number = EQ_SAMPLE_RATE): number {
+  return 10 * Math.log10(magnitudeSqPhi(c, phiOf(freqHz, fs)));
 }
 
 /** `points` log-spaced frequencies from 20 Hz to 20 kHz. */
@@ -170,8 +245,109 @@ export function logFrequencies(points: number): number[] {
   return Array.from({ length: points }, (_, i) => F_MIN * Math.exp((r * i) / (points - 1)));
 }
 
-export function graphicQ(bands: GraphicBands): number {
-  return bands === "ten" ? Q_OCTAVE : Q_THIRD_OCTAVE;
+// --- Graphic EQ (mirror of `dsp/eq/graphic.rs`) ---------------------------------------------------
+//
+// Target: slider values interpolated linearly on log frequency between the band centers. Filters: a
+// matched peaking filter at every center and at every geometric midpoint (2·n − 1 filters), Q =
+// Q_SCALE / local spacing in octaves, the outermost two × EDGE_Q_FACTOR. Gains: Levenberg–Marquardt
+// on the weighted dB error at the centers and POINTS_PER_INTERVAL points per interval.
+
+export const GRAPHIC_Q_SCALE = 0.95;
+const EDGE_Q_FACTOR = 1.25;
+const POINTS_PER_INTERVAL = 4;
+const CENTER_WEIGHT = 2;
+const MAX_ITERATIONS = 30;
+const MAX_DAMPING_TRIES = 8;
+const STEP_TOLERANCE_DB = 1e-6;
+const JACOBIAN_STEP_DB = 1e-3;
+const LAMBDA_START = 1e-3;
+const LAMBDA_MIN = 1e-9;
+const RIDGE = 1e-12;
+
+interface FitPoint {
+  freqHz: number;
+  targetDb: number;
+  weight: number;
+}
+
+/** Band centers usable at `fs` (≤ 0.49·fs) and their clamped slider values. */
+function usableBands(bands: GraphicBands, gainsDb: readonly number[], fs: number): [number[], number[]] {
+  const centers: number[] = [];
+  const targets: number[] = [];
+  GRAPHIC_FREQUENCIES[bands].forEach((f, i) => {
+    if (f > MAX_FREQ_RATIO * fs) return;
+    const s = gainsDb[i];
+    centers.push(f);
+    targets.push(clamp(s !== undefined && Number.isFinite(s) ? s : 0, -MAX_SLIDER_DB, MAX_SLIDER_DB));
+  });
+  return [centers, targets];
+}
+
+/** `[frequency, Q]` of every filter: centers plus midpoints (`withMidpoints`), or the centers only. */
+function filterLayout(centers: readonly number[], withMidpoints = true): [number, number][] {
+  const freqs: number[] = [];
+  centers.forEach((c, i) => {
+    freqs.push(c);
+    const next = centers[i + 1];
+    if (withMidpoints && next !== undefined) freqs.push(Math.sqrt(c * next));
+  });
+  const last = freqs.length - 1;
+  return freqs.map((f, k) => {
+    const left = k > 0 ? Math.log2(f / (freqs[k - 1] ?? f)) : undefined;
+    const right = k < last ? Math.log2((freqs[k + 1] ?? f) / f) : undefined;
+    const spacing = left !== undefined && right !== undefined ? 0.5 * (left + right) : (left ?? right ?? 0.5);
+    const edge = last > 0 && (k === 0 || k === last) ? EDGE_Q_FACTOR : 1;
+    return [f, (edge * GRAPHIC_Q_SCALE) / spacing];
+  });
+}
+
+function fitPoints(centers: readonly number[], targets: readonly number[]): FitPoint[] {
+  const points: FitPoint[] = [];
+  centers.forEach((f, i) => {
+    const t = targets[i] ?? 0;
+    points.push({ freqHz: f, targetDb: t, weight: CENTER_WEIGHT });
+    const f1 = centers[i + 1];
+    const t1 = targets[i + 1];
+    if (f1 === undefined || t1 === undefined) return;
+    for (let j = 1; j <= POINTS_PER_INTERVAL; j++) {
+      const u = j / (POINTS_PER_INTERVAL + 1);
+      points.push({ freqHz: f * Math.pow(f1 / f, u), targetDb: t + u * (t1 - t), weight: 1 });
+    }
+  });
+  return points;
+}
+
+type Designer = (f: number, g: number, q: number, fs: number) => Biquad;
+const matchedDesigner: Designer = (f, g, q, fs) => matchedPeaking(f, g, q, fs);
+const bilinearDesigner: Designer = (f, g, q, fs) =>
+  designBiquad({ kind: "peaking", freqHz: f, gainDb: g, q }, fs);
+
+const dbSq = (x: number) => 10 * Math.log10(x);
+
+function responses(
+  layout: readonly [number, number][],
+  gains: readonly number[],
+  phis: readonly number[],
+  fs: number,
+  design: Designer,
+  out: number[],
+) {
+  out.fill(0);
+  layout.forEach(([f, q], k) => {
+    const g = gains[k] ?? 0;
+    if (g === 0) return;
+    const c = design(f, g, q, fs);
+    for (let j = 0; j < phis.length; j++) out[j] = (out[j] ?? 0) + dbSq(magnitudeSqPhi(c, phis[j] ?? 0));
+  });
+}
+
+function cost(points: readonly FitPoint[], resp: readonly number[]): number {
+  let sum = 0;
+  points.forEach((p, j) => {
+    const e = p.weight * (p.targetDb - (resp[j] ?? 0));
+    sum += e * e;
+  });
+  return sum;
 }
 
 /** Solves `A x = b` (row-major n×n) by Gaussian elimination with partial pivoting; null if singular. */
@@ -181,7 +357,7 @@ function solveLinear(a: number[], b: number[], n: number): number[] | null {
     for (let r = col + 1; r < n; r++) {
       if (Math.abs(a[r * n + col] ?? 0) > Math.abs(a[piv * n + col] ?? 0)) piv = r;
     }
-    if (Math.abs(a[piv * n + col] ?? 0) < 1e-12) return null;
+    if (Math.abs(a[piv * n + col] ?? 0) < 1e-300) return null;
     if (piv !== col) {
       for (let k = 0; k < n; k++) {
         const t = a[piv * n + k] ?? 0;
@@ -209,60 +385,118 @@ function solveLinear(a: number[], b: number[], n: number): number[] | null {
   return x;
 }
 
-const peaking = (f: number, g: number, q: number, fs: number) =>
-  designBiquad({ kind: "peaking", freqHz: f, gainDb: g, q }, fs);
-
-/** Newton iteration for `Σ_k H_k(f_j; g_k) = s_j` (neighbouring bands overlap, so raw slider values overshoot). */
-function solveGains(freqs: number[], targets: number[], q: number, fs: number): number[] {
-  const n = freqs.length;
-  const g = targets.slice();
-  if (targets.every((t) => t === 0)) return g;
-  const H = 0.01;
-  for (let iter = 0; iter < 20; iter++) {
-    const jac = new Array<number>(n * n).fill(0);
-    const err = targets.slice();
-    for (let k = 0; k < n; k++) {
+/** Levenberg–Marquardt for `min_g Σ_j w_j² (t_j − Σ_k H_k(f_j; g_k))²`. */
+function solveGains(
+  layout: readonly [number, number][],
+  points: readonly FitPoint[],
+  fs: number,
+  design: Designer,
+): number[] {
+  const n = layout.length;
+  const m = points.length;
+  const phis = points.map((p) => phiOf(p.freqHz, fs));
+  const g = new Array<number>(n).fill(0);
+  const resp = new Array<number>(m).fill(0);
+  responses(layout, g, phis, fs, design, resp);
+  let current = cost(points, resp);
+  const jac = new Array<number>(n * m).fill(0);
+  const wr = new Array<number>(m).fill(0);
+  const jtj = new Array<number>(n * n).fill(0);
+  const jtr = new Array<number>(n).fill(0);
+  const trial = new Array<number>(n).fill(0);
+  const trialResp = new Array<number>(m).fill(0);
+  let lambda = LAMBDA_START;
+  for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
+    layout.forEach(([f, q], k) => {
       const gk = g[k] ?? 0;
-      const f = freqs[k] ?? 1000;
-      const c0 = peaking(f, gk, q, fs);
-      const cp = peaking(f, gk + H, q, fs);
-      const cm = peaking(f, gk - H, q, fs);
-      for (let j = 0; j < n; j++) {
-        const fj = freqs[j] ?? 1000;
-        err[j] = (err[j] ?? 0) - biquadMagnitudeDb(c0, fj, fs);
-        jac[j * n + k] = (biquadMagnitudeDb(cp, fj, fs) - biquadMagnitudeDb(cm, fj, fs)) / (2 * H);
+      const c0 = design(f, gk, q, fs);
+      const c1 = design(f, gk + JACOBIAN_STEP_DB, q, fs);
+      for (let j = 0; j < m; j++) {
+        const p = phis[j] ?? 0;
+        const ratio = magnitudeSqPhi(c1, p) / magnitudeSqPhi(c0, p);
+        jac[k * m + j] = ((points[j]?.weight ?? 1) * dbSq(ratio)) / JACOBIAN_STEP_DB;
+      }
+    });
+    for (let j = 0; j < m; j++)
+      wr[j] = (points[j]?.weight ?? 1) * ((points[j]?.targetDb ?? 0) - (resp[j] ?? 0));
+    for (let a = 0; a < n; a++) {
+      let s = 0;
+      for (let j = 0; j < m; j++) s += (jac[a * m + j] ?? 0) * (wr[j] ?? 0);
+      jtr[a] = s;
+      for (let b = a; b < n; b++) {
+        let v = 0;
+        for (let j = 0; j < m; j++) v += (jac[a * m + j] ?? 0) * (jac[b * m + j] ?? 0);
+        jtj[a * n + b] = v;
+        jtj[b * n + a] = v;
       }
     }
-    if (Math.max(...err.map(Math.abs)) < 1e-7) break;
-    const delta = solveLinear(jac, err, n);
-    if (!delta) break;
-    for (let k = 0; k < n; k++) {
-      g[k] = clamp((g[k] ?? 0) + (delta[k] ?? 0), -MAX_SOLVED_GAIN_DB, MAX_SOLVED_GAIN_DB);
+    let step: number | null = null;
+    for (let tries = 0; tries < MAX_DAMPING_TRIES; tries++) {
+      const lhs = jtj.slice();
+      for (let i = 0; i < n; i++)
+        lhs[i * n + i] = (lhs[i * n + i] ?? 0) + lambda * (jtj[i * n + i] ?? 0) + RIDGE;
+      const delta = solveLinear(lhs, jtr.slice(), n);
+      if (!delta) break;
+      for (let k = 0; k < n; k++) {
+        trial[k] = clamp((g[k] ?? 0) + (delta[k] ?? 0), -MAX_SOLVED_GAIN_DB, MAX_SOLVED_GAIN_DB);
+      }
+      responses(layout, trial, phis, fs, design, trialResp);
+      const c = cost(points, trialResp);
+      if (c <= current) {
+        let maxStep = 0;
+        for (let k = 0; k < n; k++) maxStep = Math.max(maxStep, Math.abs((trial[k] ?? 0) - (g[k] ?? 0)));
+        for (let k = 0; k < n; k++) g[k] = trial[k] ?? 0;
+        for (let j = 0; j < m; j++) resp[j] = trialResp[j] ?? 0;
+        current = c;
+        lambda = Math.max(lambda * 0.1, LAMBDA_MIN);
+        step = maxStep;
+        break;
+      }
+      lambda *= 10;
     }
+    if (step === null || step < STEP_TOLERANCE_DB) break;
   }
   return g;
 }
 
 /**
- * Filters that make the combined response at every band center equal the slider value. Bands above
- * 0.49·fs are left out; missing slider values count as 0 dB.
+ * Filters that make the summed response follow the slider curve (matched peaking, centers and
+ * midpoints). Bands above 0.49·fs are left out; missing slider values count as 0 dB.
  */
 export function solveGraphicFilters(
   bands: GraphicBands,
   gainsDb: readonly number[],
   fs: number = EQ_SAMPLE_RATE,
 ): FilterSpec[] {
-  const q = graphicQ(bands);
-  const freqs: number[] = [];
-  const targets: number[] = [];
-  GRAPHIC_FREQUENCIES[bands].forEach((f, i) => {
-    if (f > MAX_FREQ_RATIO * fs) return;
-    const s = gainsDb[i];
-    freqs.push(f);
-    targets.push(clamp(s !== undefined && Number.isFinite(s) ? s : 0, -MAX_SLIDER_DB, MAX_SLIDER_DB));
-  });
-  const gains = solveGains(freqs, targets, q, fs);
-  return freqs.map((f, i) => ({ kind: "peaking", freqHz: f, gainDb: gains[i] ?? 0, q }));
+  const [centers, targets] = usableBands(bands, gainsDb, validRate(fs));
+  const layout = filterLayout(centers);
+  const gains = targets.every((t) => t === 0)
+    ? new Array<number>(layout.length).fill(0)
+    : solveGains(layout, fitPoints(centers, targets), validRate(fs), matchedDesigner);
+  return layout.map(([freqHz, q], k) => ({
+    kind: "peaking",
+    freqHz,
+    gainDb: gains[k] ?? 0,
+    q,
+    design: "matched",
+  }));
+}
+
+/**
+ * Ordinary (RBJ) peaking filters, one per band center, fitted to the same slider curve: what a
+ * parametric EQ needs to sound like the graphic setting (used when switching to parametric mode).
+ */
+export function fitParametricToGraphic(
+  bands: GraphicBands,
+  gainsDb: readonly number[],
+  fs: number = EQ_SAMPLE_RATE,
+): FilterSpec[] {
+  const [centers, targets] = usableBands(bands, gainsDb, validRate(fs));
+  const layout = filterLayout(centers, false);
+  const gains = targets.every((t) => t === 0)
+    ? new Array<number>(layout.length).fill(0)
+    : solveGains(layout, fitPoints(centers, targets), validRate(fs), bilinearDesigner);
+  return layout.map(([freqHz, q], k) => ({ kind: "peaking", freqHz, gainDb: gains[k] ?? 0, q }));
 }
 
 export const toSpec = (f: ParametricFilter): FilterSpec => ({
@@ -332,19 +566,39 @@ function maxBoostDb(coeffs: Biquad[], specs: FilterSpec[], fs: number): number {
   return best;
 }
 
+const BASS_FREQ_RANGE: [number, number] = [20, 300];
+const BASS_MAX_BOOST_DB = 24;
+
+/** The bass enhancer's low shelf (its harmonics are nonlinear and not part of any response). */
+export function bassShelfSpec(bass: BassEnhancerConfig): FilterSpec {
+  const freq = Number.isFinite(bass.frequencyHz) ? bass.frequencyHz : 80;
+  const boost = bass.enabled && Number.isFinite(bass.boostDb) ? clamp(bass.boostDb, 0, BASS_MAX_BOOST_DB) : 0;
+  return {
+    kind: "lowShelf",
+    freqHz: clamp(freq, BASS_FREQ_RANGE[0], BASS_FREQ_RANGE[1]),
+    gainDb: boost,
+    q: BUTTERWORTH_Q,
+  };
+}
+
 /**
- * Response of `eq` at `points` log-spaced frequencies, including the effective preamp (manual preamp
- * minus auto headroom), like the engine's `audio_eq_response`.
+ * Response of `eq` (plus the bass enhancer's shelf when `bass` is enabled) at `points` log-spaced
+ * frequencies, including the effective preamp (manual preamp minus auto headroom), like the engine's
+ * `audio_eq_response`.
  */
 export function computeEqResponse(
   eq: EqConfig,
   points: number,
   fs: number = EQ_SAMPLE_RATE,
+  bass?: BassEnhancerConfig,
 ): EqResponse {
+  fs = validRate(fs);
   const specs = eqFilterSpecs(eq, fs);
-  const coeffs = specs.map((s) => designBiquad(s, fs));
+  const shelf = bass?.enabled ? [clampSpec(bassShelfSpec(bass), fs)] : [];
+  const coeffs = [...specs, ...shelf].map((s) => designBiquad(s, fs));
   const maxBoost = coeffs.length > 0 ? maxBoostDb(coeffs, specs, fs) : 0;
-  const manual = eq.enabled && Number.isFinite(eq.preampDb) ? clamp(eq.preampDb, -MAX_PREAMP_DB, MAX_PREAMP_DB) : 0;
+  const manual =
+    eq.enabled && Number.isFinite(eq.preampDb) ? clamp(eq.preampDb, -MAX_PREAMP_DB, MAX_PREAMP_DB) : 0;
   const headroom = eq.autoHeadroom ? Math.max(maxBoost, 0) : 0;
   const preamp = manual - headroom;
   const frequencies = logFrequencies(points);

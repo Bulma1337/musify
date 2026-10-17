@@ -1,14 +1,19 @@
-import type { EqConfig, ParametricFilter } from "@/player/engineTypes";
+import type { BassEnhancerConfig, EqConfig, ParametricFilter } from "@/player/engineTypes";
+import golden from "./eqGolden.json";
 import {
+  analogPeakingMagSq,
   biquadMagnitudeDb,
   computeEqResponse,
   designBiquad,
+  fitParametricToGraphic,
   GRAPHIC_FREQUENCIES,
   logFrequencies,
+  matchedPeaking,
   resampleGraphicGains,
   solveGraphicFilters,
   type FilterSpec,
 } from "./eqMath";
+import { BUILT_IN_PRESETS } from "./presets";
 
 const FS = 48_000;
 const db = (spec: FilterSpec, f: number) => biquadMagnitudeDb(designBiquad(spec, FS), f, FS);
@@ -76,40 +81,127 @@ describe("RBJ biquads", () => {
   });
 });
 
-describe("graphic EQ solver", () => {
-  it("flat sliders give flat filters", () => {
-    const filters = solveGraphicFilters("ten", new Array(10).fill(0), FS);
-    expect(filters).toHaveLength(10);
-    expect(filters.every((f) => f.gainDb === 0)).toBe(true);
+describe("matched peaking filter", () => {
+  // The analog prototype is matched exactly at DC, f0 and Nyquist (no bilinear squeeze of the upper skirt).
+  // Between those points a bell close to Nyquist deviates by up to ~1 dB (16 kHz at 44.1 kHz); the graphic
+  // solver fits the actual digital response, so that never reaches the curve the sliders describe.
+  it("matches the analog prototype at f0 and Nyquist, and everywhere for bells well below Nyquist", () => {
+    for (const fs of [44_100, 48_000, 96_000]) {
+      for (const [f0, g, q] of [
+        [16_000, 6, 1.9],
+        [16_000, -12, 1.9],
+        [1000, 9, 0.7],
+        [60, -6, 3],
+      ] as const) {
+        const c = designBiquad({ kind: "peaking", freqHz: f0, gainDb: g, q, design: "matched" }, fs);
+        const a = Math.pow(10, Math.abs(g) / 40);
+        const analogDb = (f: number) =>
+          10 * Math.log10(analogPeakingMagSq((f / f0) ** 2, a, q)) * Math.sign(g);
+        expect(biquadMagnitudeDb(c, f0, fs)).toBeCloseTo(g, 6);
+        expect(biquadMagnitudeDb(c, 0.5 * fs, fs)).toBeCloseTo(analogDb(0.5 * fs), 6);
+        if (f0 <= 0.1 * fs) {
+          for (let i = 0; i <= 100; i++) {
+            const f = 20 * Math.pow((0.45 * fs) / 20, i / 100);
+            expect(Math.abs(biquadMagnitudeDb(c, f, fs) - analogDb(f))).toBeLessThan(0.05);
+          }
+        }
+      }
+    }
   });
 
-  it("makes the combined response hit every slider value at the band centers", () => {
-    const gains = [6, 6, 6, 0, -4, -4, 0, 3, 6, 6];
-    const eq: EqConfig = {
-      enabled: true,
-      preampDb: 0,
-      autoHeadroom: false,
-      mode: { type: "graphic", bands: "ten", gainsDb: gains },
-    };
-    const freqs = GRAPHIC_FREQUENCIES.ten.slice();
-    // Evaluate exactly at the centers through a one-point-per-frequency response.
-    const filters = solveGraphicFilters("ten", gains, FS).map((f) => designBiquad(f, FS));
-    freqs.forEach((f, i) => {
-      const total = filters.reduce((sum, c) => sum + biquadMagnitudeDb(c, f, FS), 0);
-      expect(total).toBeCloseTo(gains[i] ?? 0, 3);
-    });
-    const response = computeEqResponse(eq, 64, FS);
-    expect(Math.max(...response.magnitudeDb)).toBeLessThan(7.5);
+  it("cut is the exact inverse of the boost", () => {
+    const boost = matchedPeaking(8000, 9, 1.5, 44_100);
+    const cut = matchedPeaking(8000, -9, 1.5, 44_100);
+    for (const f of [100, 4000, 8000, 15_000, 21_000]) {
+      expect(biquadMagnitudeDb(boost, f, 44_100) + biquadMagnitudeDb(cut, f, 44_100)).toBeCloseTo(0, 9);
+    }
+  });
+});
+
+describe("graphic EQ solver", () => {
+  const sumDb = (filters: FilterSpec[], f: number, fs: number) =>
+    filters.reduce((sum, s) => sum + biquadMagnitudeDb(designBiquad(s, fs), f, fs), 0);
+  /** Slider values interpolated on log frequency (the curve the sliders describe). */
+  const target = (gains: readonly number[], f: number) => {
+    const c = GRAPHIC_FREQUENCIES.ten.map(Math.log2);
+    const x = Math.log2(f);
+    let i = 0;
+    while (i < c.length - 2 && (c[i + 1] ?? 0) < x) i++;
+    const t = (x - (c[i] ?? 0)) / ((c[i + 1] ?? 1) - (c[i] ?? 0));
+    return (gains[i] ?? 0) + t * ((gains[i + 1] ?? 0) - (gains[i] ?? 0));
+  };
+
+  it("flat sliders give flat filters (centers and midpoints)", () => {
+    const filters = solveGraphicFilters("ten", new Array(10).fill(0), FS);
+    expect(filters).toHaveLength(19);
+    expect(filters.every((f) => f.gainDb === 0 && f.design === "matched")).toBe(true);
+  });
+
+  it("follows the slider curve within 0.6 dB, also near Nyquist at 44.1 kHz", () => {
+    for (const fs of [44_100, 48_000, 96_000]) {
+      for (const gains of [
+        [5, 4, 2.5, 1, -1, -1.5, 0.5, 2.5, 3.5, 4],
+        new Array(10).fill(12),
+        [0, 0, 0, 0, 0, 1, 2.5, 4, 5.5, 6],
+      ]) {
+        const filters = solveGraphicFilters("ten", gains, fs);
+        for (let i = 0; i <= 200; i++) {
+          const f = 31.5 * Math.pow(16_000 / 31.5, i / 200);
+          expect(Math.abs(sumDb(filters, f, fs) - target(gains, f))).toBeLessThan(0.6);
+        }
+        GRAPHIC_FREQUENCIES.ten.forEach((f, i) => {
+          expect(Math.abs(sumDb(filters, f, fs) - (gains[i] ?? 0))).toBeLessThan(0.15);
+        });
+      }
+    }
   });
 
   it("works for the 31-band layout as well", () => {
     const gains = GRAPHIC_FREQUENCIES.thirtyOne.map((_, i) => (i % 2 === 0 ? 4 : -4));
-    const filters = solveGraphicFilters("thirtyOne", gains, FS).map((f) => designBiquad(f, FS));
+    const filters = solveGraphicFilters("thirtyOne", gains, FS);
+    expect(filters).toHaveLength(61);
     GRAPHIC_FREQUENCIES.thirtyOne.forEach((f, i) => {
-      const total = filters.reduce((sum, c) => sum + biquadMagnitudeDb(c, f, FS), 0);
-      expect(total).toBeCloseTo(gains[i] ?? 0, 2);
+      expect(Math.abs(sumDb(filters, f, FS) - (gains[i] ?? 0))).toBeLessThan(0.2);
     });
   });
+
+  it("fits one ordinary peaking filter per band for the parametric mode", () => {
+    const gains = [5, 4, 2.5, 1, -1, -1.5, 0.5, 2.5, 3.5, 4];
+    const filters = fitParametricToGraphic("ten", gains, FS);
+    expect(filters).toHaveLength(10);
+    expect(filters.every((f) => f.design === undefined)).toBe(true);
+    GRAPHIC_FREQUENCIES.ten.slice(0, 9).forEach((f, i) => {
+      expect(Math.abs(sumDb(filters, f, FS) - (gains[i] ?? 0))).toBeLessThan(1);
+    });
+  });
+});
+
+describe("golden fixture (shared with the Rust engine)", () => {
+  it("built-in presets match the ones the engine tests use", () => {
+    expect(golden.presets.map((p) => [p.id, p.gainsDb])).toEqual(
+      BUILT_IN_PRESETS.map((p) => [p.id, p.gainsDb]),
+    );
+  });
+
+  for (const c of golden.cases) {
+    it(`reproduces "${c.name}"`, () => {
+      const eq = c.config.eq as EqConfig;
+      if (eq.mode.type !== "graphic") throw new Error("graphic cases only");
+      const filters = solveGraphicFilters(eq.mode.bands, eq.mode.gainsDb, c.sampleRate);
+      expect(filters).toHaveLength(c.filters.length);
+      filters.forEach((f, i) => {
+        const g = c.filters[i]!;
+        expect(f.freqHz).toBeCloseTo(g.freqHz, 9);
+        expect(f.q).toBeCloseTo(g.q, 9);
+        // Ill-conditioned settings (zig-zag) converge to the same optimum within a few 1e-6 dB.
+        expect(Math.abs(f.gainDb - g.gainDb)).toBeLessThan(1e-5);
+      });
+      const r = computeEqResponse(eq, c.points, c.sampleRate, c.config.bass as BassEnhancerConfig);
+      r.magnitudeDb.forEach((v, i) => expect(Math.abs(v - c.magnitudeDb[i]!)).toBeLessThan(1e-5));
+      expect(Math.abs(r.maxBoostDb - c.maxBoostDb)).toBeLessThan(1e-5);
+      expect(Math.abs(r.effectivePreampDb - c.effectivePreampDb)).toBeLessThan(1e-5);
+    });
+  }
 });
 
 describe("computeEqResponse", () => {

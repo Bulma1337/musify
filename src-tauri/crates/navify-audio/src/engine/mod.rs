@@ -17,7 +17,8 @@ use crossbeam_channel::{Receiver, Sender};
 use rtrb::Consumer;
 
 use crate::api::{
-    DeviceInfo, EngineCommand, EngineEvent, EqConfig, EqResponse, OutputConfig, SpectrumFrame,
+    BassEnhancerConfig, DeviceInfo, DspConfig, EngineCommand, EngineEvent, EqConfig, EqResponse,
+    OutputConfig, SpectrumFrame,
 };
 use crate::output::{OutputError, OutputEvent, OutputRequest, OutputStream};
 use crate::source::CacheConfig;
@@ -122,9 +123,20 @@ impl AudioEngine {
         crate::output::list_devices()
     }
 
-    /// Frequency response of `config` at the current output rate.
-    pub fn eq_response(&self, config: &EqConfig, points: usize) -> EqResponse {
-        crate::dsp::eq_response(config, self.sample_rate.load(Ordering::Relaxed), points)
+    /// Frequency response of the EQ (and, if given, the bass enhancer's shelf) at the current output
+    /// rate: exactly what the chain applies (see [`crate::dsp::dsp_response`]).
+    pub fn eq_response(
+        &self,
+        eq: &EqConfig,
+        bass: Option<&BassEnhancerConfig>,
+        points: usize,
+    ) -> EqResponse {
+        let config = DspConfig {
+            eq: eq.clone(),
+            bass: bass.copied().unwrap_or_default(),
+            ..DspConfig::default()
+        };
+        crate::dsp::dsp_response(&config, self.sample_rate.load(Ordering::Relaxed), points)
     }
 }
 

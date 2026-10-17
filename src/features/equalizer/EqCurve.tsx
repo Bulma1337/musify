@@ -28,6 +28,9 @@ import { F_MAX, F_MIN, hasGain, MAX_PARAMETRIC_FILTERS } from "./eqMath";
 import { listenToSpectrum } from "./spectrumFeed";
 import { useElementSize } from "./useElementSize";
 
+/** Below this plot width only the decade labels (20, 100, 1k, 10k) fit without overlapping. */
+const NARROW_PLOT_PX = 420;
+const DECADE_FREQS: ReadonlySet<number> = new Set([20, 100, 1000, 10_000]);
 const CLIP_THRESHOLD_DB = -0.1;
 const CLIP_HOLD_MS = 1500;
 const SPECTRUM_FALL = 5; // band units per frame (0…255 = −90…0 dB)
@@ -328,15 +331,17 @@ export function EqCurve({ eq, response, selected, onSelect, onFilterChange, onFi
                     strokeWidth={1}
                     pointerEvents="none"
                   />
-                  <text
-                    x={freqToX(f, plotW)}
-                    y={plotH + 16}
-                    textAnchor={f === F_MIN ? "start" : f === F_MAX ? "end" : "middle"}
-                    className="fill-muted text-[10px]"
-                    pointerEvents="none"
-                  >
-                    {formatFrequencyShort(f)}
-                  </text>
+                  {(plotW >= NARROW_PLOT_PX || DECADE_FREQS.has(f)) && (
+                    <text
+                      x={freqToX(f, plotW)}
+                      y={plotH + 16}
+                      textAnchor={f === F_MIN ? "start" : f === F_MAX ? "end" : "middle"}
+                      className="fill-muted text-[10px]"
+                      pointerEvents="none"
+                    >
+                      {formatFrequencyShort(f)}
+                    </text>
+                  )}
                 </g>
               ))}
               <g clipPath={`url(#${clipId})`} pointerEvents="none">

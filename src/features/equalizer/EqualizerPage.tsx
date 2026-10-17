@@ -129,7 +129,7 @@ export function EqualizerPage() {
   const loudness = useSettings((s) => s.dsp.loudnessCompensation);
   const limiter = useSettings((s) => s.dsp.limiter);
   const [selected, setSelected] = useState<number | null>(null);
-  const response = useEqResponse(eq);
+  const response = useEqResponse(eq, bass);
   const bypass = useBypass(eq.enabled);
 
   const mode = eq.mode;
@@ -171,9 +171,7 @@ export function EqualizerPage() {
 
       <PresetBar />
 
-      {processing && (
-        <p className="mt-3 text-[13px] text-subdued">{t("equalizer.notBitPerfect")}</p>
-      )}
+      {processing && <p className="mt-3 text-[13px] text-subdued">{t("equalizer.notBitPerfect")}</p>}
 
       <div role="tablist" aria-label={t("equalizer.modeLabel")} className="mt-5 mb-3 flex gap-1">
         {MODES.map((m) => (

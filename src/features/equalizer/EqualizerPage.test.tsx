@@ -4,7 +4,7 @@ import { DEFAULT_DSP, useSettings } from "@/settings/store";
 import { renderPage } from "@/test/renderPage";
 import { clearEqMemory } from "./eqActions";
 import { EqualizerPage } from "./EqualizerPage";
-import { resampleGraphicGains } from "./eqMath";
+import { biquadMagnitudeDb, designBiquad, resampleGraphicGains } from "./eqMath";
 import { BUILT_IN_PRESETS } from "./presets";
 
 const engine = vi.hoisted(() => ({
@@ -190,7 +190,10 @@ describe("EqualizerPage", () => {
     it("converts the curve when switching between 10 and 31 bands and back", () => {
       useSettings.getState().updateDsp((dsp) => ({
         ...dsp,
-        eq: { ...dsp.eq, mode: { type: "graphic", bands: "ten", gainsDb: [4, 3, 2, 1, 0, -1, -2, -3, -4, -5] } },
+        eq: {
+          ...dsp.eq,
+          mode: { type: "graphic", bands: "ten", gainsDb: [4, 3, 2, 1, 0, -1, -2, -3, -4, -5] },
+        },
       }));
       renderEqualizer();
       fireEvent.click(screen.getByRole("tab", { name: "31 bands" }));
@@ -242,13 +245,14 @@ describe("EqualizerPage", () => {
       openParametric();
       const mode = eq().mode;
       const filters = mode.type === "parametric" ? mode.filters : [];
-      // The graphic EQ solves band interaction, so the neighbours of a +6 dB band get small cuts and the
-      // band itself a little more than its slider value. The filters keep the sound identical.
+      // One ordinary peaking filter per band, fitted so the parametric curve sounds like the graphic one.
       const centerFilter = filters.find((f) => f.freqHz === 1000);
       expect(centerFilter).toMatchObject({ kind: "peaking", enabled: true });
-      expect(centerFilter?.gainDb).toBeGreaterThan(6);
-      expect(filters.filter((f) => f.freqHz !== 1000).every((f) => f.gainDb < 0)).toBe(true);
-      expect(filters.length).toBeLessThanOrEqual(5);
+      const atDb = (f: number) => filters.reduce((sum, p) => sum + biquadMagnitudeDb(designBiquad(p), f), 0);
+      expect(atDb(1000)).toBeCloseTo(6, 0);
+      expect(Math.abs(atDb(125))).toBeLessThan(0.5);
+      expect(Math.abs(atDb(8000))).toBeLessThan(0.5);
+      expect(filters.length).toBeLessThanOrEqual(10);
     });
 
     it("edits filters in the table and adds and removes filters (max 16)", () => {
@@ -368,7 +372,7 @@ describe("EqualizerPage", () => {
       }));
       renderEqualizer();
       // Auto headroom takes back the boost, even without the engine.
-      expect(screen.getByTestId("effective-preamp").textContent).toMatch(/^−[6-7]\.\d dB$/);
+      expect(screen.getByTestId("effective-preamp").textContent).toMatch(/^−[5-6]\.\d dB$/);
     });
 
     it("changes the preamp and the headroom mode", () => {

@@ -1,6 +1,6 @@
 import type { BassEnhancerConfig, DspConfig, EqConfig, ParametricFilter } from "@/player/engineTypes";
 import { useSettings, type EqPreset } from "@/settings/store";
-import { MAX_PARAMETRIC_FILTERS, resampleGraphicGains, solveGraphicFilters } from "./eqMath";
+import { fitParametricToGraphic, MAX_PARAMETRIC_FILTERS, resampleGraphicGains } from "./eqMath";
 import { builtInPresetDsp, getBuiltInPreset, isBuiltInPresetId } from "./presets";
 
 /**
@@ -47,9 +47,12 @@ export function defaultParametricFilters(): ParametricFilter[] {
 }
 
 /** Parametric filters that sound like the given graphic curve (empty curve → neutral starter filters). */
-export function filtersFromGraphic(bands: "ten" | "thirtyOne", gainsDb: readonly number[]): ParametricFilter[] {
+export function filtersFromGraphic(
+  bands: "ten" | "thirtyOne",
+  gainsDb: readonly number[],
+): ParametricFilter[] {
   const toFilters = (b: "ten" | "thirtyOne", gains: readonly number[]) =>
-    solveGraphicFilters(b, gains)
+    fitParametricToGraphic(b, gains)
       .map((f) => ({
         enabled: true,
         kind: "peaking" as const,
@@ -91,7 +94,11 @@ export function setEqMode(target: EqModeChoice) {
     if (current.bands === target) return eq;
     return {
       ...eq,
-      mode: { type: "graphic", bands: target, gainsDb: resampleGraphicGains(current.gainsDb, current.bands, target) },
+      mode: {
+        type: "graphic",
+        bands: target,
+        gainsDb: resampleGraphicGains(current.gainsDb, current.bands, target),
+      },
     };
   });
 }
@@ -114,7 +121,11 @@ export function setAutoHeadroom(autoHeadroom: boolean) {
 }
 
 function editFilters(change: (filters: ParametricFilter[]) => ParametricFilter[]) {
-  editEq((eq) => (eq.mode.type === "parametric" ? { ...eq, mode: { type: "parametric", filters: change(eq.mode.filters) } } : eq));
+  editEq((eq) =>
+    eq.mode.type === "parametric"
+      ? { ...eq, mode: { type: "parametric", filters: change(eq.mode.filters) } }
+      : eq,
+  );
 }
 
 export function updateFilter(index: number, patch: Partial<ParametricFilter>) {
@@ -200,7 +211,9 @@ export function applyPreset(id: string) {
 
 /** True when the current setup differs from what the selected custom preset stores. */
 export function isPresetModified(preset: EqPreset, dsp: DspConfig): boolean {
-  return stableJson(snapshotDsp(dsp)) !== stableJson({ ...preset.dsp, eq: { ...preset.dsp.eq, enabled: true } });
+  return (
+    stableJson(snapshotDsp(dsp)) !== stableJson({ ...preset.dsp, eq: { ...preset.dsp.eq, enabled: true } })
+  );
 }
 
 function stableJson(value: unknown): string {
