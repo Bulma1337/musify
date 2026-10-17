@@ -21,7 +21,9 @@ Tauri 2 shell, React 19 + TypeScript frontend, native Rust audio engine. Will be
 
 ## Conventions
 
-- Code, identifiers and comments in English. UI text in German and English via i18n.
+- Code, identifiers and comments in English. UI text in German and English via i18n. German UI text uses plain
+  generic forms without gender characters ("Künstler", "Ersteller" — never "Künstler*innen").
+
 - Colors only via theme tokens in `src/styles/index.css` (`bg-surface`, `text-subdued`, `bg-accent` …); the accent is switchable.
 - Server requests go through `@tauri-apps/plugin-http` (Navidrome sends no CORS headers). Never log or cache URLs that
   contain credentials; cache keys are derived from server id + item id.

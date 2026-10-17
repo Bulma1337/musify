@@ -26,6 +26,7 @@ How pages and components in Navify are built. Read this and [BRAND.md](BRAND.md)
   `en.json`, each file with one top-level key named after the feature (`{ "album": { … } }`). German and English must
   have the same keys (a test enforces it). Shared strings (`common.*`, `menu.*`, `track.*`, `player.*`) are in
   `src/i18n/locales`.
+- **German wording**: plain generic forms without gender characters ("Künstler", not "Künstler*innen").
 - **Colors**: only theme tokens (`bg-surface`, `bg-elevated`, `bg-highlight`, `text-subdued`, `text-accent`,
   `bg-accent` …). No hard-coded hex colors except data-driven ones (cover colors).
 - **Layout**: pages render inside the main scroll container; don't add another scroll container. Use `px-6` page

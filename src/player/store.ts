@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { Track } from "@/api/provider";
 
-/** Where the current queue came from (shown as "Nächster Titel von: …", used for "now playing" highlights). */
+/** Where the current queue came from (shown as "Als Nächstes aus: …", used for "now playing" highlights). */
 export interface PlayContext {
   type: "album" | "playlist" | "artist" | "liked" | "search" | "genre" | "queue" | "mix";
   id?: string;
@@ -42,9 +42,15 @@ interface PlayerState {
   shuffle: ShuffleMode;
   repeat: RepeatMode;
 
+  /** Incremented when the user starts `current` from `positionMs` (play, next, previous). */
+  startNonce: number;
+  /** Incremented when the user seeks within `current`. */
+  seekNonce: number;
+
   playTracks(tracks: Track[], startIndex: number, context: PlayContext): void;
   togglePlay(): void;
   setPlaying(playing: boolean): void;
+  /** User skips forward (always advances, also with repeat-one). */
   next(): void;
   previous(): void;
   seek(positionMs: number): void;
@@ -54,8 +60,13 @@ interface PlayerState {
   setShuffle(mode: ShuffleMode): void;
   addToQueue(tracks: Track[]): void;
   playNext(tracks: Track[]): void;
+  /** The engine moved on to the queue item `key` by itself (gapless / crossfade / repeat-one). */
+  advanceTo(key: string): void;
+  /** The engine reached the end and nothing follows. */
+  finished(): void;
   /** Engine/progress updates. */
   setProgress(positionMs: number, durationMs?: number): void;
+  setBuffering(buffering: boolean): void;
 }
 
 let keyCounter = 0;
@@ -70,9 +81,24 @@ function shuffledOrder(length: number, first: number): number[] {
   return [first, ...rest];
 }
 
+const pushHistory = (s: PlayerState) => (s.current ? [s.current, ...s.history].slice(0, 100) : s.history);
+
+/** Where the queue goes after the current item, ignoring repeat-one (user "next"). */
+function following(s: PlayerState): { item: QueueItem; manual: boolean; orderIndex: number } | null {
+  const manual = s.manualQueue[0];
+  if (manual) return { item: manual, manual: true, orderIndex: s.orderIndex };
+  let orderIndex = s.orderIndex + 1;
+  if (orderIndex >= s.order.length) {
+    if (s.repeat !== "all" || s.order.length === 0) return null;
+    orderIndex = 0;
+  }
+  const item = s.contextItems[s.order[orderIndex] ?? -1];
+  return item ? { item, manual: false, orderIndex } : null;
+}
+
 /**
- * Queue and transport state. In milestone 2 this drives the UI only; the native engine is wired to it
- * in milestone 3 (`src/player/engine.ts`), which then reports real positions via `setProgress`.
+ * Queue and transport state. The UI changes it; `src/player/bridge.ts` forwards user intent
+ * (`startNonce`, `seekNonce`, play/pause, volume) to the audio engine and applies engine events back.
  */
 export const usePlayer = create<PlayerState>((set, get) => ({
   context: null,
@@ -90,24 +116,25 @@ export const usePlayer = create<PlayerState>((set, get) => ({
   muted: false,
   shuffle: "off",
   repeat: "off",
+  startNonce: 0,
+  seekNonce: 0,
 
   playTracks(tracks, startIndex, context) {
     if (tracks.length === 0) return;
     const items = tracks.map((t) => makeItem(t));
     const start = Math.min(Math.max(startIndex, 0), items.length - 1);
     const order = get().shuffle !== "off" ? shuffledOrder(items.length, start) : items.map((_, i) => i);
-    const orderIndex = order.indexOf(start);
-    const previous = get().current;
     set({
       context,
       contextItems: items,
       order,
-      orderIndex,
+      orderIndex: order.indexOf(start),
       current: items[start] ?? null,
-      history: previous ? [previous, ...get().history].slice(0, 100) : get().history,
+      history: pushHistory(get()),
       isPlaying: true,
       positionMs: 0,
       durationMs: items[start]?.track.durationMs ?? 0,
+      startNonce: get().startNonce + 1,
     });
   },
 
@@ -116,47 +143,45 @@ export const usePlayer = create<PlayerState>((set, get) => ({
 
   next() {
     const s = get();
-    const history = s.current ? [s.current, ...s.history].slice(0, 100) : s.history;
-    if (s.repeat === "one" && s.current) {
-      set({ positionMs: 0 });
+    const step = following(s);
+    if (!step) {
+      set({ isPlaying: false, positionMs: 0, seekNonce: s.seekNonce + 1 });
       return;
     }
-    if (s.manualQueue.length > 0) {
-      const [nextItem, ...rest] = s.manualQueue;
-      set({
-        current: nextItem ?? null,
-        manualQueue: rest,
-        history,
-        positionMs: 0,
-        durationMs: nextItem?.track.durationMs ?? 0,
-      });
-      return;
-    }
-    let orderIndex = s.orderIndex + 1;
-    if (orderIndex >= s.order.length) {
-      if (s.repeat !== "all") {
-        set({ isPlaying: false, positionMs: 0 });
-        return;
-      }
-      orderIndex = 0;
-    }
-    const item = s.contextItems[s.order[orderIndex] ?? 0] ?? null;
-    set({ orderIndex, current: item, history, positionMs: 0, durationMs: item?.track.durationMs ?? 0 });
+    set({
+      current: step.item,
+      manualQueue: step.manual ? s.manualQueue.slice(1) : s.manualQueue,
+      orderIndex: step.orderIndex,
+      history: pushHistory(s),
+      positionMs: 0,
+      durationMs: step.item.track.durationMs,
+      startNonce: s.startNonce + 1,
+    });
   },
 
   previous() {
     const s = get();
     // Restart the current track unless we are within its first 3 seconds (common player behaviour).
-    if (s.positionMs > 3000 || s.orderIndex === 0) {
-      set({ positionMs: 0 });
+    if (s.positionMs > 3000 || s.orderIndex === 0 || s.current?.manual) {
+      set({ positionMs: 0, seekNonce: s.seekNonce + 1 });
       return;
     }
     const orderIndex = s.orderIndex - 1;
     const item = s.contextItems[s.order[orderIndex] ?? 0] ?? null;
-    set({ orderIndex, current: item, positionMs: 0, durationMs: item?.track.durationMs ?? 0 });
+    set({
+      orderIndex,
+      current: item,
+      positionMs: 0,
+      durationMs: item?.track.durationMs ?? 0,
+      startNonce: s.startNonce + 1,
+    });
   },
 
-  seek: (positionMs) => set({ positionMs: Math.max(0, Math.min(positionMs, get().durationMs)) }),
+  seek: (positionMs) =>
+    set({
+      positionMs: Math.max(0, Math.min(positionMs, get().durationMs)),
+      seekNonce: get().seekNonce + 1,
+    }),
   setVolume: (volume) => set({ volume: Math.max(0, Math.min(1, volume)), muted: false }),
   toggleMute: () => set({ muted: !get().muted }),
   cycleRepeat: () => set({ repeat: get().repeat === "off" ? "all" : get().repeat === "all" ? "one" : "off" }),
@@ -177,8 +202,30 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     set({ manualQueue: [...get().manualQueue, ...tracks.map((t) => makeItem(t, true))] }),
   playNext: (tracks) => set({ manualQueue: [...tracks.map((t) => makeItem(t, true)), ...get().manualQueue] }),
 
+  advanceTo(key) {
+    const s = get();
+    if (s.current?.key === key) {
+      // Repeat-one: the same item started again.
+      set({ positionMs: 0 });
+      return;
+    }
+    const step = following(s);
+    if (!step || step.item.key !== key) return;
+    set({
+      current: step.item,
+      manualQueue: step.manual ? s.manualQueue.slice(1) : s.manualQueue,
+      orderIndex: step.orderIndex,
+      history: pushHistory(s),
+      positionMs: 0,
+      durationMs: step.item.track.durationMs,
+    });
+  },
+
+  finished: () => set({ isPlaying: false, positionMs: 0, buffering: false }),
+
   setProgress: (positionMs, durationMs) =>
     set(durationMs === undefined ? { positionMs } : { positionMs, durationMs }),
+  setBuffering: (buffering) => set({ buffering }),
 }));
 
 /** Upcoming context items after the current one, in play order. */
@@ -187,6 +234,13 @@ export function upcomingContextItems(state: PlayerState): QueueItem[] {
     .slice(state.orderIndex + 1)
     .map((i) => state.contextItems[i]!)
     .filter(Boolean);
+}
+
+/** The item the engine should preload after the current one (repeat-one repeats the current item). */
+export function peekNext(state: PlayerState): QueueItem | null {
+  if (!state.current) return null;
+  if (state.repeat === "one") return state.current;
+  return following(state)?.item ?? null;
 }
 
 export type { QueueItem, PlayerState };

@@ -75,7 +75,9 @@
     "queue": "Queue",
     "devices": "Choose output device",
     "miniplayer": "Open mini player",
-    "fullscreen": "Full screen"
+    "fullscreen": "Full screen",
+    "playbackError": "Playback error: {{message}}",
+    "deviceLost": "The output device was disconnected. Playback continues on the default device."
   },
   "track": {
     "title": "Title",

@@ -1,5 +1,6 @@
 use tauri::Manager;
 
+mod audio;
 mod secrets;
 
 /// Basic build information shown in Settings → About.
@@ -61,11 +62,21 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_process::init())
+        .setup(|app| {
+            app.manage(audio::AudioState::new(app.handle()));
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             app_info,
             secrets::secret_set,
             secrets::secret_get,
-            secrets::secret_delete
+            secrets::secret_delete,
+            audio::audio_send,
+            audio::audio_subscribe,
+            audio::audio_spectrum_subscribe,
+            audio::audio_devices,
+            audio::audio_eq_response,
+            audio::audio_parse_autoeq
         ])
         .run(tauri::generate_context!())
         .expect("error while running Navify");
