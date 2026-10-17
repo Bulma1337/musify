@@ -138,7 +138,7 @@ function DeviceRow({
       <Speaker size={22} className={selected ? "text-accent" : "text-subdued"} aria-hidden="true" />
       <span className="min-w-0 flex-1">
         <span className={cn("block truncate", selected && "font-bold text-accent")}>{name}</span>
-        {detail && <span className="block truncate text-sm text-subdued">{detail}</span>}
+        {detail && <span className="block text-sm break-words text-subdued">{detail}</span>}
       </span>
       {isDefault && (
         <span className="shrink-0 rounded bg-surface px-1.5 py-0.5 text-[11px] text-subdued">

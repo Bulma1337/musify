@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ChevronLeft, ChevronRight, Copy, House, Minus, Search, Settings, Square, X } from "lucide-react";
 import { DownloadsLink } from "@/features/downloads/DownloadsLink";
+import { AccountMenu } from "./AccountMenu";
 import { cn } from "@/lib/cn";
 import { inTauri } from "@/lib/platform";
 import { FOCUS_SEARCH_EVENT } from "./shortcuts";
@@ -187,7 +188,12 @@ export function TitleBar({ minimal = false }: { minimal?: boolean }) {
         <Navigation />
       )}
       <div data-tauri-drag-region className="flex h-full flex-1 items-start justify-end">
-        {!minimal && <SettingsButton />}
+        {!minimal && (
+          <>
+            <SettingsButton />
+            <AccountMenu />
+          </>
+        )}
         <WindowControls />
       </div>
     </header>

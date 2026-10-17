@@ -75,6 +75,8 @@ interface PlayerState {
   moveUpcoming(from: number[], to: number): void;
   removeFromQueue(keys: string[]): void;
   clearManualQueue(): void;
+  /** Stops playback and empties the whole queue (e.g. when switching to another server). */
+  resetQueue(): void;
   /** Plays a queued item now, skipping everything before it. */
   jumpTo(key: string): void;
   /** Appends autoplay recommendations after the context. */
@@ -278,6 +280,20 @@ export const usePlayer = create<PlayerState>()(
       },
 
       clearManualQueue: () => set({ manualQueue: [] }),
+
+      resetQueue: () =>
+        set({
+          context: null,
+          contextItems: [],
+          order: [],
+          orderIndex: 0,
+          manualQueue: [],
+          current: null,
+          isPlaying: false,
+          positionMs: 0,
+          durationMs: 0,
+          buffering: false,
+        }),
 
       jumpTo(key) {
         const s = get();

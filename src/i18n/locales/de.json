@@ -159,7 +159,9 @@
     "passwordHint": "Bei Navidrome kannst du ohne Benutzernamen auch einen API-Schlüssel verwenden.",
     "allowInsecure": "Selbstsignierte Zertifikate erlauben",
     "connect": "Verbinden",
-    "secureStorage": "Dein Passwort wird verschlüsselt in der Windows-Anmeldeinformationsverwaltung gespeichert, nie in Klartext."
+    "secureStorage": "Dein Passwort wird verschlüsselt in der Windows-Anmeldeinformationsverwaltung gespeichert, nie in Klartext.",
+    "cancel": "Abbrechen",
+    "addTitle": "Weiteren Server verbinden"
   },
   "errors": {
     "auth": "Benutzername oder Passwort ist falsch.",
@@ -170,5 +172,17 @@
     "invalidResponse": "Der Server hat eine unerwartete Antwort geschickt.",
     "server": "Der Server meldet einen Fehler (Code {{code}}).",
     "unknown": "Ein unbekannter Fehler ist aufgetreten."
+  },
+  "account": {
+    "menu": "Konto",
+    "servers": "Server",
+    "current": "Verbunden",
+    "offline": "offline",
+    "addServer": "Server hinzufügen",
+    "signOut": "Von {{server}} abmelden",
+    "signOutTitle": "Von {{server}} abmelden?",
+    "signOutBody": "Navify löscht die gespeicherten Zugangsdaten für diesen Server und leert die Warteschlange. Heruntergeladene Titel bleiben auf dem Rechner.",
+    "signOutConfirm": "Abmelden",
+    "cancel": "Abbrechen"
   }
 }

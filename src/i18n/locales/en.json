@@ -159,7 +159,9 @@
     "passwordHint": "With Navidrome you can also leave the username empty and use an API key.",
     "allowInsecure": "Allow self-signed certificates",
     "connect": "Connect",
-    "secureStorage": "Your password is stored encrypted in the system credential store, never in plain text."
+    "secureStorage": "Your password is stored encrypted in the system credential store, never in plain text.",
+    "cancel": "Cancel",
+    "addTitle": "Connect another server"
   },
   "errors": {
     "auth": "Wrong username or password.",
@@ -170,5 +172,17 @@
     "invalidResponse": "The server sent an unexpected response.",
     "server": "The server reported an error (code {{code}}).",
     "unknown": "Something went wrong."
+  },
+  "account": {
+    "menu": "Account",
+    "servers": "Servers",
+    "current": "Connected",
+    "offline": "offline",
+    "addServer": "Add server",
+    "signOut": "Sign out of {{server}}",
+    "signOutTitle": "Sign out of {{server}}?",
+    "signOutBody": "Navify deletes the saved credentials for this server and clears the queue. Downloaded tracks stay on this computer.",
+    "signOutConfirm": "Sign out",
+    "cancel": "Cancel"
   }
 }

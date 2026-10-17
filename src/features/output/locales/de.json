@@ -37,7 +37,7 @@
     "noDevices": "Keine Geräte gefunden. Es wird der Systemstandard genutzt.",
     "deviceMissing": "Das gespeicherte Gerät ist nicht angeschlossen. Die Wiedergabe nutzt das Standardgerät.",
     "exclusiveMode": "Exklusiver Modus",
-    "exclusiveHint": "Übernimmt das Gerät exklusiv und spielt jeden Titel in seiner Original-Abtastrate und Bit-Tiefe. Bit-perfect, solange Equalizer und Effekte aus sind und die Lautstärke bei 100 % liegt.",
+    "exclusiveHint": "Navify übernimmt die Soundkarte allein, am Windows-Mixer vorbei, und spielt jeden Titel in seiner Original-Abtastrate und Bit-Tiefe. Andere Programme sind auf diesem Gerät so lange nicht zu hören, und die Lautstärke regelst du dann in Navify. Bit-perfect, solange Equalizer und Effekte aus sind und die Lautstärke bei 100 % liegt.",
     "exclusiveUnsupported": "Dieses Gerät unterstützt den exklusiven Modus nicht.",
     "openEqualizer": "Equalizer öffnen",
     "exclusiveUpTo": "Exklusiv bis {{bits}} Bit / {{rate}}",

@@ -256,6 +256,13 @@ export function startEngineBridge(): () => void {
 
   const unsubscribe = usePlayer.subscribe((state, prev) => {
     if (applying) return;
+    if (!state.current && prev.current) {
+      // Queue emptied (e.g. another server): stop and forget what the engine had loaded.
+      loadedKey = null;
+      nextId = null;
+      engine.send({ type: "stop" });
+      return;
+    }
     if (state.startNonce !== prev.startNonce) {
       play(state);
       return;
