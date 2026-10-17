@@ -18,7 +18,7 @@ use crate::api::{
 use crate::decode::{DecodeError, DecodedInfo, TrackWorker, TrackWorkerConfig, WorkerEvent};
 use crate::dsp::volume_to_gain;
 use crate::output::OutputEvent;
-use crate::source::{SourceError, SourceEventSink, SourceManager};
+use crate::source::{SourceError, SourceEvent, SourceManager};
 
 /// Decoded audio buffered per track.
 const RING_SECONDS: f64 = 2.0;
@@ -112,16 +112,13 @@ struct Controller {
 
 pub(super) fn run(
     init: EngineInit,
+    sources: Arc<SourceManager>,
+    source_rx: Receiver<SourceEvent>,
     commands: Receiver<EngineCommand>,
     events: Sender<EngineEvent>,
     spectrum: Sender<SpectrumFrame>,
     sample_rate: Arc<AtomicU32>,
 ) {
-    let (source_tx, source_rx) = crossbeam_channel::unbounded();
-    let sink: SourceEventSink = Arc::new(move |event| {
-        let _ = source_tx.send(event);
-    });
-    let sources = Arc::new(SourceManager::new(init.cache, sink));
     let (worker_tx, worker_rx) = crossbeam_channel::unbounded();
     let (mixer_tx, mixer_rx) = crossbeam_channel::unbounded();
     let (output_tx, output_rx) = crossbeam_channel::unbounded();

@@ -12,14 +12,18 @@ use navify_audio::{AudioEngine, EngineInit};
 use tauri::Manager;
 use tauri::ipc::Channel;
 
-/// Default size of the streaming cache (configurable later in Settings → Storage).
+/// Size of the streaming cache until the frontend applies the user's setting.
 const DEFAULT_CACHE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+/// Bounds for the configurable cache size.
+const MIN_CACHE_BYTES: u64 = 128 * 1024 * 1024;
+const MAX_CACHE_BYTES: u64 = 1024 * 1024 * 1024 * 1024;
 
 pub struct AudioState {
     engine: Arc<AudioEngine>,
     /// Incremented per subscription, so a reloaded webview replaces the previous forwarder.
     event_generation: Arc<AtomicU64>,
     spectrum_generation: Arc<AtomicU64>,
+    cache_limit: Arc<AtomicU64>,
 }
 
 impl AudioState {
@@ -37,6 +41,7 @@ impl AudioState {
             engine: Arc::new(engine),
             event_generation: Arc::new(AtomicU64::new(0)),
             spectrum_generation: Arc::new(AtomicU64::new(0)),
+            cache_limit: Arc::new(AtomicU64::new(DEFAULT_CACHE_BYTES)),
         }
     }
 }
@@ -114,4 +119,48 @@ pub fn audio_eq_response(
 #[tauri::command]
 pub fn audio_parse_autoeq(text: String) -> Result<EqConfig, String> {
     navify_audio::dsp::parse_autoeq(&text).map_err(|e| e.to_string())
+}
+
+/// Size and limit of the streaming cache (not the downloads).
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CacheInfo {
+    pub size_bytes: u64,
+    pub limit_bytes: u64,
+}
+
+#[tauri::command]
+pub async fn audio_cache_info(state: tauri::State<'_, AudioState>) -> Result<CacheInfo, String> {
+    let engine = state.engine.clone();
+    let limit_bytes = state.cache_limit.load(Ordering::Relaxed);
+    tauri::async_runtime::spawn_blocking(move || CacheInfo {
+        size_bytes: engine.cache_size(),
+        limit_bytes,
+    })
+    .await
+    .map_err(|e| e.to_string())
+}
+
+/// Sets the cache limit; entries over the new limit are evicted right away (oldest first).
+#[tauri::command]
+pub async fn audio_cache_set_limit(
+    state: tauri::State<'_, AudioState>,
+    max_bytes: u64,
+) -> Result<(), String> {
+    let max_bytes = max_bytes.clamp(MIN_CACHE_BYTES, MAX_CACHE_BYTES);
+    state.cache_limit.store(max_bytes, Ordering::Relaxed);
+    let engine = state.engine.clone();
+    tauri::async_runtime::spawn_blocking(move || engine.set_cache_limit(max_bytes))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Deletes all cached streams except the ones playing right now.
+#[tauri::command]
+pub async fn audio_cache_clear(state: tauri::State<'_, AudioState>) -> Result<(), String> {
+    let engine = state.engine.clone();
+    tauri::async_runtime::spawn_blocking(move || engine.clear_cache())
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())
 }
