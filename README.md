@@ -61,4 +61,15 @@ Checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run format:check`,
 
 ## Contributing
 
-Issues and pull requests are welcome. Please keep audio changes covered by measurement tests and run the checks above before opening a pull request.
+Issues and pull requests are welcome. Please keep audio changes covered by measurement tests and run the checks above before opening a pull request. By submitting a pull request you agree to the contribution terms in section 3 of the [license](LICENSE).
+
+## License
+
+Musify is **free to use, privately and commercially**, under the [Musify License](LICENSE). It is source-available, not open source:
+
+- ✅ Use it anywhere, including at work or in a business, and build it from the unmodified source.
+- ✅ Share unmodified copies free of charge, together with the license.
+- ❌ Don't distribute modified versions or reuse its code in other products.
+- ❌ Don't sell it, charge for it or bundle it into something that is sold.
+
+Third-party components keep their own licenses (MIT, Apache-2.0, BSD, MPL-2.0, SIL OFL and others). For anything the license doesn't allow, [open an issue](https://github.com/Bulma1337/musify/issues) and ask.

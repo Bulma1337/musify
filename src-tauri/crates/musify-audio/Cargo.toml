@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 description = "Musify's native audio engine: streaming decode, true gapless, crossfade, f64 DSP/EQ, bit-perfect output"
 repository = "https://github.com/Bulma1337/musify"
+license-file = "../../../LICENSE"
 publish = false
 
 [features]
