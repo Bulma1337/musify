@@ -24,7 +24,8 @@ describe("PlaylistPage", () => {
 
   it("saves edited details through the provider", async () => {
     const { provider } = render();
-    fireEvent.click(await screen.findByRole("heading", { name: "Road Trip" }));
+    await screen.findByRole("heading", { name: "Road Trip" });
+    fireEvent.click(screen.getAllByRole("button", { name: "Edit details" })[0]!);
     const name = await screen.findByLabelText("Name");
     fireEvent.change(name, { target: { value: "Night Trip" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));

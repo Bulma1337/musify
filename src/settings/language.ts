@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
-import i18n, { supportedLanguages, type Language } from "@/i18n";
+import i18n, { changeLanguage, supportedLanguages, type Language } from "@/i18n";
 import { readPersisted, writePersisted } from "@/lib/persist";
 
 interface LanguageState {
@@ -23,7 +23,7 @@ export const useLanguage = create<LanguageState>()(
       language: null,
       setLanguage: (language) => {
         set({ language });
-        void i18n.changeLanguage(language);
+        void changeLanguage(language);
       },
     }),
     {
@@ -44,7 +44,7 @@ export const useLanguage = create<LanguageState>()(
 export function useLanguageController() {
   const language = useLanguage((s) => s.language);
   useEffect(() => {
-    if (language && i18n.language !== language) void i18n.changeLanguage(language);
+    if (language && i18n.language !== language) void changeLanguage(language);
   }, [language]);
 }
 
@@ -57,7 +57,7 @@ export async function applyStoredLanguage(): Promise<void> {
   try {
     await useLanguage.persist.rehydrate();
     const { language } = useLanguage.getState();
-    if (language && i18n.language !== language) await i18n.changeLanguage(language);
+    if (language && i18n.language !== language) await changeLanguage(language);
   } catch {
     // Keep the detected system language.
   }

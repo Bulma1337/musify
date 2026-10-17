@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-export type RightPanel = "nowPlaying" | "queue" | "devices" | null;
+export type RightPanel = "nowPlaying" | "queue" | "audio" | null;
 
 export const LIBRARY_COLLAPSED_WIDTH = 72;
 export const LIBRARY_MIN_WIDTH = 280;
@@ -14,6 +14,8 @@ interface LayoutState {
   libraryWidth: number;
   libraryCollapsed: boolean;
   rightPanel: RightPanel;
+  /** The now-playing panel is wanted: it comes back when the queue or audio panel is closed. */
+  nowPlayingOpen: boolean;
   rightWidth: number;
   zoom: number;
 
@@ -21,6 +23,8 @@ interface LayoutState {
   toggleLibrary(): void;
   /** Opens the panel, or closes it when it is already open. */
   toggleRightPanel(panel: Exclude<RightPanel, null>): void;
+  /** Closes the open panel (the close button): back to now playing, unless that one is closed. */
+  closeRightPanel(): void;
   setRightPanel(panel: RightPanel): void;
   setRightWidth(width: number): void;
   setZoom(zoom: number): void;
@@ -43,6 +47,7 @@ export const useLayout = create<LayoutState>()(
       libraryWidth: 340,
       libraryCollapsed: false,
       rightPanel: "nowPlaying",
+      nowPlayingOpen: true,
       rightWidth: 340,
       zoom: 1,
 
@@ -53,7 +58,21 @@ export const useLayout = create<LayoutState>()(
           set({ libraryCollapsed: false, libraryWidth: clamp(width, LIBRARY_MIN_WIDTH, LIBRARY_MAX_WIDTH) });
       },
       toggleLibrary: () => set({ libraryCollapsed: !get().libraryCollapsed }),
-      toggleRightPanel: (panel) => set({ rightPanel: get().rightPanel === panel ? null : panel }),
+      toggleRightPanel: (panel) => {
+        const { rightPanel, nowPlayingOpen } = get();
+        if (panel === "nowPlaying") {
+          const open = rightPanel !== "nowPlaying";
+          set({ nowPlayingOpen: open, rightPanel: open ? "nowPlaying" : null });
+        } else if (rightPanel === panel) {
+          set({ rightPanel: nowPlayingOpen ? "nowPlaying" : null });
+        } else {
+          set({ rightPanel: panel });
+        }
+      },
+      closeRightPanel: () => {
+        const { rightPanel } = get();
+        if (rightPanel) get().toggleRightPanel(rightPanel);
+      },
       setRightPanel: (panel) => set({ rightPanel: panel }),
       setRightWidth: (width) => set({ rightWidth: clamp(width, RIGHT_MIN_WIDTH, RIGHT_MAX_WIDTH) }),
       setZoom: (zoom) =>
@@ -61,6 +80,23 @@ export const useLayout = create<LayoutState>()(
       zoomIn: () => set({ zoom: stepZoom(get().zoom, 1) }),
       zoomOut: () => set({ zoom: stepZoom(get().zoom, -1) }),
     }),
-    { name: "musify.layout", storage: createJSONStorage(() => localStorage) },
+    {
+      name: "musify.layout",
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      // v1: the output panel became the audio panel, and the now-playing panel got its own button.
+      // A panel closed before could not be reopened, so it is shown again.
+      migrate: (persisted, version) => {
+        const state = (persisted ?? {}) as Omit<Partial<LayoutState>, "rightPanel"> & {
+          rightPanel?: string | null;
+        };
+        if (version < 1) {
+          if (state.rightPanel === "devices") state.rightPanel = "audio";
+          if (!state.rightPanel) state.rightPanel = "nowPlaying";
+          state.nowPlayingOpen = true;
+        }
+        return state as unknown as LayoutState;
+      },
+    },
   ),
 );

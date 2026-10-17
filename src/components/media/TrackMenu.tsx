@@ -5,7 +5,7 @@ import { ContextMenu } from "radix-ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { Disc3, Heart, ListEnd, ListPlus, ListStart, Mic2, Plus } from "lucide-react";
 import type { Track } from "@/api/provider";
-import { usePlaylists, useSetStarred } from "@/api/queries";
+import { usePlaylists, useSetStarred, useStarredResolver } from "@/api/queries";
 import { useIsOffline, useProvider } from "@/api/session";
 import { DownloadMenuItem } from "@/features/downloads/TrackMenuItem";
 import { describeError } from "@/api/errors";
@@ -13,7 +13,7 @@ import { usePlayer } from "@/player/store";
 import { toast, toastError } from "@/components/ui/toast";
 
 export const menuContent =
-  "z-50 min-w-[220px] max-w-[340px] overflow-hidden rounded-md bg-elevated p-1 text-sm shadow-[0_16px_24px_rgb(0_0_0/0.3),0_6px_8px_rgb(0_0_0/0.2)]";
+  "z-50 min-w-[220px] max-w-[340px] animate-pop-in overflow-hidden rounded-md bg-elevated p-1 text-sm shadow-[0_16px_24px_rgb(0_0_0/0.3),0_6px_8px_rgb(0_0_0/0.2)]";
 export const menuItem =
   "flex h-10 cursor-default items-center gap-3 rounded-sm px-3 text-text outline-none select-none data-[highlighted]:bg-highlight data-[disabled]:opacity-40";
 export const menuSeparator = "my-1 h-px bg-divider";
@@ -36,7 +36,8 @@ export function TrackMenu({ tracks, children, extra }: TrackMenuProps) {
   const playlists = usePlaylists();
   const setStarred = useSetStarred();
   const single = tracks.length === 1 ? tracks[0] : undefined;
-  const allStarred = tracks.every((tr) => tr.starred);
+  const isStarred = useStarredResolver();
+  const allStarred = tracks.every((tr) => isStarred("track", tr.id, tr.starred));
 
   async function addToPlaylist(id: string, name: string) {
     try {

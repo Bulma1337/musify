@@ -79,7 +79,7 @@
     "unmute": "Unmute",
     "lyrics": "Lyrics",
     "queue": "Queue",
-    "devices": "Choose output device",
+    "devices": "Audio and output device",
     "miniplayer": "Open mini player",
     "fullscreen": "Full screen",
     "playbackError": "Playback error: {{message}}",
@@ -97,7 +97,10 @@
     "resumedFrom": "Continuing where you left off on “{{client}}”.",
     "loadedFrom": "Took over the queue from “{{client}}”.",
     "resumed": "Continuing where you left off.",
-    "loaded": "Took over the queue from the server."
+    "loaded": "Took over the queue from the server.",
+    "nowPlayingPanel": "Show the current track",
+    "formatAndSound": "{{format}}: format and sound",
+    "pausedState": "Paused"
   },
   "track": {
     "title": "Title",
@@ -141,7 +144,8 @@
     "bitRate": "Bit rate",
     "replayGain": "ReplayGain (track)",
     "lastPlayed": "Last played",
-    "nextInQueue": "Up next"
+    "nextInQueue": "Up next",
+    "aboutArtists": "Artist profiles"
   },
   "queue": {
     "title": "Queue",

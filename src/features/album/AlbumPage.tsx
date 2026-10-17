@@ -1,12 +1,14 @@
 import { Link, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { DropdownMenu } from "radix-ui";
-import { Ellipsis, Heart, ListEnd, ListStart, Mic2, Shuffle } from "lucide-react";
+import { Ellipsis, ListEnd, ListStart, Mic2, Shuffle } from "lucide-react";
 import { describeError } from "@/api/errors";
 import { ProviderError, type AlbumDetail } from "@/api/provider";
-import { useAlbum, useArtist, useSetStarred } from "@/api/queries";
+import { useAlbum, useArtist, useIsStarred, useSetStarred } from "@/api/queries";
 import { useIsOffline } from "@/api/session";
 import { Cover } from "@/components/media/Cover";
+import { HeartIcon } from "@/components/media/HeartIcon";
+import { QualityBadge } from "@/components/media/QualityBadge";
 import { MediaCard } from "@/components/media/MediaCard";
 import { PageHeader } from "@/components/media/PageHeader";
 import { Shelf } from "@/components/media/Shelf";
@@ -55,6 +57,7 @@ function AlbumView({ album }: { album: AlbumDetail }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const setStarred = useSetStarred();
+  const saved = useIsStarred("album", album.id, album.starred);
   const offline = useIsOffline();
   const playing = useIsContextPlaying("album", album.id);
   const primaryArtist = album.artists[0];
@@ -88,7 +91,7 @@ function AlbumView({ album }: { album: AlbumDetail }) {
   }
 
   function toggleSaved() {
-    const starred = !album.starred;
+    const starred = !saved;
     setStarred.mutate(
       { kind: "album", id: album.id, starred },
       {
@@ -118,11 +121,7 @@ function AlbumView({ album }: { album: AlbumDetail }) {
       {album.year != null && <span>&nbsp;• {album.year}</span>}
       <span>&nbsp;• {t("album.tracks", { count: album.tracks.length })}</span>
       <span>&nbsp;• {formatLongDuration(album.durationMs)}</span>
-      {quality && (
-        <span className="ml-2 rounded-sm bg-accent-soft px-1.5 py-0.5 text-xs font-bold text-accent">
-          {quality}
-        </span>
-      )}
+      {quality && <QualityBadge label={quality} lossless className="ml-2" />}
     </>
   );
 
@@ -132,13 +131,13 @@ function AlbumView({ album }: { album: AlbumDetail }) {
         <Shuffle size={24} />
       </IconButton>
       <IconButton
-        label={album.starred ? t("album.unsave") : t("album.save")}
+        label={saved ? t("album.unsave") : t("album.save")}
         size={40}
-        active={album.starred}
+        active={saved}
         disabled={offline}
         onClick={toggleSaved}
       >
-        <Heart size={28} className={album.starred ? "fill-current" : undefined} />
+        <HeartIcon size={28} filled={saved} />
       </IconButton>
       <DownloadButton spec={albumSpec(album)} />
       <DropdownMenu.Root>

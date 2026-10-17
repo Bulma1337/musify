@@ -64,7 +64,7 @@ const DownloadRow = memo(function DownloadRow({ entry, failed }: { entry: Downlo
             aria-valuemin={0}
             aria-valuemax={100}
           >
-            <div className="h-full bg-accent" style={{ width: `${percent(fraction)}%` }} />
+            <div className="h-full bg-accent accent-fill" style={{ width: `${percent(fraction)}%` }} />
           </div>
         )}
         <span className={failed ? "truncate text-danger" : "tabular-nums"} title={status}>

@@ -2,74 +2,39 @@
 
 <h1 align="center">Musify</h1>
 
-<p align="center">A fast, lightweight desktop music player with a familiar streaming-app layout —<br>
-for your own <b>Navidrome</b>, <b>Subsonic/OpenSubsonic</b> and <b>Jellyfin</b> servers.</p>
+<p align="center">A fast desktop music player for your own <b>Navidrome</b>, <b>Subsonic/OpenSubsonic</b> and <b>Jellyfin</b> server.</p>
 
-> **Status:** early. The first versions are for testing; expect rough edges.
+## What it does
 
-## Features
-
-- **Familiar layout**: library, main view, now-playing panel and player bar; full-screen player and a miniplayer.
-- **Native audio engine** (Rust, 64-bit float processing): lossless and hi-res playback (tested up to 32 bit / 384 kHz), sample-exact gapless playback, equal-power crossfade, ReplayGain / loudness normalization, true-peak limiter.
-- **Exclusive mode** (Windows WASAPI): each track at its native sample rate and bit depth, bit-perfect when no processing is active; best-rate fallback when the device can't do the native rate.
-- **Equalizer**: 10- and 31-band graphic EQ that follows its sliders within half a decibel, parametric EQ, preamp with automatic headroom, Deep Bass, presets, AutoEQ import, live spectrum.
-- **Synced lyrics** from your server, `.lrc` files next to downloads, or LRCLIB (can be switched off).
-- **Downloads and offline mode**: albums, playlists and favorites, resumable downloads, offline library.
-- **Queue and playlists**: drag and drop, shuffle and Shuffle+ with recommendations, autoplay; continue where you left off, also from another device (Subsonic play queue).
-- **Statistics** with automatic playlists and a yearly **Rückblick** (recap) with its own colors every year.
-- **System integration**: media keys and the Windows media overlay, tray icon, start with Windows, notifications.
-- German and English.
+- **Sound first**: native audio engine with 64-bit processing, hi-res up to 32 bit / 384 kHz, gapless playback, crossfade, volume normalization, true-peak limiter and an exclusive mode that plays every track at its own sample rate.
+- **Equalizer**: 10 and 31 bands or parametric, presets, AutoEQ import, Deep Bass.
+- **Lyrics** that scroll with the music, from your server, `.lrc` files or LRCLIB.
+- **Downloads** for offline listening, playlists with drag and drop, queue, Shuffle+, continue where you stopped (also from another device).
+- **Statistics**, a listening calendar, automatic playlists and a yearly Recap.
+- **Your look**: 30 accent colors and gradients, miniplayer, full-screen player, 27 languages.
+- **Desktop**: media keys, tray, start with Windows, Discord status.
 
 ## Install
 
-Download `Musify_<version>_x64-setup.exe` from the [releases](https://github.com/Bulma1337/musify/releases) and run it (no admin rights needed). Musify updates itself.
+1. Download `Musify_<version>_x64-setup.exe` from [Releases](https://github.com/Bulma1337/musify/releases) and run it. No admin rights needed.
+2. Start Musify and enter your server address, user name and password (or API key).
 
-The installer is not code-signed yet, so Windows SmartScreen may warn the first time ("More info" → "Run anyway").
+Musify updates itself. The installer is not code-signed yet, so Windows SmartScreen may ask once: "More info" → "Run anyway".
 
-## Supported servers
+## Build it yourself
 
-- **Navidrome** (recommended) and other **Subsonic/OpenSubsonic** servers such as Gonic, Airsonic-Advanced, Ampache or LMS. OpenSubsonic extensions (synced lyrics, transcode offsets, …) are used when the server announces them.
-- **Jellyfin** 10.10 or newer.
-
-Credentials are kept in the operating system's credential store, never in settings files.
-
-## Building from source
-
-Requirements:
-
-- Node.js 24+
-- Rust (stable; on Windows the MSVC toolchain)
-- Windows: Visual Studio Build Tools with the C++ workload and CMake (for the Opus decoder), WebView2 (preinstalled on Windows 11)
-- The [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/) for your platform
+You need [Node.js 24+](https://nodejs.org), [Rust](https://rustup.rs) and the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) (on Windows: Visual Studio Build Tools with C++ and CMake).
 
 ```bash
+git clone https://github.com/Bulma1337/musify.git
+cd musify
 npm install
-npm run tauri dev      # full app
+npm run tauri dev      # run it
 npm run tauri build    # installer in src-tauri/target/release/bundle
 ```
 
-`npm run dev` starts only the web UI in a browser (native features such as playback through the engine, downloads and exclusive mode are not available there).
-
-Checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run format:check`, and in `src-tauri/`: `cargo clippy --all-targets -- -D warnings` and `cargo test`.
-
-## Project layout
-
-- `src/` — React + TypeScript UI: `api/` (server adapters), `app/` (shell), `features/` (pages), `player/` (queue and engine bridge)
-- `src-tauri/` — the Tauri app: downloads, database, statistics, media controls, tray
-- `src-tauri/crates/musify-audio/` — the audio engine: decoding, resampling, DSP, mixing, outputs
-- `docs/` — brand and UI guidelines
-
-## Contributing
-
-Issues and pull requests are welcome. Please keep audio changes covered by measurement tests and run the checks above before opening a pull request. By submitting a pull request you agree to the contribution terms in section 3 of the [license](LICENSE).
+Before a pull request: `npm run typecheck`, `npm run lint`, `npm test`, and in `src-tauri/` `cargo clippy --all-targets -- -D warnings` and `cargo test`. Changes to the sound path need a measurement test.
 
 ## License
 
-Musify is **free to use, privately and commercially**, under the [Musify License](LICENSE). It is source-available, not open source:
-
-- ✅ Use it anywhere, including at work or in a business, and build it from the unmodified source.
-- ✅ Share unmodified copies free of charge, together with the license.
-- ❌ Don't distribute modified versions or reuse its code in other products.
-- ❌ Don't sell it, charge for it or bundle it into something that is sold.
-
-Third-party components keep their own licenses (MIT, Apache-2.0, BSD, MPL-2.0, SIL OFL and others). For anything the license doesn't allow, [open an issue](https://github.com/Bulma1337/musify/issues) and ask.
+Free to use, privately and commercially, under the [Musify License](LICENSE). It is source-available, not open source: you may share unmodified copies for free, but not distribute modified versions or sell it. Pull requests are welcome (see section 3 of the license). Third-party components keep their own licenses.

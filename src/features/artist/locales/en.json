@@ -1,10 +1,10 @@
 {
   "artist": {
     "kind": "Artist",
-    "follow": "Follow",
-    "following": "Following",
-    "followed": "You now follow this artist",
-    "unfollowed": "You no longer follow this artist",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites",
+    "favorited": "Added to your favorites",
+    "unfavorited": "Removed from your favorites",
     "popular": "Popular",
     "showMore": "Show more",
     "showLess": "Show less",

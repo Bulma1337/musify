@@ -117,12 +117,13 @@ function Navigation() {
           type="button"
           onClick={() => navigate("/")}
           className={cn(
-            "grid size-12 shrink-0 place-items-center rounded-full bg-elevated transition-transform hover:scale-105",
-            location.pathname === "/" ? "text-text" : "text-subdued hover:text-text",
+            "grid size-12 shrink-0 place-items-center rounded-full bg-elevated transition-[transform,color] duration-150 hover:scale-105 active:scale-95",
+            // On the home page: the outline icon in the accent color (never a filled white house).
+            location.pathname === "/" ? "text-accent" : "text-subdued hover:text-text",
           )}
           aria-label={t("nav.home")}
         >
-          <House size={22} fill={location.pathname === "/" ? "currentColor" : "none"} />
+          <House size={22} />
         </button>
         <label className="group flex h-12 flex-1 items-center gap-3 rounded-full bg-elevated px-4 ring-white/20 focus-within:ring-2 hover:bg-highlight">
           <Search size={22} className="shrink-0 text-subdued group-focus-within:text-text" />

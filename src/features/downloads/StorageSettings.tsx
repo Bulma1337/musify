@@ -165,7 +165,10 @@ export function StorageSettings() {
               {t("downloads.storage.moving", { moved: move.movedFiles, total: move.totalFiles })}
             </p>
             <div className="h-1.5 overflow-hidden rounded-full bg-highlight">
-              <div className="h-full bg-accent transition-[width]" style={{ width: `${movePercent}%` }} />
+              <div
+                className="h-full bg-accent accent-fill transition-[width]"
+                style={{ width: `${movePercent}%` }}
+              />
             </div>
           </div>
         )}

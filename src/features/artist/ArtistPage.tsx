@@ -4,14 +4,15 @@ import { useTranslation } from "react-i18next";
 import type { Album, ArtistDetail, ArtistInfo, Track } from "@/api/provider";
 import { ProviderError } from "@/api/provider";
 import { describeError } from "@/api/errors";
-import { useArtist, useArtistInfo, useSetStarred, useTopTracks } from "@/api/queries";
+import { useArtist, useArtistInfo, useIsStarred, useSetStarred, useTopTracks } from "@/api/queries";
 import { useProvider } from "@/api/session";
 import { CardGrid, Shelf } from "@/components/media/Shelf";
 import { MediaCard } from "@/components/media/MediaCard";
 import { PageHeader } from "@/components/media/PageHeader";
 import { PlayButton } from "@/components/media/PlayButton";
 import { TrackList } from "@/components/media/TrackList";
-import { Button } from "@/components/ui/Button";
+import { HeartIcon } from "@/components/media/HeartIcon";
+import { IconButton } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { toast, toastError } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
@@ -48,6 +49,7 @@ function ArtistView({ artist }: { artist: ArtistDetail }) {
   const info = useArtistInfo(artist.id).data ?? null;
   const topTracks = useTopTracks(artist.name, artist.id).data ?? [];
   const setStarred = useSetStarred();
+  const favorite = useIsStarred("artist", artist.id, artist.starred);
   const playing = useIsContextPlaying("artist", artist.id);
   const context = { type: "artist" as const, id: artist.id, name: artist.name };
 
@@ -55,27 +57,27 @@ function ArtistView({ artist }: { artist: ArtistDetail }) {
     playOrToggle(context, loaders.artist(provider, artist.id, artist.name));
   }
 
-  function toggleFollow() {
-    const starred = !artist.starred;
+  function toggleFavorite() {
+    const starred = !favorite;
     setStarred.mutate(
       { kind: "artist", id: artist.id, starred },
       {
-        onSuccess: () => toast(starred ? t("artist.followed") : t("artist.unfollowed")),
+        onSuccess: () => toast(starred ? t("artist.favorited") : t("artist.unfavorited")),
         onError: (error) => toastError(describeError(t, error)),
       },
     );
   }
 
-  const followButton = (
-    <Button
-      variant="secondary"
-      size="sm"
-      aria-pressed={artist.starred}
-      onClick={toggleFollow}
-      disabled={setStarred.isPending}
+  const favoriteButton = (
+    <IconButton
+      label={favorite ? t("artist.unfavorite") : t("artist.favorite")}
+      size={40}
+      active={favorite}
+      aria-pressed={favorite}
+      onClick={toggleFavorite}
     >
-      {artist.starred ? t("artist.following") : t("artist.follow")}
-    </Button>
+      <HeartIcon size={28} filled={favorite} />
+    </IconButton>
   );
 
   return (
@@ -97,7 +99,7 @@ function ArtistView({ artist }: { artist: ArtistDetail }) {
             </div>
             <div className="flex items-center gap-6 px-6 pt-6">
               <PlayButton playing={playing} onClick={play} />
-              {followButton}
+              {favoriteButton}
             </div>
           </>
         ) : (
@@ -109,7 +111,7 @@ function ArtistView({ artist }: { artist: ArtistDetail }) {
             round
             playing={playing}
             onPlay={play}
-            actions={followButton}
+            actions={favoriteButton}
           />
         )}
       </div>

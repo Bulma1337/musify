@@ -174,6 +174,11 @@ export class MemoryHistory implements HistoryStore {
       months.set(month, entry);
     }
     const days = [...new Set(counted.map((r) => Math.floor(localSecs(r) / 86400)))].sort((a, b) => a - b);
+    const daily = new Map<number, number>();
+    for (const r of rows) {
+      const day = Math.floor(localSecs(r) / 86400);
+      daily.set(day, (daily.get(day) ?? 0) + r.playedMs);
+    }
 
     return {
       playedMs: rows.reduce((sum, r) => sum + r.playedMs, 0),
@@ -189,6 +194,7 @@ export class MemoryHistory implements HistoryStore {
       longestStreak: longestStreak(days),
       discoveries: discoveries(server, rows, from, to, topLimit),
       months: [...months.values()].sort((a, b) => (a.month < b.month ? -1 : 1)),
+      daily: [...daily.entries()].sort((a, b) => a[0] - b[0]).map(([day, playedMs]) => ({ day, playedMs })),
     };
   }
 

@@ -47,13 +47,15 @@ function WindowButtons({ className }: { className?: string }) {
 
 /**
  * Miniplayer: the main window shrunk to a small, optionally always-on-top player. Square or tall:
- * cover with controls on hover; wide: cover plus lyrics; very low: one row. Drag anywhere to move.
+ * the whole cover with title and controls below; wide: cover plus lyrics; very low: one row. Drag
+ * anywhere to move.
  */
 export function MiniPlayer() {
   const { t } = useTranslation();
   const track = usePlayer((s) => s.current?.track);
   const rgb = useCoverColor(track?.cover);
   const [ref, size] = useElementSize<HTMLDivElement>();
+  const [coverRef, cover] = useElementSize<HTMLDivElement>();
   const wide = size.width >= LYRICS_MIN_WIDTH && size.width > size.height * 1.3;
   const bar = size.height > 0 && size.height <= BAR_MAX_HEIGHT;
   const background = `linear-gradient(160deg, ${darkenCss(rgb, 0.6)} 0%, ${darkenCss(rgb, 0.2)} 100%)`;
@@ -85,59 +87,90 @@ export function MiniPlayer() {
     );
   }
 
-  return (
-    <div
-      ref={ref}
-      data-tauri-drag-region
-      className="group relative flex h-full w-full overflow-hidden text-text"
-      style={{ backgroundImage: background }}
-    >
-      {track ? (
-        <>
-          <div
-            data-tauri-drag-region
-            className={cn("relative shrink-0", wide ? "h-full aspect-square" : "absolute inset-0")}
-          >
+  if (wide && track) {
+    return (
+      <div
+        ref={ref}
+        data-tauri-drag-region
+        className="relative flex h-full w-full overflow-hidden text-text"
+        style={{ backgroundImage: background }}
+      >
+        <div
+          data-tauri-drag-region
+          className="flex h-full shrink-0 flex-col gap-2 p-3"
+          style={{ width: size.height }}
+        >
+          <div data-tauri-drag-region className="relative min-h-0 flex-1">
             <Cover
               cover={track.cover}
               size={600}
               fallback="track"
-              className="pointer-events-none h-full w-full rounded-none object-cover shadow-none"
+              className="pointer-events-none absolute inset-0 m-auto aspect-square max-h-full max-w-full rounded-md"
             />
           </div>
-          {wide && (
-            <div className="relative min-w-0 flex-1">
-              <LyricsLines track={track} />
+          <TrackLine />
+          <ProgressRow hideTimes />
+          <TransportButtons size={18} compact className="justify-center" />
+        </div>
+        <div className="relative min-w-0 flex-1">
+          <LyricsLines track={track} />
+        </div>
+        <WindowButtons className="absolute top-2 right-2 rounded-full bg-black/55 px-1 backdrop-blur-sm" />
+      </div>
+    );
+  }
+
+  // Square or tall: a bar with the window buttons, the whole cover, then title and controls.
+  // clientWidth includes the 2 × 16 px side padding.
+  const side = Math.max(0, Math.min(cover.width - 32, cover.height));
+  return (
+    <div
+      ref={ref}
+      data-tauri-drag-region
+      className="flex h-full w-full flex-col overflow-hidden text-text"
+      style={{ backgroundImage: background }}
+    >
+      <div data-tauri-drag-region className="flex h-10 shrink-0 items-center justify-end px-2">
+        <WindowButtons className="rounded-full bg-black/45 px-1" />
+      </div>
+      <div ref={coverRef} data-tauri-drag-region className="grid min-h-0 flex-1 place-items-center px-4">
+        {track ? (
+          side > 0 && (
+            <div style={{ width: side, height: side }}>
+              <Cover
+                cover={track.cover}
+                size={600}
+                fallback="track"
+                className="pointer-events-none h-full w-full rounded-md"
+              />
             </div>
-          )}
-          {/* Controls: always shown while hovering, title on a gradient at the bottom. */}
-          <div
-            data-tauri-drag-region
-            className={cn(
-              "absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-4 pt-12 pb-3",
-              wide && "right-auto w-[min(100%,var(--mini-cover))]",
-            )}
-            style={wide ? ({ "--mini-cover": `${size.height}px` } as React.CSSProperties) : undefined}
-          >
-            <div data-tauri-drag-region className="flex min-w-0 items-end gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-bold">{track.title}</p>
-                <p className="truncate text-sm text-text/75">{track.artistLine}</p>
-              </div>
-              <LikeButton track={track} />
-            </div>
-            <div className="flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-              <ProgressRow hideTimes />
-              <TransportButtons size={18} compact className="justify-center" />
-            </div>
-          </div>
-        </>
-      ) : (
-        <div data-tauri-drag-region className="grid flex-1 place-items-center text-sm text-text/70">
-          {t("player.nothingPlaying")}
+          )
+        ) : (
+          <p className="text-sm text-text/70">{t("player.nothingPlaying")}</p>
+        )}
+      </div>
+      {track && (
+        <div data-tauri-drag-region className="flex shrink-0 flex-col gap-1.5 px-4 pt-3 pb-3">
+          <TrackLine />
+          <ProgressRow hideTimes />
+          <TransportButtons size={18} compact className="justify-center" />
         </div>
       )}
-      <WindowButtons className="absolute top-2 right-2 rounded-full bg-black/40 px-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100" />
+    </div>
+  );
+}
+
+/** Title, artists and the heart of the playing track. */
+function TrackLine() {
+  const track = usePlayer((s) => s.current?.track);
+  if (!track) return null;
+  return (
+    <div data-tauri-drag-region className="flex min-w-0 items-center gap-2">
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-bold">{track.title}</p>
+        <p className="truncate text-sm text-text/75">{track.artistLine}</p>
+      </div>
+      <LikeButton track={track} />
     </div>
   );
 }

@@ -12,7 +12,7 @@ export function Toaster() {
           role="status"
           className={cn(
             "animate-[toast-in_200ms_ease-out] rounded-lg px-4 py-2.5 text-sm font-semibold shadow-xl",
-            t.tone === "error" ? "bg-danger text-black" : "bg-accent text-on-accent",
+            t.tone === "error" ? "bg-danger text-black" : "bg-accent accent-fill text-on-accent",
           )}
         >
           {t.message}

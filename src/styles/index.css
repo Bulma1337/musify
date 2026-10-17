@@ -2,50 +2,121 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. Colors are CSS variables so the accent can be switched at runtime
- * (purple default, blue, red, or derived from the current cover).
+ * Design tokens. Colors are CSS variables so the accent can be switched at runtime (presets in
+ * src/settings/accentPresets.ts; purple is the default). The neutrals have a slight cool tint.
  */
 @theme {
   --font-sans: "Figtree Variable", "Segoe UI", system-ui, sans-serif;
 
-  --color-backdrop: #000000;
-  --color-surface: #121212;
-  --color-elevated: #1f1f1f;
-  --color-highlight: #2a2a2a;
-  --color-press: #3a3a3a;
-  --color-divider: #2a2a2a;
+  --color-backdrop: #050507;
+  --color-surface: #111216;
+  --color-elevated: #1c1d23;
+  --color-highlight: #282a31;
+  --color-press: #363944;
+  --color-divider: #282a31;
 
   --color-text: #ffffff;
-  --color-subdued: #b3b3b3;
-  --color-muted: #7a7a7a;
+  --color-subdued: #aaadb9;
+  --color-muted: #747786;
 
   --color-accent: var(--accent-500);
   --color-accent-hover: var(--accent-400);
   --color-accent-press: var(--accent-600);
   --color-accent-soft: color-mix(in oklab, var(--accent-500) 22%, transparent);
-  --color-on-accent: #ffffff;
+  --color-on-accent: var(--accent-on);
 
   --color-danger: #f15e6c;
   --color-warning: #ffa42b;
+
+  --animate-heart-pop: heart-pop 420ms cubic-bezier(0.3, 1.4, 0.5, 1);
+  --animate-heart-ring: heart-ring 460ms ease-out;
+  --animate-panel-in: panel-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-fade-in: fade-in 180ms ease-out;
+  --animate-pop-in: pop-in 160ms ease-out;
+  --animate-marquee: marquee var(--marquee-duration, 10s) ease-in-out infinite;
+
+  @keyframes heart-pop {
+    0% {
+      transform: scale(1);
+    }
+    25% {
+      transform: scale(0.7);
+    }
+    60% {
+      transform: scale(1.25);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes heart-ring {
+    0% {
+      transform: scale(0.35);
+      opacity: 0.9;
+    }
+    100% {
+      transform: scale(1.15);
+      opacity: 0;
+    }
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes marquee {
+    0%,
+    17% {
+      transform: translateX(0);
+    }
+    50%,
+    67% {
+      transform: translateX(var(--marquee-shift));
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 }
 
+/* Filled accent surfaces: the gradient of gradient presets on top of the solid accent color. */
+@utility accent-fill {
+  background-image: var(--accent-fill);
+}
+
+/* Purple until the settings are loaded; useAppearance sets the chosen preset. */
 :root {
   --accent-400: #a78bfa;
   --accent-500: #8b5cf6;
   --accent-600: #7c3aed;
+  --accent-on: #ffffff;
+  --accent-fill: none;
   color-scheme: dark;
-}
-
-:root[data-accent="blue"] {
-  --accent-400: #60a5fa;
-  --accent-500: #3b82f6;
-  --accent-600: #2563eb;
-}
-
-:root[data-accent="red"] {
-  --accent-400: #fb7185;
-  --accent-500: #e11d48;
-  --accent-600: #be123c;
 }
 
 @layer base {
@@ -116,5 +187,15 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
   }
 }

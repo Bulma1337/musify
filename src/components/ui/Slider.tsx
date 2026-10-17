@@ -87,7 +87,8 @@ export function Slider({ value, onChange, onCommit, label, valueText, className,
         <div
           className={cn(
             "absolute inset-y-0 left-0 rounded-full",
-            dragging ? "bg-accent" : "bg-text group-hover:bg-accent group-focus-visible:bg-accent",
+            "bg-accent accent-fill transition-[filter]",
+            dragging ? "brightness-110" : "group-hover:brightness-110",
           )}
           style={{ width: `${shown * 100}%` }}
         />

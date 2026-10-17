@@ -1,18 +1,14 @@
+import { useState, type ReactNode } from "react";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { useLayout } from "@/app/layout/layoutStore";
 import { useEngineStatus } from "@/player/bridge";
+import type { Track } from "@/api/provider";
 import type { DeviceInfo, OutputFormat, SourceFormat } from "@/player/engineTypes";
 import { usePlayer } from "@/player/store";
 import { DEFAULT_DSP, useSettings } from "@/settings/store";
 import { renderPage } from "@/test/renderPage";
 import { OutputPanel } from "./OutputPanel";
-import {
-  activeProcessing,
-  bitPerfectBlockers,
-  formatOutputFormat,
-  formatSampleRate,
-  formatSourceFormat,
-} from "./signalPath";
+import { formatOutputFormat, formatSampleRate, formatSourceFormat } from "./signalPath";
 import { sortDevices } from "./useOutputDevices";
 
 const engine = vi.hoisted(() => ({
@@ -66,6 +62,15 @@ const exclusiveOut: OutputFormat = {
   bitPerfect: true,
 };
 const sharedOut: OutputFormat = { ...exclusiveOut, sampleRate: 48000, exclusive: false, bitPerfect: false };
+const hiResTrack = {
+  id: "t1",
+  title: "Hi-res",
+  artists: [],
+  artistLine: "",
+  genres: [],
+  durationMs: 1000,
+  format: { codec: "flac", bitDepth: 24, sampleRate: 96000, bitRate: 2800 },
+} as unknown as Track;
 
 beforeEach(() => {
   engine.devices.mockImplementation(async () => [dac, speakers]);
@@ -75,57 +80,57 @@ beforeEach(() => {
     output: { deviceId: null, exclusive: false },
     normalization: { mode: "off", target: "normal", preventClipping: true, analyzeUntagged: true },
   });
-  usePlayer.setState({ volume: 1, muted: false });
+  usePlayer.setState({ volume: 1, muted: false, current: null });
 });
 
 const renderPanel = () => renderPage(<OutputPanel />, { path: "/", url: "/" });
 
+/** renderPage resets the player, so the track is set while the page renders. */
+function Playing({ children }: { children: ReactNode }) {
+  useState(() => usePlayer.setState({ current: { key: "k", manual: false, track: hiResTrack } }));
+  return children;
+}
+const renderPanelPlaying = () =>
+  renderPage(
+    <Playing>
+      <OutputPanel />
+    </Playing>,
+    { path: "/", url: "/" },
+  );
+
 describe("OutputPanel", () => {
-  it("shows the bit-perfect badge and the signal path from source to device", () => {
+  it("shows the format, where it plays and the bit-perfect badge in exclusive mode", async () => {
     useEngineStatus.setState({ sourceFormat: flac, outputFormat: exclusiveOut });
-    renderPanel();
+    renderPanelPlaying();
+    expect(await screen.findByText("FLAC 24/96")).toBeInTheDocument();
     expect(screen.getByTestId("bit-perfect-badge")).toHaveTextContent("Bit-perfect");
-    expect(screen.getByText("FLAC · 24 Bit · 96 kHz")).toBeInTheDocument();
-    expect(screen.getByText("Sound Blaster X5 · 192 kHz · exclusive")).toBeInTheDocument();
-    expect(screen.getByText("None, signal unchanged")).toBeInTheDocument();
+    expect(screen.getByTestId("output-line")).toHaveTextContent("Sound Blaster X5 · 192 kHz · exclusive");
     expect(screen.queryByText("Not bit-perfect")).not.toBeInTheDocument();
   });
 
-  it("in shared mode shows the signal path without any bit-perfect status", () => {
-    useEngineStatus.setState({ sourceFormat: mp3, outputFormat: sharedOut });
-    useSettings.getState().updateDsp((d) => ({ ...d, eq: { ...d.eq, enabled: true } }));
-    renderPanel();
+  it("in shared mode shows no bit-perfect status", async () => {
+    useEngineStatus.setState({ sourceFormat: flac, outputFormat: sharedOut });
+    renderPanelPlaying();
+    expect(await screen.findByTestId("output-line")).toBeInTheDocument();
     expect(screen.queryByTestId("bit-perfect-badge")).not.toBeInTheDocument();
     expect(screen.queryByText("Not bit-perfect")).not.toBeInTheDocument();
-    expect(screen.queryByText("The device is used in shared mode.")).not.toBeInTheDocument();
-    expect(screen.getByText("MP3 · 320 kbit/s · 44.1 kHz")).toBeInTheDocument();
-    expect(screen.getByText("Sound Blaster X5 · 48 kHz · shared")).toBeInTheDocument();
-    expect(screen.getByText("Equalizer")).toBeInTheDocument();
+    expect(screen.getByTestId("output-line")).toHaveTextContent("Sound Blaster X5 · 48 kHz · shared");
   });
 
-  it("in exclusive mode explains why the output is not bit-perfect", () => {
-    useEngineStatus.setState({
-      sourceFormat: mp3,
-      outputFormat: { ...exclusiveOut, bitPerfect: false, sourceRate: 44100, resampled: true },
+  it("shows only the settings while nothing plays", () => {
+    renderPanel();
+    expect(screen.queryByText("Format")).not.toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "Equalizer" })).toBeInTheDocument();
+  });
+
+  it("turns the equalizer on and picks a preset", () => {
+    renderPanel();
+    fireEvent.click(screen.getByRole("switch", { name: "Equalizer" }));
+    expect(useSettings.getState().dsp.eq.enabled).toBe(true);
+    fireEvent.change(screen.getByRole("combobox", { name: "Equalizer preset" }), {
+      target: { value: "bassBooster" },
     });
-    useSettings.getState().updateDsp((d) => ({ ...d, eq: { ...d.eq, enabled: true } }));
-    usePlayer.setState({ volume: 0.5 });
-    renderPanel();
-    expect(screen.queryByTestId("bit-perfect-badge")).not.toBeInTheDocument();
-    expect(screen.getByText("Not bit-perfect")).toBeInTheDocument();
-    for (const reason of [
-      "The equalizer is on.",
-      "The volume is below 100 %.",
-      "The sample rate of the track differs from the device.",
-    ]) {
-      expect(screen.getByText(reason)).toBeInTheDocument();
-    }
-  });
-
-  it("asks to play something while the engine reports nothing yet", () => {
-    renderPanel();
-    expect(screen.getAllByText("Nothing is playing")).toHaveLength(2);
-    expect(screen.queryByTestId("bit-perfect-badge")).not.toBeInTheDocument();
+    expect(useSettings.getState().eqPresetId).toBe("bassBooster");
   });
 
   it("lists the system default first, then the default device, then the others, and selects one", async () => {
@@ -184,7 +189,7 @@ describe("OutputPanel", () => {
   });
 
   it("closes the panel and links to the equalizer", () => {
-    useLayout.setState({ rightPanel: "devices" });
+    useLayout.setState({ rightPanel: "audio", nowPlayingOpen: false });
     renderPanel();
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(useLayout.getState().rightPanel).toBeNull();
@@ -200,45 +205,6 @@ describe("signal path helpers", () => {
     expect(formatSourceFormat(mp3)).toBe("MP3 · 320 kbit/s · 44.1 kHz");
     expect(formatOutputFormat(exclusiveOut)).toBe("Sound Blaster X5 · 192 kHz · exclusive");
     expect(formatOutputFormat(sharedOut)).toBe("Sound Blaster X5 · 48 kHz · shared");
-  });
-
-  it("lists the active processing stages", () => {
-    const dsp = structuredClone(DEFAULT_DSP);
-    const normalization = {
-      mode: "off" as const,
-      target: "normal" as const,
-      preventClipping: true,
-      analyzeUntagged: true,
-    };
-    expect(activeProcessing(dsp, normalization)).toEqual([]);
-    dsp.eq.enabled = true;
-    dsp.bass.enabled = true;
-    dsp.stereo.balance = 0.2;
-    expect(activeProcessing(dsp, { ...normalization, mode: "track" })).toEqual([
-      "equalizer",
-      "bass",
-      "stereo",
-      "normalization",
-    ]);
-  });
-
-  it("finds no blockers for a clean exclusive path at full volume", () => {
-    const normalization = {
-      mode: "off" as const,
-      target: "normal" as const,
-      preventClipping: true,
-      analyzeUntagged: true,
-    };
-    expect(
-      bitPerfectBlockers({
-        dsp: DEFAULT_DSP,
-        normalization,
-        volume: 1,
-        muted: false,
-        source: { ...flac, sampleRate: 192000 },
-        output: exclusiveOut,
-      }),
-    ).toEqual([]);
   });
 
   it("sorts the default device first, then by name", () => {

@@ -165,17 +165,18 @@ describe("SettingsPage", () => {
     expect(screen.getByText(/Bit-perfect output needs exclusive mode/)).toBeInTheDocument();
   });
 
-  it("switches the accent color", () => {
+  it("switches the accent between colors and gradients", () => {
     renderSettings();
-    for (const [name, accent] of [
-      ["Blue", "blue"],
-      ["Red", "red"],
-      ["Dynamic", "dynamic"],
-      ["Purple", "purple"],
+    for (const [group, name, accent] of [
+      ["Colors", "Blue", "blue"],
+      ["Gradients", "Sunset", "sunset"],
+      ["Colors", "Purple", "purple"],
     ] as const) {
-      fireEvent.click(radio("Accent color", name));
+      fireEvent.click(radio(group, name));
       expect(useSettings.getState().accent).toBe(accent);
+      expect(radio(group, name)).toHaveAttribute("aria-checked", "true");
     }
+    expect(screen.queryByRole("radio", { name: "Dynamic" })).not.toBeInTheDocument();
   });
 
   it("sets the zoom in steps from 70 to 130 percent", () => {
@@ -191,8 +192,11 @@ describe("SettingsPage", () => {
 
   it("changes the language, translates the page and remembers the choice", async () => {
     renderSettings();
-    expect(radio("Language", "English")).toHaveAttribute("aria-checked", "true");
-    fireEvent.click(radio("Language", "Deutsch"));
+    const picker = screen.getByRole("combobox", { name: "Language" });
+    expect(picker).toHaveValue("en");
+    // Every language is listed by its own name.
+    expect(within(picker).getByRole("option", { name: "日本語" })).toBeInTheDocument();
+    fireEvent.change(picker, { target: { value: "de" } });
     expect(useLanguage.getState().language).toBe("de");
     expect(await screen.findByRole("heading", { level: 1, name: "Einstellungen" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "Audioqualität" })).toBeInTheDocument();

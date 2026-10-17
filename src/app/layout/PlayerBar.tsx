@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { ListMusic, Maximize2, MicVocal, MonitorSpeaker, PictureInPicture2 } from "lucide-react";
+import { ListMusic, Maximize2, MicVocal, MonitorSpeaker, PanelRight, PictureInPicture2 } from "lucide-react";
 import { useLyricsRoute } from "@/features/lyrics/useLyricsRoute";
 import { Cover } from "@/components/media/Cover";
 import { IconButton } from "@/components/ui/Button";
@@ -12,7 +12,10 @@ import { LikeButton, ProgressRow, TransportButtons, VolumeControl } from "./play
 import { usePlayerView } from "./playerView";
 
 function NowPlayingInfo() {
+  const { t } = useTranslation();
   const track = usePlayer((s) => s.current?.track);
+  const audioOpen = useLayout((s) => s.rightPanel === "audio");
+  const toggleRightPanel = useLayout((s) => s.toggleRightPanel);
   if (!track) return <div className="min-w-0 flex-1" />;
   const quality = qualityLabel(track.format);
 
@@ -44,14 +47,19 @@ function NowPlayingInfo() {
           ))}
         </p>
         {quality && (
-          <p
+          <button
+            type="button"
+            aria-label={t("player.formatAndSound", { format: quality })}
+            title={t("player.formatAndSound", { format: quality })}
+            aria-pressed={audioOpen}
+            onClick={() => toggleRightPanel("audio")}
             className={cn(
-              "text-[11px] font-semibold",
-              isLossless(track.format) ? "text-accent" : "text-subdued",
+              "block text-[11px] font-semibold underline-offset-2 hover:underline",
+              isLossless(track.format) ? "text-accent" : "text-subdued hover:text-text",
             )}
           >
             {quality}
-          </p>
+          </button>
         )}
       </div>
       <div className="ml-1">
@@ -84,6 +92,13 @@ export function PlayerBar() {
       <NowPlayingInfo />
       <Transport />
       <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
+        <IconButton
+          label={t("player.nowPlayingPanel")}
+          active={rightPanel === "nowPlaying"}
+          onClick={() => toggleRightPanel("nowPlaying")}
+        >
+          <PanelRight size={18} />
+        </IconButton>
         <IconButton label={t("player.lyrics")} active={lyricsRoute.open} onClick={lyricsRoute.toggle}>
           <MicVocal size={18} />
         </IconButton>
@@ -96,8 +111,8 @@ export function PlayerBar() {
         </IconButton>
         <IconButton
           label={t("player.devices")}
-          active={rightPanel === "devices"}
-          onClick={() => toggleRightPanel("devices")}
+          active={rightPanel === "audio"}
+          onClick={() => toggleRightPanel("audio")}
         >
           <MonitorSpeaker size={18} />
         </IconButton>

@@ -25,7 +25,7 @@ export function Switch({ checked, onCheckedChange, label, disabled, id }: Switch
         disabled
           ? "cursor-not-allowed bg-muted/50"
           : checked
-            ? "bg-accent hover:bg-accent-hover"
+            ? "bg-accent accent-fill hover:bg-accent-hover hover:brightness-110"
             : "bg-muted hover:bg-subdued",
       )}
     >

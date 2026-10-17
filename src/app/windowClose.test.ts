@@ -1,3 +1,4 @@
+import capabilities from "../../src-tauri/capabilities/default.json";
 import { registerShutdownTask, startCloseHandling } from "./windowClose";
 
 describe("shutdown tasks", () => {
@@ -19,5 +20,12 @@ describe("shutdown tasks", () => {
 
     offSave();
     stop();
+  });
+});
+
+describe("window permissions", () => {
+  it("allow destroying the window, which Tauri does after every close handler", () => {
+    // Without it the close button does nothing once a close handler is registered.
+    expect(capabilities.permissions).toContain("core:window:allow-destroy");
   });
 });

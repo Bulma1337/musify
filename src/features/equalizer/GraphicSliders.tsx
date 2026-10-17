@@ -107,7 +107,7 @@ function VerticalSlider({ label, value, onChange, onActivity, compact, dimmed }:
       <div ref={trackRef} className="relative h-full w-1 cursor-pointer rounded-full bg-white/20">
         <div className="absolute top-1/2 left-1/2 h-px w-3 -translate-x-1/2 bg-muted" />
         <div
-          className="absolute inset-x-0 rounded-full bg-accent"
+          className="absolute inset-x-0 rounded-full bg-accent accent-fill"
           style={{ bottom: `${barBottom}%`, height: `${barHeight}%` }}
         />
         <div

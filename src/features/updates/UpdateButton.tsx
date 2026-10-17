@@ -14,7 +14,7 @@ export function UpdateButton() {
       onClick={() => void installUpdate()}
       disabled={status === "installing"}
       title={t("updates.restartHint", { version })}
-      className="mx-1 flex h-8 shrink-0 items-center gap-1.5 self-center rounded-full bg-accent px-3 text-[13px] font-bold text-on-accent hover:scale-105 disabled:opacity-60"
+      className="mx-1 flex h-8 shrink-0 items-center gap-1.5 self-center rounded-full bg-accent accent-fill px-3 text-[13px] font-bold text-on-accent hover:scale-105 disabled:opacity-60"
     >
       <RefreshCw size={14} className={status === "installing" ? "animate-spin" : undefined} />
       {t("updates.restart")}

@@ -41,6 +41,12 @@
     "monthsTitle": "By month",
     "monthsChart": "Listening time by month",
     "monthCell": "{{month}}: {{minutes}} min",
-    "recapTitle": "Recaps"
+    "recapTitle": "Recaps",
+    "calendarTitle": "Listening calendar",
+    "calendarCell": "{{date}}: {{minutes}} min",
+    "calendarSummary_one": "Listened on one day",
+    "calendarSummary_other": "Listened on {{count}} days",
+    "less": "Less",
+    "more": "More"
   }
 }

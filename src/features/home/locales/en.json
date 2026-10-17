@@ -13,6 +13,7 @@
     "starred": "Saved albums",
     "playlists": "Your playlists",
     "emptyTitle": "Nothing here yet",
-    "emptyText": "Once your server has music and you have listened to something, it shows up here."
+    "emptyText": "Once your server has music and you have listened to something, it shows up here.",
+    "customize": "Customize home"
   }
 }

@@ -6,7 +6,7 @@ import { renderPage } from "@/test/renderPage";
 import { usePlayer } from "@/player/store";
 import { LyricsPage } from "./LyricsPage";
 import { LyricsPreviewCard } from "./LyricsPreviewCard";
-import { previewLines, setLyricsOffset } from "./timing";
+import { setLyricsOffset } from "./timing";
 
 setupMockServer();
 const track = fakeTracks[0]!;
@@ -129,14 +129,13 @@ describe("LyricsPreviewCard", () => {
     expect(screen.queryByText("Lyrics")).not.toBeInTheDocument();
   });
 
-  it("shows the current and the next two lines and links to the full view", async () => {
+  it("highlights the current line in a window over all lines and links to the full view", async () => {
     const { provider } = renderPage(<LyricsPreviewCard />);
     provider.getLyrics = async () => synced;
     play(5500);
-    expect(await screen.findByText("Second line")).toBeInTheDocument();
-    expect(screen.getByText("Third line")).toBeInTheDocument();
-    expect(screen.getByText("Fourth line")).toBeInTheDocument();
-    expect(screen.queryByText("First line")).not.toBeInTheDocument();
+    expect(await screen.findByText("Second line")).toHaveClass("text-text");
+    expect(screen.getByText("First line")).toHaveClass("text-text/55");
+    expect(screen.getByText("Third line")).toHaveClass("text-text/55");
     expect(screen.getByRole("link", { name: "Open lyrics" })).toHaveAttribute("href", "/lyrics");
   });
 
@@ -146,24 +145,5 @@ describe("LyricsPreviewCard", () => {
     play();
     expect(await screen.findByText("Plain one")).toBeInTheDocument();
     expect(screen.getByText("Plain two")).toBeInTheDocument();
-  });
-});
-
-describe("previewLines", () => {
-  it("skips blank lines and starts at the first line before the song begins", () => {
-    const withSpacer: Lyrics = {
-      ...synced,
-      lines: [synced.lines[0]!, { startMs: 3000, text: "" }, ...synced.lines.slice(1)],
-    };
-    expect(previewLines(withSpacer, 0).map((l) => l.line.text)).toEqual([
-      "First line",
-      "Second line",
-      "Third line",
-    ]);
-    expect(previewLines(withSpacer, 3500).map((l) => [l.line.text, l.active])).toEqual([
-      ["Second line", false],
-      ["Third line", false],
-      ["Fourth line", false],
-    ]);
   });
 });

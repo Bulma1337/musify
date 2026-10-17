@@ -1,11 +1,5 @@
 {
   "output": {
-    "signalPath": "Signal path",
-    "source": "Source",
-    "processing": "Processing",
-    "destination": "Output",
-    "nothingPlaying": "Nothing is playing",
-    "unchanged": "None, signal unchanged",
     "bitPerfect": "Bit-perfect",
     "notBitPerfect": "Not bit-perfect",
     "exclusive": "exclusive",
@@ -18,19 +12,6 @@
       "stereo": "Stereo adjustment",
       "normalization": "Volume leveling"
     },
-    "reasonsTitle": "Why it is not bit-perfect:",
-    "reasons": {
-      "equalizer": "The equalizer is on.",
-      "bass": "Deep Bass is on.",
-      "loudness": "Loudness compensation is on.",
-      "limiter": "The limiter is on.",
-      "stereo": "Mono, balance or stereo width is changed.",
-      "normalization": "Volume leveling is on.",
-      "shared": "The device is used in shared mode.",
-      "volume": "The volume is below 100 %.",
-      "resampling": "The sample rate of the track differs from the device.",
-      "deviceFormat": "The device can't reproduce the track's full bit depth."
-    },
     "devices": "Devices",
     "default": "Default",
     "refresh": "Refresh devices",
@@ -41,8 +22,18 @@
     "exclusiveUnsupported": "This device does not support exclusive mode.",
     "openEqualizer": "Open equalizer",
     "exclusiveUpTo": "Exclusive up to {{bits}} bit / {{rate}}",
-    "resampledFrom": "Resampled from {{from}} to {{to}}",
-    "mixerLimits": "The Windows mixer runs at {{rate}}. For hi-res, use exclusive mode or pick a higher format in the Windows sound settings.",
-    "exclusiveFailed": "Exclusive mode is not available, using shared mode: {{reason}}"
+    "exclusiveFailed": "Exclusive mode is not available, using shared mode: {{reason}}",
+    "panelTitle": "Audio",
+    "format": "Format",
+    "lossless": "Lossless",
+    "lossy": "Lossy",
+    "sound": "Sound",
+    "eqPreset": "Equalizer preset",
+    "ownSetting": "Your own setting",
+    "builtInPresets": "Presets",
+    "myPresets": "My presets",
+    "off": "Off",
+    "allSettings": "All settings",
+    "playsOn": "Playing on {{output}}"
   }
 }

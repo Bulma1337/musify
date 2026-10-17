@@ -18,6 +18,8 @@ Tauri 2 shell, React 19 + TypeScript frontend, native Rust audio engine. Source-
 - `src/app/` – shell and layout. `src/features/<feature>/` – pages and feature UI.
 - `src/player/` – player store, queue, shuffle, IPC to the engine.
 - `src/i18n/locales/{de,en}.json` – every UI string goes through i18next; both files must have the same keys.
+- `src/i18n/locales/extra/<code>.json` – 25 more languages, one merged file each (shape of `node scripts/i18n.mjs export`).
+  New or changed texts need every language; `src/i18n/extraLocales.test.ts` checks keys, placeholders and plurals.
 - `src-tauri/src/audio/` – native engine (see the plan's audio section). Other Rust modules: `downloads/`, `db/`, `lyrics/`, `covers/`.
 - `docs/AGENT-MODELS.md` – which model and reasoning effort to use for subagents, and which packages can run in parallel. Follow it.
 

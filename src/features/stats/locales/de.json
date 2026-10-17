@@ -41,6 +41,12 @@
     "monthsTitle": "Nach Monat",
     "monthsChart": "Hördauer nach Monat",
     "monthCell": "{{month}}: {{minutes}} Min.",
-    "recapTitle": "Rückblicke"
+    "recapTitle": "Rückblicke",
+    "calendarTitle": "Hörkalender",
+    "calendarCell": "{{date}}: {{minutes}} Min.",
+    "calendarSummary_one": "An einem Tag Musik gehört",
+    "calendarSummary_other": "An {{count}} Tagen Musik gehört",
+    "less": "Weniger",
+    "more": "Mehr"
   }
 }

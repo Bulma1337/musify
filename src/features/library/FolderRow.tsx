@@ -90,7 +90,10 @@ function FolderRowImpl({ folder, serverId, count, rail, editing, onEdit }: Folde
           aria-expanded={!folder.collapsed}
           title={rail ? folder.name : undefined}
           onClick={() => useLibrary.getState().toggleFolder(serverId, folder.id)}
-          className="flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors hover:bg-highlight"
+          className={cn(
+            "flex w-full items-center rounded-md text-left transition-colors hover:bg-highlight",
+            rail ? "justify-center p-1" : "gap-3 p-2",
+          )}
         >
           {tile}
           {!rail && (

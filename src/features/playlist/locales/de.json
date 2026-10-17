@@ -30,6 +30,11 @@
     "saved": "Änderungen gespeichert",
     "nowPublic": "Die Playlist ist jetzt öffentlich",
     "nowPrivate": "Die Playlist ist jetzt privat",
-    "deleted": "„{{name}}“ gelöscht"
+    "deleted": "„{{name}}“ gelöscht",
+    "changeImage": "Bild ändern",
+    "removeImage": "Eigenes Bild entfernen",
+    "imageChanged": "Bild geändert",
+    "imageRemoved": "Eigenes Bild entfernt",
+    "imageFailed": "Das Bild konnte nicht gelesen werden."
   }
 }

@@ -1,10 +1,10 @@
 {
   "artist": {
     "kind": "Künstler",
-    "follow": "Folgen",
-    "following": "Gefolgt",
-    "followed": "Du folgst jetzt diesem Act",
-    "unfollowed": "Du folgst diesem Act nicht mehr",
+    "favorite": "Zu Favoriten hinzufügen",
+    "unfavorite": "Aus Favoriten entfernen",
+    "favorited": "Zu deinen Favoriten hinzugefügt",
+    "unfavorited": "Aus deinen Favoriten entfernt",
     "popular": "Beliebt",
     "showMore": "Mehr anzeigen",
     "showLess": "Weniger anzeigen",

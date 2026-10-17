@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { Album, AlbumListType, Playlist } from "@/api/provider";
@@ -12,6 +13,8 @@ import { RecapBanner } from "@/features/recap/RecapBanner";
 import { loaders, playOrToggle, useIsContextPlaying } from "@/player/actions";
 import { greetingForHour } from "./greeting";
 import { QuickTile } from "./QuickTile";
+import { normalizeHomeSections } from "@/settings/homeLayout";
+import { useSettings } from "@/settings/store";
 
 const QUICK_LIMIT = 8;
 
@@ -121,6 +124,8 @@ export function HomePage() {
   const starred = useAlbumList("starred");
   const playlists = usePlaylists();
   const lists = { recentlyPlayed, recentlyAdded, mostPlayed, random, starred };
+  const savedSections = useSettings((s) => s.homeSections);
+  const sections = useMemo(() => normalizeHomeSections(savedSections), [savedSections]);
 
   const all = [...Object.values(lists), playlists];
   const loading = all.some((q) => q.isPending);
@@ -159,23 +164,36 @@ export function HomePage() {
               ))}
             </section>
           )}
-          <AutoPlaylistShelf />
-          {ALBUM_SHELVES.map((type) => (
-            <Shelf
-              key={type}
-              title={t(`home.${type}`)}
-              moreTo={`/albums/${type}`}
-              items={lists[type].data ?? []}
-              getKey={(a) => a.id}
-              renderItem={(a) => <AlbumCard album={a} />}
-            />
-          ))}
-          <Shelf
-            title={t("home.playlists")}
-            items={playlists.data ?? []}
-            getKey={(p) => p.id}
-            renderItem={(p) => <PlaylistCard playlist={p} />}
-          />
+          {sections
+            .filter((section) => section.visible)
+            .map(({ id }) =>
+              id === "autoPlaylists" ? (
+                <AutoPlaylistShelf key={id} />
+              ) : id === "playlists" ? (
+                <Shelf
+                  key={id}
+                  title={t("home.playlists")}
+                  items={playlists.data ?? []}
+                  getKey={(p) => p.id}
+                  renderItem={(p) => <PlaylistCard playlist={p} />}
+                />
+              ) : (
+                <Shelf
+                  key={id}
+                  title={t(`home.${id}`)}
+                  moreTo={`/albums/${id}`}
+                  items={lists[id].data ?? []}
+                  getKey={(a) => a.id}
+                  renderItem={(a) => <AlbumCard album={a} />}
+                />
+              ),
+            )}
+          <Link
+            to="/settings#settings-home"
+            className="self-start text-sm font-bold text-subdued hover:text-text hover:underline"
+          >
+            {t("home.customize")}
+          </Link>
         </div>
       )}
     </div>
