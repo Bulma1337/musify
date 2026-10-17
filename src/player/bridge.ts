@@ -2,11 +2,12 @@ import { create } from "zustand";
 import type { Track } from "@/api/provider";
 import { useSession } from "@/api/session";
 import { toastError } from "@/components/ui/toast";
+import { useDownloads } from "@/features/downloads/store";
 import i18n from "@/i18n";
 import { currentStreamQuality, useSettings } from "@/settings/store";
 import { recordPlay } from "@/features/stats/recorder";
 import { audioEngine } from "./engine";
-import type { EngineEvent, OutputFormat, SourceFormat, TrackSource } from "./engineTypes";
+import type { EngineEvent, OutputFormat, SourceFormat, SourceLocation, TrackSource } from "./engineTypes";
 import { peekNext, usePlayer, type PlayerState, type QueueItem } from "./store";
 
 /** What the engine reports about the signal path (quality badge, bit-perfect indicator). */
@@ -25,23 +26,38 @@ export function shouldScrobble(playedMs: number, durationMs: number): boolean {
 /** Engine ids are queue keys; repeats of the same entry get a `#n` suffix. */
 const baseKey = (id: string) => id.split("#")[0] ?? id;
 
-function toSource(id: string, track: Track, state: PlayerState): TrackSource | null {
+/** Where the engine reads a track from: the downloaded file if there is one, otherwise the stream. */
+export function sourceLocation(track: Track): SourceLocation | null {
+  const local = useDownloads.getState().localPath(track.serverId, track.id);
+  if (local) return { kind: "local", path: local };
   const provider = useSession.getState().provider;
   if (!provider) return null;
-  const stream = provider.getStreamSource(track, currentStreamQuality());
+  let stream;
+  try {
+    stream = provider.getStreamSource(track, currentStreamQuality());
+  } catch {
+    // Offline mode: tracks that are not downloaded can't be played.
+    return null;
+  }
+  return {
+    kind: "http",
+    url: stream.url,
+    headers: Object.entries(stream.headers),
+    cacheKey: stream.cacheKey,
+    transcoded: stream.transcoded,
+    containerHint: stream.container ?? null,
+    timeOffset: stream.timeOffset ?? null,
+    allowInsecureTls: provider.server.allowInsecureTls ?? false,
+  };
+}
+
+function toSource(id: string, track: Track, state: PlayerState): TrackSource | null {
+  const location = sourceLocation(track);
+  if (!location) return null;
   const rg = track.replayGain;
   return {
     id,
-    location: {
-      kind: "http",
-      url: stream.url,
-      headers: Object.entries(stream.headers),
-      cacheKey: stream.cacheKey,
-      transcoded: stream.transcoded,
-      containerHint: stream.container ?? null,
-      timeOffset: stream.timeOffset ?? null,
-      allowInsecureTls: provider.server.allowInsecureTls ?? false,
-    },
+    location,
     gain: rg
       ? {
           trackGainDb: rg.trackGain ?? null,
@@ -222,6 +238,8 @@ export function startEngineBridge(): () => void {
       }
       case "error":
         toastError(i18n.t("player.playbackError", { message: event.message }));
+        // A failing stream may mean the server is gone: switch to offline mode if so.
+        if (event.kind === "network") void useSession.getState().checkConnection();
         break;
       case "outputChanged":
         useEngineStatus.setState({ outputFormat: event.format });

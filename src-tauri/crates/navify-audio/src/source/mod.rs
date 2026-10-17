@@ -37,7 +37,14 @@ use std::sync::Arc;
 
 use crate::api::SourceLocation;
 
-pub use client::{build_http_client, time_offset_value, url_with_time_offset};
+/// The blocking HTTP client and response types used by download threads (re-exported so that the app
+/// shares one TLS stack and one reqwest version with the engine).
+pub use reqwest::blocking::{Client as BlockingClient, Response as BlockingResponse};
+
+pub use client::{
+    build_http_client, describe_io, describe_reqwest, redact, time_offset_value,
+    url_with_time_offset,
+};
 
 use cache::{Holder, Inner, RequestSpec};
 use client::hash_key;

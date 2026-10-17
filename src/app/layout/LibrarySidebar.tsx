@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { DropdownMenu } from "radix-ui";
+import { useShallow } from "zustand/react/shallow";
 import {
   ArrowDownUp,
   ChartColumn,
@@ -22,6 +23,8 @@ import { IconButton } from "@/components/ui/Button";
 import { toast, toastError } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import type { DraggedTracks } from "@/lib/dnd";
+import { libraryEntryFromCollection } from "@/features/downloads/libraryEntries";
+import { useDownloads, useDownloadsAvailable } from "@/features/downloads/store";
 import { FolderRow } from "@/features/library/FolderRow";
 import { LibraryItem } from "@/features/library/LibraryItem";
 import { buildRows, type LibraryEntry } from "@/features/library/libraryModel";
@@ -106,6 +109,9 @@ export function LibrarySidebar() {
   const toggleLibrary = useLayout((s) => s.toggleLibrary);
   const entries = useLibraryEntries();
   const [filter, setFilter] = useState<Filter | null>(null);
+  const [downloadedOnly, setDownloadedOnly] = useState(false);
+  const downloadsAvailable = useDownloadsAvailable();
+  const collections = useDownloads(useShallow((s) => Object.values(s.collections)));
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [sort, setSort] = useState<Sort>("recent");
@@ -116,9 +122,19 @@ export function LibrarySidebar() {
   const prefs = useLibraryPrefs(serverId);
   const { mutateAsync: setStarred } = useSetStarred();
 
+  // "Downloaded": only what is stored on this computer, taking server data where we have it.
+  const shown = useMemo(() => {
+    if (!downloadedOnly) return entries;
+    const byKey = new Map(entries.map((e) => [e.key, e]));
+    return collections.map((c) => {
+      const entry = libraryEntryFromCollection(c, t);
+      return byKey.get(entry.key) ?? entry;
+    });
+  }, [entries, collections, downloadedOnly, t]);
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const filtered = entries.filter(
+    const filtered = shown.filter(
       (e) =>
         (!filter || FILTER_KINDS[filter].includes(e.kind)) &&
         (!q || e.title.toLowerCase().includes(q) || e.subtitle.toLowerCase().includes(q)),
@@ -131,10 +147,10 @@ export function LibrarySidebar() {
       return (b.date ?? "").localeCompare(a.date ?? "");
     });
     return [...liked, ...rest];
-  }, [entries, filter, query, sort]);
+  }, [shown, filter, query, sort]);
 
   // Filtering or searching shows matching entries flat; otherwise the folder tree (or the icon rail).
-  const flat = !!filter || query.trim() !== "";
+  const flat = !!filter || downloadedOnly || query.trim() !== "";
   const rows = useMemo(
     () => buildRows(visible, prefs, flat ? "flat" : collapsed ? "rail" : "tree"),
     [visible, prefs, flat, collapsed],
@@ -259,11 +275,14 @@ export function LibrarySidebar() {
       {!collapsed && (
         <>
           <div className="flex items-center gap-2 overflow-x-auto px-4 py-2">
-            {filter && (
+            {(filter || downloadedOnly) && (
               <IconButton
                 label={t("library.clearFilter")}
                 size={32}
-                onClick={() => setFilter(null)}
+                onClick={() => {
+                  setFilter(null);
+                  setDownloadedOnly(false);
+                }}
                 className="bg-highlight"
               >
                 <X size={16} />
@@ -272,6 +291,19 @@ export function LibrarySidebar() {
             {chip("playlists", t("library.playlists"))}
             {chip("albums", t("library.albums"))}
             {chip("artists", t("library.artists"))}
+            {downloadsAvailable && (
+              <button
+                type="button"
+                aria-pressed={downloadedOnly}
+                onClick={() => setDownloadedOnly(!downloadedOnly)}
+                className={cn(
+                  "h-8 shrink-0 rounded-full px-3 text-sm transition-colors",
+                  downloadedOnly ? "bg-text text-black" : "bg-highlight text-text hover:bg-press",
+                )}
+              >
+                {t("downloads.filterChip")}
+              </button>
+            )}
           </div>
 
           <div className="flex items-center justify-between gap-2 px-4 pt-1 pb-2">

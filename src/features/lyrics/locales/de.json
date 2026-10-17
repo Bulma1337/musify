@@ -1,0 +1,27 @@
+{
+  "lyrics": {
+    "title": "Songtext",
+    "close": "Songtext schließen",
+    "nothingPlaying": "Spiele einen Song ab, um hier seinen Songtext zu sehen.",
+    "loading": "Songtext wird gesucht",
+    "none": "Für diesen Song wurde kein Songtext gefunden.",
+    "noneHint": "Songtexte stammen von deinem Server oder von LRCLIB.",
+    "instrumental": "Dieser Song ist instrumental.",
+    "unsyncedHint": "Dieser Songtext hat keine Zeitangaben und kann der Musik nicht folgen.",
+    "backToCurrent": "Zur aktuellen Zeile",
+    "offsetLabel": "Zeitversatz",
+    "earlier": "Songtext 0,1 s früher anzeigen",
+    "later": "Songtext 0,1 s später anzeigen",
+    "resetOffset": "Zeitversatz zurücksetzen",
+    "offsetValue": "{{value}} s",
+    "credit": "Songtext: {{source}}",
+    "sources": {
+      "server": "Server",
+      "lrclib": "LRCLIB",
+      "local": "Datei"
+    },
+    "interlude": "Instrumentalpassage",
+    "previewTitle": "Songtext",
+    "openFull": "Songtext öffnen"
+  }
+}

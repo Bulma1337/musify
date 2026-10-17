@@ -7,6 +7,7 @@ import { App } from "./app/App";
 import { useSession } from "./api/session";
 import { useEngineStatus } from "./player/bridge";
 import { usePlayer } from "./player/store";
+import { applyStoredLanguage } from "./settings/language";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,10 +26,13 @@ if (import.meta.env.DEV) {
   Object.assign(window, { __navify: { usePlayer, useSession, useEngineStatus } });
 }
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </React.StrictMode>,
-);
+// The stored language must be in place before the first render (login and onboarding included).
+void applyStoredLanguage().then(() => {
+  ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </React.StrictMode>,
+  );
+});

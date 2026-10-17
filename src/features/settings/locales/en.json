@@ -1,0 +1,103 @@
+{
+  "settings": {
+    "title": "Settings",
+    "off": "Off",
+    "alwaysOn": "Always on",
+    "quality": {
+      "title": "Audio quality",
+      "description": "Choose how much data your server sends. Higher quality sounds better and uses more bandwidth and storage.",
+      "streaming": "Streaming quality",
+      "downloads": "Download quality",
+      "options": {
+        "original": "Original",
+        "high": "High",
+        "normal": "Normal",
+        "low": "Low"
+      },
+      "hints": {
+        "original": "The file exactly as stored on your server, lossless if the file is lossless. Best sound, most data.",
+        "high": "Your server converts to Opus at up to 320 kbit/s. Very close to the original for most music.",
+        "normal": "Your server converts to Opus at up to 192 kbit/s. A good balance for mobile data.",
+        "low": "Your server converts to Opus at up to 96 kbit/s. Saves the most data."
+      }
+    },
+    "playback": {
+      "title": "Playback",
+      "description": "Transitions, loudness and stereo image.",
+      "crossfade": "Crossfade",
+      "crossfadeHint": "Blends the end of a track into the start of the next one.",
+      "skipSameAlbum": "Do not crossfade within an album",
+      "skipSameAlbumHint": "Tracks that follow each other on an album play without a gap instead.",
+      "needsNormalization": "Available once volume leveling is on.",
+      "needsCrossfade": "Available once crossfade is on.",
+      "needsStereo": "Not available in mono.",
+      "gapless": "Gapless playback",
+      "gaplessHint": "When a track follows another one directly, it starts without an audible pause. Live albums and mixes play as they were recorded.",
+      "normalization": "Volume leveling",
+      "normalizationModes": {
+        "off": "Off",
+        "track": "Track",
+        "album": "Album",
+        "auto": "Automatic"
+      },
+      "normalizationHints": {
+        "off": "Every track plays at its own level. This is the purest option.",
+        "track": "Evens out the loudness from track to track.",
+        "album": "Keeps the loudness differences within an album and evens out between albums.",
+        "auto": "Uses album gain while an album plays and track gain everywhere else."
+      },
+      "target": "Loudness target",
+      "targetHint": "How loud the leveled music should be overall.",
+      "targets": {
+        "loud": "Loud",
+        "normal": "Normal",
+        "quiet": "Quiet"
+      },
+      "preventClipping": "Prevent clipping",
+      "preventClippingHint": "Lowers the gain of a track when raising it would cause distortion.",
+      "analyzeUntagged": "Measure tracks without loudness tags",
+      "analyzeUntaggedHint": "Tracks that carry no loudness information are measured while they play.",
+      "mono": "Mono",
+      "monoHint": "Plays the same signal on both channels.",
+      "balance": "Balance",
+      "balanceHint": "Shifts the sound between the left and right speaker.",
+      "center": "Center",
+      "left": "Left {{percent}} %",
+      "right": "Right {{percent}} %",
+      "width": "Stereo width",
+      "widthHint": "100 % is unchanged. Lower values move the sound toward the center, higher values widen it.",
+      "equalizer": "Equalizer",
+      "equalizerHint": "Shape the sound with graphic or parametric filters, presets and Deep Bass.",
+      "openEqualizer": "Open equalizer"
+    },
+    "output": {
+      "title": "Output",
+      "description": "Where the sound goes and how it gets there.",
+      "device": "Output device",
+      "deviceHint": "The device Navify plays through. The system default follows what you pick in your system settings.",
+      "unavailable": "Unavailable device",
+      "exclusive": "Exclusive mode",
+      "exclusiveHint": "Takes over the device so the system mixer cannot change the signal. Bit-perfect output needs exclusive mode, the equalizer and all other sound effects off, and the volume at 100 %. Other apps are silent while it is on."
+    },
+    "display": {
+      "title": "Appearance",
+      "description": "Colors, size and language of the app.",
+      "accent": "Accent color",
+      "accentHint": "Used for buttons, sliders and highlights.",
+      "accentDynamicHint": "The accent follows the cover of the track that is playing.",
+      "accents": {
+        "purple": "Purple",
+        "blue": "Blue",
+        "red": "Red",
+        "dynamic": "Dynamic"
+      },
+      "zoom": "Zoom",
+      "zoomHint": "Makes everything in the app smaller or larger.",
+      "language": "Language",
+      "languages": {
+        "de": "Deutsch",
+        "en": "English"
+      }
+    }
+  }
+}

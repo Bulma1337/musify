@@ -25,6 +25,8 @@ import { menuContent, menuItem, menuSeparator } from "@/components/media/TrackMe
 import { Button, IconButton } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { toast, toastError } from "@/components/ui/toast";
+import { DownloadButton } from "@/features/downloads/DownloadButton";
+import { playlistSpec } from "@/features/downloads/specs";
 import { moveItems } from "@/lib/dnd";
 import { formatLongDuration } from "@/lib/format";
 import { loaders, playOrToggle, useIsContextPlaying } from "@/player/actions";
@@ -156,6 +158,7 @@ function PlaylistView({ playlist }: { playlist: PlaylistDetail }) {
               <IconButton label={t("playlist.shuffle")} size={40} onClick={shuffle}>
                 <Shuffle size={24} />
               </IconButton>
+              <DownloadButton spec={playlistSpec(playlist)} />
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild>
                   <IconButton label={t("playlist.actions")} size={40}>

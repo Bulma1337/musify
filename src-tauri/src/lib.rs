@@ -2,6 +2,7 @@ use tauri::Manager;
 
 mod audio;
 mod db;
+mod downloads;
 mod secrets;
 mod stats;
 
@@ -53,6 +54,10 @@ pub fn run() {
     }
 
     builder
+        // Covers saved with downloaded albums, for browsing offline.
+        .register_asynchronous_uri_scheme_protocol("navdl", |ctx, request, responder| {
+            downloads::serve_cover(ctx.app_handle(), request, responder);
+        })
         .plugin(
             tauri_plugin_log::Builder::new()
                 .level(log::LevelFilter::Info)
@@ -67,6 +72,7 @@ pub fn run() {
         .setup(|app| {
             app.manage(audio::AudioState::new(app.handle()));
             app.manage(db::DbState(db::open_app_db(app.handle())));
+            app.manage(downloads::DownloadsState::new(app.handle()));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -84,7 +90,20 @@ pub fn run() {
             stats::stats_summary,
             stats::stats_tracks,
             stats::stats_years,
-            stats::save_png
+            stats::save_png,
+            audio::audio_cache_info,
+            audio::audio_cache_set_limit,
+            audio::audio_cache_clear,
+            downloads::downloads_subscribe,
+            downloads::downloads_list,
+            downloads::downloads_enqueue,
+            downloads::downloads_set_collection,
+            downloads::downloads_remove_collection,
+            downloads::downloads_remove_track,
+            downloads::downloads_cancel,
+            downloads::downloads_remove_all,
+            downloads::downloads_storage_info,
+            downloads::downloads_set_dir
         ])
         .run(tauri::generate_context!())
         .expect("error while running Navify");

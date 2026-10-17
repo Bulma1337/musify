@@ -161,7 +161,7 @@ pub fn url_with_time_offset(
 }
 
 /// Removes every trace of `url` (full URL, query string, userinfo) from an error message.
-pub(crate) fn redact(message: &str, url: &str) -> String {
+pub fn redact(message: &str, url: &str) -> String {
     let mut out = message.replace(url, "<url>");
     if let Ok(parsed) = reqwest::Url::parse(url) {
         let without_fragment = {
@@ -195,7 +195,7 @@ pub(crate) fn redact(message: &str, url: &str) -> String {
 }
 
 /// Describes a reqwest error without its URL (and with all sources), redacted.
-pub(crate) fn describe_reqwest(err: reqwest::Error, url: &str) -> String {
+pub fn describe_reqwest(err: reqwest::Error, url: &str) -> String {
     let err = err.without_url();
     let mut s = err.to_string();
     let mut src = std::error::Error::source(&err);
@@ -208,7 +208,7 @@ pub(crate) fn describe_reqwest(err: reqwest::Error, url: &str) -> String {
 }
 
 /// Describes an I/O error (possibly wrapping a reqwest error), redacted.
-pub(crate) fn describe_io(err: &std::io::Error, url: &str) -> String {
+pub fn describe_io(err: &std::io::Error, url: &str) -> String {
     let mut s = err.to_string();
     let mut src = std::error::Error::source(err);
     while let Some(e) = src {

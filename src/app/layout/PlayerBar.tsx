@@ -20,6 +20,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useSetStarred } from "@/api/queries";
+import { useLyricsRoute } from "@/features/lyrics/useLyricsRoute";
 import { Cover } from "@/components/media/Cover";
 import { IconButton } from "@/components/ui/Button";
 import { Slider } from "@/components/ui/Slider";
@@ -192,13 +193,14 @@ export function PlayerBar() {
   const { t } = useTranslation();
   const rightPanel = useLayout((s) => s.rightPanel);
   const toggleRightPanel = useLayout((s) => s.toggleRightPanel);
+  const lyricsRoute = useLyricsRoute();
 
   return (
     <footer className="flex h-[72px] shrink-0 items-center gap-4 px-2">
       <NowPlayingInfo />
       <Transport />
       <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
-        <IconButton label={t("player.lyrics")}>
+        <IconButton label={t("player.lyrics")} active={lyricsRoute.open} onClick={lyricsRoute.toggle}>
           <MicVocal size={18} />
         </IconButton>
         <IconButton

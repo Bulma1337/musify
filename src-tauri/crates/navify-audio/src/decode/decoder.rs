@@ -235,6 +235,33 @@ impl Engine {
         } else {
             None
         };
+        let float = matches!(
+            params.codec,
+            CODEC_ID_PCM_F32LE
+                | CODEC_ID_PCM_F32LE_PLANAR
+                | CODEC_ID_PCM_F32BE
+                | CODEC_ID_PCM_F32BE_PLANAR
+                | CODEC_ID_PCM_F64LE
+                | CODEC_ID_PCM_F64LE_PLANAR
+                | CODEC_ID_PCM_F64BE
+                | CODEC_ID_PCM_F64BE_PLANAR
+        );
+        // Float PCM often comes without a bit depth in the codec parameters; the codec implies it.
+        let bits = bits.or_else(|| {
+            float.then_some(
+                if matches!(
+                    params.codec,
+                    CODEC_ID_PCM_F64LE
+                        | CODEC_ID_PCM_F64LE_PLANAR
+                        | CODEC_ID_PCM_F64BE
+                        | CODEC_ID_PCM_F64BE_PLANAR
+                ) {
+                    64
+                } else {
+                    32
+                },
+            )
+        });
         let extra = params.extra_data.clone();
         let is_ogg = reader.format_info().format == FORMAT_ID_OGG;
 
@@ -355,6 +382,7 @@ impl Engine {
                 channels: engine.channels as u16,
                 bitrate_kbps,
                 lossless,
+                float,
             },
             n_frames: engine.n_frames,
             duration_ms,

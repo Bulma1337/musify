@@ -17,6 +17,10 @@ export const router = createHashRouter([
         lazy: () => import("@/features/home/HomePage").then((m) => ({ Component: m.HomePage })),
       },
       {
+        path: "lyrics",
+        lazy: () => import("@/features/lyrics/LyricsPage").then((m) => ({ Component: m.LyricsPage })),
+      },
+      {
         path: "search",
         lazy: () => import("@/features/search/SearchPage").then((m) => ({ Component: m.SearchPage })),
       },
@@ -56,8 +60,22 @@ export const router = createHashRouter([
         lazy: () => import("@/features/recap/RecapPage").then((m) => ({ Component: m.RecapPage })),
       },
       {
+        path: "downloads",
+        lazy: () =>
+          import("@/features/downloads/DownloadsPage").then((m) => ({ Component: m.DownloadsPage })),
+      },
+      {
         path: "albums/:type",
         lazy: () => import("@/features/browse/AlbumGridPage").then((m) => ({ Component: m.AlbumGridPage })),
+      },
+      {
+        path: "settings",
+        lazy: () => import("@/features/settings/SettingsPage").then((m) => ({ Component: m.SettingsPage })),
+      },
+      {
+        path: "equalizer",
+        lazy: () =>
+          import("@/features/equalizer/EqualizerPage").then((m) => ({ Component: m.EqualizerPage })),
       },
     ],
   },

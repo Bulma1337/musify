@@ -16,6 +16,9 @@ export const QUALITY_PRESETS: Record<QualityPreset, StreamQuality> = {
   low: { maxBitRateKbps: 96, format: "opus" },
 };
 
+/** Choices for the streaming cache size (Settings → Storage). */
+export const CACHE_LIMITS_GB = [1, 2, 5, 10] as const;
+
 export interface EqPreset {
   id: string;
   name: string;
@@ -45,6 +48,8 @@ interface SettingsState {
   autoplay: boolean;
   streamingQuality: QualityPreset;
   downloadQuality: QualityPreset;
+  /** Size limit of the audio streaming cache in GB: one of `CACHE_LIMITS_GB`. */
+  cacheLimitGb: number;
   normalization: NormalizationConfig;
   crossfade: CrossfadeConfig;
   dsp: DspConfig;
@@ -72,6 +77,7 @@ export const useSettings = create<SettingsState>()(
       autoplay: true,
       streamingQuality: "original",
       downloadQuality: "original",
+      cacheLimitGb: 2,
       normalization: { mode: "off", target: "normal", preventClipping: true, analyzeUntagged: true },
       crossfade: { durationMs: 0, skipSameAlbum: true },
       dsp: DEFAULT_DSP,

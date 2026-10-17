@@ -1,9 +1,10 @@
 import { normalizeServerUrl } from "./http";
 import { ProviderError, type ProviderFactory, type ServerKind, type ServerProbe } from "./provider";
+import { jellyfinFactory } from "./jellyfin";
 import { subsonicFactory } from "./subsonic";
 
 /** All available server adapters. Probe order matters: the first match wins. */
-export const providerFactories: ProviderFactory[] = [subsonicFactory];
+export const providerFactories: ProviderFactory[] = [subsonicFactory, jellyfinFactory];
 
 export function factoryFor(kind: ServerKind): ProviderFactory {
   const factory = providerFactories.find((f) => f.kind === kind);
