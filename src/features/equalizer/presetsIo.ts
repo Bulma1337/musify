@@ -31,7 +31,8 @@ const isObject = (value: unknown): value is Json =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 function number(value: unknown, min: number, max: number, what: string): number {
-  if (typeof value !== "number" || !Number.isFinite(value)) throw new PresetParseError(`${what} is not a number`);
+  if (typeof value !== "number" || !Number.isFinite(value))
+    throw new PresetParseError(`${what} is not a number`);
   return Math.min(max, Math.max(min, value));
 }
 
@@ -75,7 +76,8 @@ function parseMode(raw: unknown): EqMode {
 }
 
 function parseDsp(raw: unknown): EqPreset["dsp"] {
-  if (!isObject(raw) || !isObject(raw.eq) || !isObject(raw.bass)) throw new PresetParseError("dsp is incomplete");
+  if (!isObject(raw) || !isObject(raw.eq) || !isObject(raw.bass))
+    throw new PresetParseError("dsp is incomplete");
   const bass: BassEnhancerConfig = {
     enabled: bool(raw.bass.enabled, "bass.enabled"),
     boostDb: number(raw.bass.boostDb, 0, 12, "bass.boostDb"),

@@ -75,7 +75,8 @@ function VerticalSlider({ label, value, onChange, onActivity, compact, dimmed }:
   }
 
   // 0 dB sits in the middle of the track; the bar grows from there.
-  const percent = ((clamp(value, -SLIDER_RANGE_DB, SLIDER_RANGE_DB) + SLIDER_RANGE_DB) / (2 * SLIDER_RANGE_DB)) * 100;
+  const percent =
+    ((clamp(value, -SLIDER_RANGE_DB, SLIDER_RANGE_DB) + SLIDER_RANGE_DB) / (2 * SLIDER_RANGE_DB)) * 100;
   const barBottom = Math.min(percent, 50);
   const barHeight = Math.abs(percent - 50);
 

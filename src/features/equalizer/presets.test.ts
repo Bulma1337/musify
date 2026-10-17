@@ -77,7 +77,10 @@ describe("built-in presets", () => {
     const preset = BUILT_IN_PRESETS.find((p) => p.id === "vShape")!;
     const dsp = builtInPresetDsp(preset, {
       ...DEFAULT_DSP,
-      eq: { ...DEFAULT_DSP.eq, mode: { type: "graphic", bands: "thirtyOne", gainsDb: new Array(31).fill(0) } },
+      eq: {
+        ...DEFAULT_DSP.eq,
+        mode: { type: "graphic", bands: "thirtyOne", gainsDb: new Array(31).fill(0) },
+      },
     });
     const mode = dsp.eq.mode;
     expect(mode.type === "graphic" && mode.gainsDb).toHaveLength(31);

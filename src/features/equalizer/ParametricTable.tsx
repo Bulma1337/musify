@@ -19,7 +19,14 @@ export interface ParametricTableProps {
 }
 
 /** Filter list with numeric inputs (the curve points and this table edit the same filters). */
-export function ParametricTable({ filters, selected, onSelect, onChange, onAdd, onRemove }: ParametricTableProps) {
+export function ParametricTable({
+  filters,
+  selected,
+  onSelect,
+  onChange,
+  onAdd,
+  onRemove,
+}: ParametricTableProps) {
   const { t } = useTranslation();
   const full = filters.length >= MAX_PARAMETRIC_FILTERS;
 
@@ -126,7 +133,9 @@ export function ParametricTable({ filters, selected, onSelect, onChange, onAdd, 
           </tbody>
         </table>
       </div>
-      {filters.length === 0 && <p className="px-2 py-3 text-sm text-subdued">{t("equalizer.parametric.empty")}</p>}
+      {filters.length === 0 && (
+        <p className="px-2 py-3 text-sm text-subdued">{t("equalizer.parametric.empty")}</p>
+      )}
       <div className="mt-3 flex items-center gap-3">
         <Button size="sm" variant="secondary" icon={<Plus size={16} />} onClick={onAdd} disabled={full}>
           {t("equalizer.parametric.add")}

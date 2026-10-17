@@ -264,7 +264,12 @@ function AutoEqForm({ onImported, onClose }: { onImported: (eq: EqConfig) => voi
             e.target.value = "";
           }}
         />
-        <Button size="sm" variant="secondary" icon={<Upload size={16} />} onClick={() => fileRef.current?.click()}>
+        <Button
+          size="sm"
+          variant="secondary"
+          icon={<Upload size={16} />}
+          onClick={() => fileRef.current?.click()}
+        >
           {t("equalizer.autoEq.pickFile")}
         </Button>
       </div>

@@ -27,19 +27,10 @@ export function formatOutputFormat(format: OutputFormat): string {
   ].join(" · ");
 }
 
-export type ProcessingStage =
-  | "equalizer"
-  | "bass"
-  | "loudness"
-  | "limiter"
-  | "stereo"
-  | "normalization";
+export type ProcessingStage = "equalizer" | "bass" | "loudness" | "limiter" | "stereo" | "normalization";
 
 /** The processing steps that currently change the signal. */
-export function activeProcessing(
-  dsp: DspConfig,
-  normalization: NormalizationConfig,
-): ProcessingStage[] {
+export function activeProcessing(dsp: DspConfig, normalization: NormalizationConfig): ProcessingStage[] {
   const stages: ProcessingStage[] = [];
   if (dsp.eq.enabled) stages.push("equalizer");
   if (dsp.bass.enabled) stages.push("bass");
