@@ -192,8 +192,11 @@ describe("SettingsPage", () => {
 
   it("changes the language, translates the page and remembers the choice", async () => {
     renderSettings();
-    expect(radio("Language", "English")).toHaveAttribute("aria-checked", "true");
-    fireEvent.click(radio("Language", "Deutsch"));
+    const picker = screen.getByRole("combobox", { name: "Language" });
+    expect(picker).toHaveValue("en");
+    // Every language is listed by its own name.
+    expect(within(picker).getByRole("option", { name: "日本語" })).toBeInTheDocument();
+    fireEvent.change(picker, { target: { value: "de" } });
     expect(useLanguage.getState().language).toBe("de");
     expect(await screen.findByRole("heading", { level: 1, name: "Einstellungen" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "Audioqualität" })).toBeInTheDocument();

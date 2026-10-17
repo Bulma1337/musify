@@ -1,6 +1,8 @@
 //! Real-time safety: `process`, `set_volume` and `reset` never touch the allocator, with every stage
 //! active and while parameters glide / structures crossfade. Any allocation aborts this test binary
 //! (debug builds; run with `cargo test`).
+// The allocation guard is compiled out of release builds (feature "disable_release").
+#![cfg(debug_assertions)]
 
 use assert_no_alloc::{AllocDisabler, assert_no_alloc};
 use musify_audio::api::{

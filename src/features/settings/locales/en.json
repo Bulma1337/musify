@@ -127,10 +127,6 @@
       "zoom": "Zoom",
       "zoomHint": "Makes everything in the app smaller or larger.",
       "language": "Language",
-      "languages": {
-        "de": "Deutsch",
-        "en": "English"
-      },
       "onlineLyrics": "Find missing lyrics online",
       "onlineLyricsHint": "When your server has no lyrics, the app looks them up on LRCLIB (lrclib.net). Title, artist, album and length are sent there for that."
     },

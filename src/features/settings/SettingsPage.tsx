@@ -6,7 +6,7 @@ import { Button, IconButton } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { useOutputDevices } from "@/features/output/useOutputDevices";
 import type { LoudnessTarget, NormalizationMode } from "@/player/engineTypes";
-import { supportedLanguages, type Language } from "@/i18n";
+import { LANGUAGES, matchLanguage, type Language } from "@/i18n";
 import { useLanguage } from "@/settings/language";
 import { ACCENT_PRESETS, accentFill, type AccentPreset } from "@/settings/accentPresets";
 import { useSettings, type AccentColor, type QualityPreset } from "@/settings/store";
@@ -364,7 +364,7 @@ function DisplaySection() {
   const zoom = useLayout((s) => s.zoom);
   const setZoom = useLayout((s) => s.setZoom);
   const setLanguage = useLanguage((s) => s.setLanguage);
-  const language: Language = i18n.language.toLowerCase().startsWith("de") ? "de" : "en";
+  const language: Language = matchLanguage(i18n.language) ?? "en";
 
   const zoomValue = ZOOM_LEVELS.find((z) => Math.abs(z - zoom) < 0.001) ?? 1;
 
@@ -400,12 +400,18 @@ function DisplaySection() {
         />
       </SettingRow>
       <SettingRow stacked title={t("settings.display.language")}>
-        <Segmented
-          label={t("settings.display.language")}
+        <select
+          aria-label={t("settings.display.language")}
           value={language}
-          options={supportedLanguages.map((l) => ({ value: l, label: t(`settings.display.languages.${l}`) }))}
-          onChange={setLanguage}
-        />
+          onChange={(e) => setLanguage(e.target.value as Language)}
+          className="h-10 w-full max-w-xs cursor-pointer rounded-md bg-highlight px-3 text-sm text-text outline-none hover:bg-press focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          {LANGUAGES.map((l) => (
+            <option key={l.code} value={l.code}>
+              {l.name}
+            </option>
+          ))}
+        </select>
       </SettingRow>
     </SettingsSection>
   );

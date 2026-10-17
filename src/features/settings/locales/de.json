@@ -127,10 +127,6 @@
       "zoom": "Zoom",
       "zoomHint": "Macht alles in der App kleiner oder größer.",
       "language": "Sprache",
-      "languages": {
-        "de": "Deutsch",
-        "en": "English"
-      },
       "onlineLyrics": "Songtexte aus dem Internet ergänzen",
       "onlineLyricsHint": "Hat dein Server keinen Songtext, sucht die App bei LRCLIB (lrclib.net) danach. Dafür werden Titel, Künstler, Album und Länge dorthin übertragen."
     },
