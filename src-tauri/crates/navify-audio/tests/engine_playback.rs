@@ -243,6 +243,86 @@ fn crossfade_between_albums_and_stop_at_the_end() {
     });
 }
 
+/// The app queues the track after next as soon as a crossfade announces the next one. That must not
+/// disturb the crossfade in progress: b plays completely, then crossfades into c.
+#[test]
+fn queueing_during_a_crossfade_keeps_the_incoming_track() {
+    let (engine, _samples) = engine();
+    let events = engine.events();
+    let mut seen = Vec::new();
+
+    engine.send(EngineCommand::SetCrossfade {
+        config: CrossfadeConfig {
+            duration_ms: 300,
+            skip_same_album: false,
+        },
+    });
+    engine.send(EngineCommand::Play {
+        track: track("a", "gapless_p1.flac", Some("album")),
+        start_ms: 0,
+        paused: false,
+    });
+    engine.send(EngineCommand::SetNext {
+        track: Some(track("b", "gapless_p2.flac", Some("album"))),
+    });
+    wait_for(&events, &mut seen, Duration::from_secs(10), |s| {
+        s.iter()
+            .any(|e| matches!(e, EngineEvent::TrackStarted { id, .. } if id == "b"))
+    });
+    // Like the app: queue the next track right away.
+    engine.send(EngineCommand::SetNext {
+        track: Some(track("c", "gapless_p1.flac", Some("album"))),
+    });
+    wait_for(&events, &mut seen, Duration::from_secs(10), |s| {
+        ended(s, "c")
+    });
+
+    let started = |id: &str| {
+        seen.iter().find_map(|e| match e {
+            EngineEvent::TrackStarted {
+                id: i, transition, ..
+            } if i == id => Some(*transition),
+            _ => None,
+        })
+    };
+    assert_eq!(started("b"), Some(Transition::Crossfade));
+    assert_eq!(
+        started("c"),
+        Some(Transition::Crossfade),
+        "b crossfades into c"
+    );
+    let played = |id: &str| {
+        seen.iter().find_map(|e| match e {
+            EngineEvent::TrackEnded {
+                id: i,
+                played_ms,
+                completed,
+            } if i == id => Some((*played_ms, *completed)),
+            _ => None,
+        })
+    };
+    // gapless_p2 is ~750 ms long: it must have played (nearly) completely, not been replaced by c.
+    let (b_ms, b_done) = played("b").expect("b ended");
+    assert!(b_done, "b completed");
+    assert!(b_ms >= 650, "b played {b_ms} ms");
+    // Each track starts once; b's start comes before a ends, c's before b ends.
+    let pos = |pred: &dyn Fn(&EngineEvent) -> bool| seen.iter().position(pred).unwrap();
+    let b_start = pos(&|e| matches!(e, EngineEvent::TrackStarted { id, .. } if id == "b"));
+    let a_end = pos(&|e| matches!(e, EngineEvent::TrackEnded { id, .. } if id == "a"));
+    let c_start = pos(&|e| matches!(e, EngineEvent::TrackStarted { id, .. } if id == "c"));
+    let b_end = pos(&|e| matches!(e, EngineEvent::TrackEnded { id, .. } if id == "b"));
+    assert!(
+        b_start < a_end && a_end < c_start && c_start < b_end,
+        "{seen:#?}"
+    );
+    // Positions keep coming for the incoming track during the crossfade (no frozen progress bar).
+    let b_positions = seen[b_start..a_end]
+        .iter()
+        .filter(|e| matches!(e, EngineEvent::Position { id, .. } if id == "b"))
+        .count();
+    assert!(b_positions >= 1, "positions for b during the crossfade");
+}
+
 #[test]
 fn pause_and_resume_report_state() {
     let (engine, _samples) = engine();

@@ -29,6 +29,8 @@ const POSITION_INTERVAL_MS: f64 = 100.0;
 /// DSP ring-out (EQ, bass filters) still played after a track ended before the pipeline counts
 /// as drained.
 const DRAIN_TAIL_MS: f64 = 10.0;
+/// Tracks that can fade out at the same time after quick manual switches.
+const MAX_OUTGOING: usize = 4;
 
 /// A decoded track handed to the mixer.
 pub(crate) struct MixSlot {
@@ -257,7 +259,11 @@ pub(crate) struct Mixer {
 
     current: Option<Slot>,
     next: Option<Slot>,
-    outgoing: Option<Slot>,
+    /// Tracks fading out after a manual switch (preallocated, see `push_outgoing`).
+    outgoing: Vec<Slot>,
+    /// During a crossfade: the previous track, fading out. The incoming one is already `current`,
+    /// so `next` is free for the track after it while the fade runs.
+    fading: Option<Slot>,
     crossfade: Option<Crossfade>,
     crossfade_frames: u64,
     skip_same_album: bool,
@@ -303,7 +309,8 @@ impl Mixer {
             events,
             current: None,
             next: None,
-            outgoing: None,
+            outgoing: Vec::with_capacity(MAX_OUTGOING),
+            fading: None,
             crossfade: None,
             crossfade_frames: 0,
             skip_same_album: true,
@@ -334,7 +341,8 @@ impl Mixer {
             // DSP latency and a short filter tail), i.e. the last audible sample has been read.
             if let Some(token) = self.drain_token
                 && self.current.is_none()
-                && self.outgoing.is_none()
+                && self.outgoing.is_empty()
+                && self.fading.is_none()
                 && self.idle_frames
                     >= (filled + self.chain.latency_frames() + self.tail_frames) as u64
             {
@@ -365,26 +373,55 @@ impl Mixer {
     }
 
     fn slot_mut(&mut self, id: u64) -> Option<&mut Slot> {
-        [
-            self.current.as_mut(),
-            self.next.as_mut(),
-            self.outgoing.as_mut(),
-        ]
-        .into_iter()
-        .flatten()
-        .find(|s| s.id == id)
+        self.current
+            .iter_mut()
+            .chain(self.next.iter_mut())
+            .chain(self.fading.iter_mut())
+            .chain(self.outgoing.iter_mut())
+            .find(|s| s.id == id)
     }
 
+    /// Keeps at most `MAX_OUTGOING` fading tracks (the oldest is nearly silent), so pushing never
+    /// allocates.
+    fn push_outgoing(&mut self, slot: Slot) {
+        if self.outgoing.len() == MAX_OUTGOING {
+            self.outgoing.remove(0);
+        }
+        self.outgoing.push(slot);
+    }
+
+    /// Fades out whatever plays now (manual switch, stop). A crossfade in progress ends here too:
+    /// both of its tracks fade out quickly from the level they had reached, so nothing jumps.
     fn fade_out_current(&mut self) {
-        self.crossfade = None;
+        let angle = self
+            .crossfade
+            .take()
+            .map(|f| (f.done as f64 / f.len as f64).min(1.0) * FRAC_PI_2);
+        if let Some(mut old) = self.fading.take() {
+            self.emit(MixerEvent::Ended {
+                id: old.id,
+                played_frames: old.consumed,
+                completed: true,
+            });
+            if let Some(a) = angle {
+                old.gain *= a.cos();
+                old.gain_target *= a.cos();
+            }
+            old.env_step = -self.switch_step;
+            self.push_outgoing(old);
+        }
         if let Some(mut cur) = self.current.take() {
             self.emit(MixerEvent::Ended {
                 id: cur.id,
                 played_frames: cur.consumed,
                 completed: false,
             });
+            if let Some(a) = angle {
+                cur.gain *= a.sin();
+                cur.gain_target *= a.sin();
+            }
             cur.env_step = -self.switch_step;
-            self.outgoing = Some(cur);
+            self.push_outgoing(cur);
         }
     }
 
@@ -414,7 +451,7 @@ impl Mixer {
             }
             MixerMsg::NotifyDrained(token) => self.drain_token = Some(token),
             MixerMsg::SetNext(slot) => {
-                self.crossfade = None;
+                // A crossfade in progress is unaffected: its incoming track is already `current`.
                 self.next = slot.map(|s| Slot::new(s, Transition::Gapless, self.switch_step));
             }
             MixerMsg::Ready {
@@ -476,7 +513,7 @@ impl Mixer {
 
     fn process_block(&mut self) {
         let frames = BLOCK_FRAMES;
-        if self.current.is_some() || self.outgoing.is_some() {
+        if self.current.is_some() || !self.outgoing.is_empty() || self.fading.is_some() {
             self.idle_frames = 0;
         } else {
             self.idle_frames += frames as u64;
@@ -484,14 +521,13 @@ impl Mixer {
         self.block.fill(0.0);
         let mut block = std::mem::take(&mut self.block);
 
-        // Track fading out after a manual switch.
-        if let Some(out) = self.outgoing.as_mut() {
-            let gain_step = self.gain_step;
+        // Tracks fading out after a manual switch.
+        let gain_step = self.gain_step;
+        for out in self.outgoing.iter_mut() {
             out.mix_into(&mut block, frames, |_| 1.0, gain_step);
-            if out.env <= 0.0 || out.available_frames() == 0 {
-                self.outgoing = None;
-            }
         }
+        self.outgoing
+            .retain(|o| o.env > 0.0 && o.available_frames() > 0);
 
         let mut pos = 0;
         while pos < frames {
@@ -500,24 +536,30 @@ impl Mixer {
             };
             let cur_id = cur.id;
 
-            // Start a crossfade when the current track is within the crossfade length of its end.
+            // Start a crossfade when the current track is within the crossfade length of its end:
+            // the next track becomes current right away (equal-power fade-in), the old one moves to
+            // `fading` and fades out over the same frames.
             if self.crossfade.is_none()
+                && self.fading.is_none()
                 && self.crossfade_allowed()
                 && let Some(remaining) = cur.remaining_frames()
                 && remaining <= self.crossfade_frames
             {
+                let mut incoming = self.next.take().expect("crossfade_allowed checked next");
+                incoming.transition = Transition::Crossfade;
+                incoming.started = true;
+                incoming.env = 1.0;
+                incoming.env_step = 0.0;
+                self.emit(MixerEvent::Started {
+                    id: incoming.id,
+                    transition: Transition::Crossfade,
+                });
+                self.fading = self.current.replace(incoming);
                 self.crossfade = Some(Crossfade {
                     len: remaining.max(1),
                     done: 0,
                 });
-                let next = self.next.as_mut().expect("crossfade_allowed checked next");
-                next.transition = Transition::Crossfade;
-                next.started = true;
-                let next_id = next.id;
-                self.emit(MixerEvent::Started {
-                    id: next_id,
-                    transition: Transition::Crossfade,
-                });
+                continue;
             }
 
             let want = frames - pos;
@@ -526,15 +568,19 @@ impl Mixer {
                 let (len, done) = (fade.len as f64, fade.done as f64);
                 let gain_step = self.gain_step;
                 let slice = &mut block[pos * 2..(pos + n) * 2];
+                if let Some(old) = self.fading.as_mut() {
+                    old.mix_into(
+                        slice,
+                        n,
+                        |i| ((done + i as f64) / len * FRAC_PI_2).cos(),
+                        gain_step,
+                    );
+                    if old.is_exhausted() {
+                        self.end_fading();
+                    }
+                }
                 let cur = self.current.as_mut().expect("current present");
-                let got_cur = cur.mix_into(
-                    slice,
-                    n,
-                    |i| ((done + i as f64) / len * FRAC_PI_2).cos(),
-                    gain_step,
-                );
-                let next = self.next.as_mut().expect("next present during crossfade");
-                next.mix_into(
+                cur.mix_into(
                     slice,
                     n,
                     |i| ((done + i as f64) / len * FRAC_PI_2).sin(),
@@ -543,12 +589,10 @@ impl Mixer {
                 let fade = self.crossfade.as_mut().expect("fade present");
                 fade.done += n as u64;
                 pos += n;
-                let finished = fade.done >= fade.len
-                    || (got_cur < n && self.current.as_ref().is_some_and(Slot::is_exhausted));
-                if finished {
-                    self.finish_current(true);
-                    self.promote_next(None);
+                if fade.done >= fade.len {
+                    // The old track is silent now (cos = 0); whatever is left of it is dropped.
                     self.crossfade = None;
+                    self.end_fading();
                 }
                 continue;
             }
@@ -600,6 +644,17 @@ impl Mixer {
         self.write_output(&block);
         self.block = block;
         self.report_position(frames as u64);
+    }
+
+    /// The fading-out track of a crossfade has played to its end.
+    fn end_fading(&mut self) {
+        if let Some(old) = self.fading.take() {
+            self.emit(MixerEvent::Ended {
+                id: old.id,
+                played_frames: old.consumed,
+                completed: true,
+            });
+        }
     }
 
     fn finish_current(&mut self, completed: bool) {
