@@ -1,5 +1,6 @@
 import { createHashRouter } from "react-router";
 import { AppShell } from "./layout/AppShell";
+import { RouteError } from "./RouteError";
 
 /**
  * Route table. Pages are code-split; each feature folder owns its page component(s).
@@ -9,6 +10,7 @@ export const router = createHashRouter([
   {
     path: "/",
     element: <AppShell />,
+    errorElement: <RouteError />,
     children: [
       {
         index: true,

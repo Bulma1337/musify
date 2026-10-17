@@ -25,6 +25,7 @@ import { menuContent, menuItem, menuSeparator } from "@/components/media/TrackMe
 import { Button, IconButton } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { toast, toastError } from "@/components/ui/toast";
+import { moveItems } from "@/lib/dnd";
 import { formatLongDuration } from "@/lib/format";
 import { loaders, playOrToggle, useIsContextPlaying } from "@/player/actions";
 import { usePlayer } from "@/player/store";
@@ -61,6 +62,21 @@ function PlaylistView({ playlist }: { playlist: PlaylistDetail }) {
   function invalidate() {
     void client.invalidateQueries({ queryKey: [provider.server.id, "playlist", playlist.id] });
     void client.invalidateQueries({ queryKey: [provider.server.id, "playlists"] });
+  }
+
+  /** Drag-and-drop reorder: optimistic update, then the server; rolls back on failure. */
+  async function reorder(from: number[], to: number) {
+    const key = [provider.server.id, "playlist", playlist.id];
+    const previous = client.getQueryData<PlaylistDetail>(key);
+    const tracks = moveItems(playlist.tracks, from, to);
+    client.setQueryData<PlaylistDetail>(key, { ...playlist, tracks });
+    try {
+      await provider.reorderPlaylist(playlist.id, tracks);
+      invalidate();
+    } catch (error) {
+      if (previous) client.setQueryData(key, previous);
+      toastError(describeError(t, error));
+    }
   }
 
   async function update(changes: { name?: string; comment?: string; public?: boolean }, message: string) {
@@ -217,6 +233,9 @@ function PlaylistView({ playlist }: { playlist: PlaylistDetail }) {
         ) : (
           <TrackList
             tracks={visibleTracks}
+            dragOrigin={`playlist:${playlist.id}`}
+            // Reordering only makes sense on the full, unfiltered list.
+            onReorder={editable && !filter.trim() ? (from, to) => void reorder(from, to) : undefined}
             onPlay={(index) => usePlayer.getState().playTracks(visibleTracks, index, context)}
             menuExtra={
               editable

@@ -36,3 +36,23 @@ export const loaders = {
   },
   liked: (provider: MusicProvider) => () => provider.getStarred().then((s) => s.tracks),
 };
+
+/** Shuffle button: off → shuffle → Shuffle+ (with recommendations) → off. */
+export async function cycleShuffle(provider: MusicProvider | null): Promise<void> {
+  const player = usePlayer.getState();
+  const nextMode = player.shuffle === "off" ? "shuffle" : player.shuffle === "shuffle" ? "smart" : "off";
+  if (nextMode !== "smart") {
+    player.setShuffle(nextMode);
+    return;
+  }
+  if (!provider?.capabilities.similarTracks) {
+    player.setShuffle("off");
+    return;
+  }
+  const originals = player.contextItems.filter((i) => !i.recommended);
+  const seeds = [...originals].sort(() => Math.random() - 0.5).slice(0, 3);
+  const lists = await Promise.all(
+    seeds.map((s) => provider.getSimilarTracks(s.track.id, 15).catch(() => [])),
+  );
+  usePlayer.getState().setShuffle("smart", lists.flat());
+}

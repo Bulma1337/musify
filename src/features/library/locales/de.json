@@ -1,0 +1,20 @@
+{
+  "libraryExtras": {
+    "create": "Erstellen",
+    "createFolder": "Ordner erstellen",
+    "newFolderName": "Neuer Ordner",
+    "newFolderEllipsis": "Neuer Ordner…",
+    "folderName": "Ordnername",
+    "folderItems_one": "{{count}} Playlist",
+    "folderItems_other": "{{count}} Playlists",
+    "renameFolder": "Umbenennen",
+    "deleteFolder": "Ordner löschen",
+    "pin": "Anheften",
+    "unpin": "Lösen",
+    "pinned": "Angeheftet",
+    "moveToFolder": "In Ordner verschieben",
+    "removeFromFolder": "Aus Ordner entfernen",
+    "addedToPlaylist_one": "{{count}} Titel zu „{{name}}“ hinzugefügt",
+    "addedToPlaylist_other": "{{count}} Titel zu „{{name}}“ hinzugefügt"
+  }
+}

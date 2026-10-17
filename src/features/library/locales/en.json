@@ -1,0 +1,20 @@
+{
+  "libraryExtras": {
+    "create": "Create",
+    "createFolder": "Create folder",
+    "newFolderName": "New folder",
+    "newFolderEllipsis": "New folder…",
+    "folderName": "Folder name",
+    "folderItems_one": "{{count}} playlist",
+    "folderItems_other": "{{count}} playlists",
+    "renameFolder": "Rename",
+    "deleteFolder": "Delete folder",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "pinned": "Pinned",
+    "moveToFolder": "Move to folder",
+    "removeFromFolder": "Remove from folder",
+    "addedToPlaylist_one": "{{count}} track added to “{{name}}”",
+    "addedToPlaylist_other": "{{count}} tracks added to “{{name}}”"
+  }
+}

@@ -4,7 +4,10 @@
     "tagline": "Your music. Your server.",
     "connecting": "Connecting to {{server}} …",
     "retry": "Try again",
-    "signOut": "Use a different server"
+    "signOut": "Use a different server",
+    "crashTitle": "Something went wrong",
+    "crashText": "This view could not be shown. Reloading usually fixes it; your queue is kept.",
+    "reload": "Reload"
   },
   "common": {
     "showPassword": "Show password",
@@ -77,7 +80,9 @@
     "miniplayer": "Open mini player",
     "fullscreen": "Full screen",
     "playbackError": "Playback error: {{message}}",
-    "deviceLost": "The output device was disconnected. Playback continues on the default device."
+    "deviceLost": "The output device was disconnected. Playback continues on the default device.",
+    "shuffleSmart": "Enable Shuffle+ (with recommendations)",
+    "recommended": "Recommendation"
   },
   "track": {
     "title": "Title",
@@ -85,7 +90,9 @@
     "added": "Date added",
     "duration": "Duration",
     "explicit": "Explicit content",
-    "disc": "Disc {{n}}"
+    "disc": "Disc {{n}}",
+    "dragCount_one": "{{count}} track",
+    "dragCount_other": "{{count}} tracks"
   },
   "menu": {
     "addToQueue": "Add to queue",
@@ -128,7 +135,12 @@
     "nextInQueue": "Queued by you",
     "nextFrom": "Up next from: {{name}}",
     "empty": "Add songs to fill your queue.",
-    "historyEmpty": "You haven't played anything in this session yet."
+    "historyEmpty": "You haven't played anything in this session yet.",
+    "remove": "Remove from queue",
+    "clear": "Clear",
+    "more_one": "and {{count}} more track",
+    "more_other": "and {{count}} more tracks",
+    "dropHint": "Drag tracks here to play them next."
   },
   "devices": {
     "title": "Output",
