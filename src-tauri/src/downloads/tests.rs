@@ -79,6 +79,10 @@ impl TestServer {
             while !shared.stop.load(Ordering::Relaxed) {
                 match listener.accept() {
                     Ok((stream, _)) => {
+                        // On Windows an accepted socket inherits the listener's non-blocking mode;
+                        // writes would then fail with WouldBlock whenever the client reads slowly
+                        // and cut the response short.
+                        let _ = stream.set_nonblocking(false);
                         let shared = Arc::clone(&shared);
                         thread::spawn(move || handle(stream, &shared));
                     }
@@ -155,7 +159,19 @@ fn handle(mut stream: TcpStream, state: &ServerState) {
     state.max_concurrent.fetch_max(now, Ordering::SeqCst);
     respond(&mut stream, state, &path, range.as_deref(), serial);
     state.concurrent.fetch_sub(1, Ordering::SeqCst);
-    let _ = stream.shutdown(Shutdown::Both);
+    close_gracefully(stream);
+}
+
+/// Ends the response with a FIN and drains what the client still sends, then closes. A plain
+/// shutdown of both directions can turn into a reset on Windows that drops the last bytes in flight
+/// (seen on slower CI machines), which looks like a cut connection to the downloader.
+fn close_gracefully(mut stream: TcpStream) {
+    use std::io::Read;
+    let _ = stream.flush();
+    let _ = stream.shutdown(Shutdown::Write);
+    let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
+    let mut sink = [0u8; 1024];
+    while matches!(stream.read(&mut sink), Ok(n) if n > 0) {}
 }
 
 fn respond(
