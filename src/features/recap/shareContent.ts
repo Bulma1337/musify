@@ -25,7 +25,7 @@ export function buildShareContent(data: RecapData, t: TFunction): ShareContent {
   };
 }
 
-/** File name for a saved image, e.g. "navify-rueckblick-2025-story.png". */
+/** File name for a saved image, e.g. "musify-rueckblick-2025-story.png". */
 export function shareFileName(year: number, format: "story" | "square"): string {
-  return `navify-recap-${year}-${format}.png`;
+  return `musify-recap-${year}-${format}.png`;
 }

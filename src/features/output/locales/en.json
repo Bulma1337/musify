@@ -37,7 +37,7 @@
     "noDevices": "No devices found. The system default is used.",
     "deviceMissing": "The saved device is not connected. Playback uses the default device.",
     "exclusiveMode": "Exclusive mode",
-    "exclusiveHint": "Takes over the device and plays every track at its original sample rate and bit depth. Bit-perfect while the equalizer and effects are off and the volume is at 100%.",
+    "exclusiveHint": "Musify takes over the sound device on its own, bypassing the Windows mixer, and plays every track at its original sample rate and bit depth. Other apps can't be heard on this device meanwhile, and you set the volume in Musify. Bit-perfect while the equalizer and effects are off and the volume is at 100%.",
     "exclusiveUnsupported": "This device does not support exclusive mode.",
     "openEqualizer": "Open equalizer",
     "exclusiveUpTo": "Exclusive up to {{bits}} bit / {{rate}}",

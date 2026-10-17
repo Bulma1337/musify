@@ -1,13 +1,16 @@
 {
   "app": {
-    "name": "Navify",
+    "name": "Musify",
     "tagline": "Your music. Your server.",
     "connecting": "Connecting to {{server}} …",
     "retry": "Try again",
     "signOut": "Use a different server",
     "crashTitle": "Something went wrong",
     "crashText": "This view could not be shown. Reloading usually fixes it; your queue is kept.",
-    "reload": "Reload"
+    "reload": "Reload",
+    "notFoundTitle": "Page not found",
+    "notFoundText": "This address does not exist in Musify.",
+    "toHome": "Go to home"
   },
   "common": {
     "showPassword": "Show password",
@@ -82,7 +85,19 @@
     "playbackError": "Playback error: {{message}}",
     "deviceLost": "The output device was disconnected. Playback continues on the default device.",
     "shuffleSmart": "Enable Shuffle+ (with recommendations)",
-    "recommended": "Recommendation"
+    "recommended": "Recommendation",
+    "fullscreenExit": "Exit full screen",
+    "playingFrom": "Playing from: {{name}}",
+    "nothingPlaying": "Nothing is playing",
+    "miniBack": "Back to the app",
+    "miniPin": "Always on top",
+    "miniUnpin": "Don't keep on top",
+    "miniMinimize": "Minimize",
+    "resumedQueue": "Continued queue",
+    "resumedFrom": "Continuing where you left off on “{{client}}”.",
+    "loadedFrom": "Took over the queue from “{{client}}”.",
+    "resumed": "Continuing where you left off.",
+    "loaded": "Took over the queue from the server."
   },
   "track": {
     "title": "Title",
@@ -159,7 +174,9 @@
     "passwordHint": "With Navidrome you can also leave the username empty and use an API key.",
     "allowInsecure": "Allow self-signed certificates",
     "connect": "Connect",
-    "secureStorage": "Your password is stored encrypted in the system credential store, never in plain text."
+    "secureStorage": "Your password is stored encrypted in the system credential store, never in plain text.",
+    "cancel": "Cancel",
+    "addTitle": "Connect another server"
   },
   "errors": {
     "auth": "Wrong username or password.",
@@ -170,5 +187,17 @@
     "invalidResponse": "The server sent an unexpected response.",
     "server": "The server reported an error (code {{code}}).",
     "unknown": "Something went wrong."
+  },
+  "account": {
+    "menu": "Account",
+    "servers": "Servers",
+    "current": "Connected",
+    "offline": "offline",
+    "addServer": "Add server",
+    "signOut": "Sign out of {{server}}",
+    "signOutTitle": "Sign out of {{server}}?",
+    "signOutBody": "Musify deletes the saved credentials for this server and clears the queue. Downloaded tracks stay on this computer.",
+    "signOutConfirm": "Sign out",
+    "cancel": "Cancel"
   }
 }

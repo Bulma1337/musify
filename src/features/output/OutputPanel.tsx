@@ -45,7 +45,7 @@ function SignalPath() {
     <section aria-label={t("output.signalPath")} className="rounded-lg bg-elevated p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="font-bold">{t("output.signalPath")}</h3>
-        {output &&
+        {output?.exclusive &&
           (output.bitPerfect ? (
             <span
               className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-[13px] font-bold text-on-accent"
@@ -96,7 +96,7 @@ function SignalPath() {
         </p>
       )}
 
-      {output && !output.bitPerfect && blockers.length > 0 && (
+      {output?.exclusive && !output.bitPerfect && blockers.length > 0 && (
         <div className="mt-3 text-[13px] text-subdued">
           <p>{t("output.reasonsTitle")}</p>
           <ul className="mt-1 list-disc pl-5">
@@ -138,7 +138,7 @@ function DeviceRow({
       <Speaker size={22} className={selected ? "text-accent" : "text-subdued"} aria-hidden="true" />
       <span className="min-w-0 flex-1">
         <span className={cn("block truncate", selected && "font-bold text-accent")}>{name}</span>
-        {detail && <span className="block truncate text-sm text-subdued">{detail}</span>}
+        {detail && <span className="block text-sm break-words text-subdued">{detail}</span>}
       </span>
       {isDefault && (
         <span className="shrink-0 rounded bg-surface px-1.5 py-0.5 text-[11px] text-subdued">

@@ -113,7 +113,7 @@ export const useLibrary = create<LibraryState>()(
       };
     },
     {
-      name: "navify.library",
+      name: "musify.library",
       version: 1,
       storage: createJSONStorage(() => storage),
       partialize: ({ byServer }) => ({ byServer }),

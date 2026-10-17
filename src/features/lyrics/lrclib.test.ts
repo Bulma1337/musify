@@ -42,7 +42,7 @@ describe("fetchLrclib", () => {
     expect(call.params.get("artist_name")).toBe("Aurora Lane");
     expect(call.params.get("album_name")).toBe("Morning Static");
     expect(call.params.get("duration")).toBe("181");
-    expect(header).toBe("Navify 0.1.0 (https://github.com/Bulma1337/navify)");
+    expect(header).toBe("Musify 0.1.0 (https://github.com/Bulma1337/musify)");
   });
 
   it("falls back to plain lyrics when no synced text exists", async () => {

@@ -10,8 +10,12 @@ import { supportedLanguages, type Language } from "@/i18n";
 import { useLanguage } from "@/settings/language";
 import { useSettings, type AccentColor, type QualityPreset } from "@/settings/store";
 import { StorageSettings } from "@/features/downloads/StorageSettings";
+import { AboutSection } from "@/features/updates/AboutSection";
 import { Segmented, SettingRow, SettingsSection, type SegmentedOption } from "./controls";
 import { RangeSlider } from "./RangeSlider";
+
+/** Choices for “continue where you left off”, in minutes (0 = off). */
+const RESUME_WINDOWS = [0, 5, 10, 30];
 
 const QUALITIES: readonly QualityPreset[] = ["original", "high", "normal", "low"];
 const NORMALIZATION_MODES: readonly NormalizationMode[] = ["off", "track", "album", "auto"];
@@ -83,6 +87,8 @@ function PlaybackSection() {
   const seconds = Math.round(crossfade.durationMs / 1000);
   const normalizationOff = normalization.mode === "off";
 
+  const resumeWindowMin = useSettings((s) => s.resumeWindowMin);
+  const syncPlayQueue = useSettings((s) => s.syncPlayQueue);
   const setStereo = (patch: Partial<typeof stereo>) =>
     updateDsp((dsp) => ({ ...dsp, stereo: { ...dsp.stereo, ...patch } }));
 
@@ -118,6 +124,28 @@ function PlaybackSection() {
           disabled={seconds === 0}
           onCheckedChange={(skipSameAlbum) => set("crossfade", { ...crossfade, skipSameAlbum })}
           label={t("settings.playback.skipSameAlbum")}
+        />
+      </SettingRow>
+      <SettingRow
+        stacked
+        title={t("settings.playback.resume")}
+        description={t("settings.playback.resumeHint")}
+      >
+        <Segmented
+          label={t("settings.playback.resume")}
+          value={resumeWindowMin}
+          options={RESUME_WINDOWS.map((m) => ({
+            value: m,
+            label: m === 0 ? t("settings.off") : t("settings.playback.resumeMinutes", { count: m }),
+          }))}
+          onChange={(m) => set("resumeWindowMin", m)}
+        />
+      </SettingRow>
+      <SettingRow title={t("settings.playback.syncQueue")} description={t("settings.playback.syncQueueHint")}>
+        <Switch
+          checked={syncPlayQueue}
+          onCheckedChange={(on) => set("syncPlayQueue", on)}
+          label={t("settings.playback.syncQueue")}
         />
       </SettingRow>
       <SettingRow title={t("settings.playback.gapless")} description={t("settings.playback.gaplessHint")}>
@@ -364,6 +392,7 @@ export function SettingsPage() {
           <StorageSettings />
         </div>
         <DisplaySection />
+        <AboutSection />
       </div>
     </div>
   );

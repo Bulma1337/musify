@@ -17,8 +17,20 @@ function storeFile(file: string): Promise<Store> {
 }
 
 export async function readPersisted<T>(file: string, key: string): Promise<T | undefined> {
-  if (inTauri) return (await storeFile(file)).get<T>(key);
-  const raw = localStorage.getItem(`navify.${file}.${key}`);
+  if (inTauri) {
+    const store = await storeFile(file);
+    const value = await store.get<T>(key);
+    if (value !== undefined || !key.includes("musify.")) return value;
+    // Saved before the rename (Navify → Musify): take it over under the new key.
+    const old = key.replaceAll("musify.", "navify.");
+    const previous = await store.get<T>(old);
+    if (previous !== undefined) {
+      await store.set(key, previous);
+      await store.delete(old);
+    }
+    return previous;
+  }
+  const raw = localStorage.getItem(`musify.${file}.${key}`);
   return raw === null ? undefined : (JSON.parse(raw) as T);
 }
 
@@ -27,5 +39,5 @@ export async function writePersisted<T>(file: string, key: string, value: T): Pr
     await (await storeFile(file)).set(key, value);
     return;
   }
-  localStorage.setItem(`navify.${file}.${key}`, JSON.stringify(value));
+  localStorage.setItem(`musify.${file}.${key}`, JSON.stringify(value));
 }

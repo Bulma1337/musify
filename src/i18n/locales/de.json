@@ -1,13 +1,16 @@
 {
   "app": {
-    "name": "Navify",
+    "name": "Musify",
     "tagline": "Deine Musik. Dein Server.",
     "connecting": "Verbinde mit {{server}} …",
     "retry": "Erneut versuchen",
     "signOut": "Anderen Server verwenden",
     "crashTitle": "Da ist etwas schiefgelaufen",
     "crashText": "Diese Ansicht konnte nicht angezeigt werden. Nach dem Neuladen geht es normalerweise weiter, deine Warteschlange bleibt erhalten.",
-    "reload": "Neu laden"
+    "reload": "Neu laden",
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundText": "Diese Adresse gibt es in Musify nicht.",
+    "toHome": "Zur Startseite"
   },
   "common": {
     "showPassword": "Passwort anzeigen",
@@ -82,7 +85,19 @@
     "playbackError": "Wiedergabefehler: {{message}}",
     "deviceLost": "Das Ausgabegerät wurde getrennt. Die Wiedergabe läuft über das Standardgerät weiter.",
     "shuffleSmart": "Shuffle+ aktivieren (mit Empfehlungen)",
-    "recommended": "Empfehlung"
+    "recommended": "Empfehlung",
+    "fullscreenExit": "Vollbild verlassen",
+    "playingFrom": "Läuft aus: {{name}}",
+    "nothingPlaying": "Gerade läuft nichts",
+    "miniBack": "Zurück zur App",
+    "miniPin": "Immer im Vordergrund",
+    "miniUnpin": "Nicht mehr im Vordergrund",
+    "miniMinimize": "Minimieren",
+    "resumedQueue": "Fortgesetzte Warteschlange",
+    "resumedFrom": "Es geht weiter, wo du auf „{{client}}“ aufgehört hast.",
+    "loadedFrom": "Warteschlange von „{{client}}“ übernommen.",
+    "resumed": "Es geht weiter, wo du aufgehört hast.",
+    "loaded": "Warteschlange vom Server übernommen."
   },
   "track": {
     "title": "Titel",
@@ -159,7 +174,9 @@
     "passwordHint": "Bei Navidrome kannst du ohne Benutzernamen auch einen API-Schlüssel verwenden.",
     "allowInsecure": "Selbstsignierte Zertifikate erlauben",
     "connect": "Verbinden",
-    "secureStorage": "Dein Passwort wird verschlüsselt in der Windows-Anmeldeinformationsverwaltung gespeichert, nie in Klartext."
+    "secureStorage": "Dein Passwort wird verschlüsselt in der Windows-Anmeldeinformationsverwaltung gespeichert, nie in Klartext.",
+    "cancel": "Abbrechen",
+    "addTitle": "Weiteren Server verbinden"
   },
   "errors": {
     "auth": "Benutzername oder Passwort ist falsch.",
@@ -170,5 +187,17 @@
     "invalidResponse": "Der Server hat eine unerwartete Antwort geschickt.",
     "server": "Der Server meldet einen Fehler (Code {{code}}).",
     "unknown": "Ein unbekannter Fehler ist aufgetreten."
+  },
+  "account": {
+    "menu": "Konto",
+    "servers": "Server",
+    "current": "Verbunden",
+    "offline": "offline",
+    "addServer": "Server hinzufügen",
+    "signOut": "Von {{server}} abmelden",
+    "signOutTitle": "Von {{server}} abmelden?",
+    "signOutBody": "Musify löscht die gespeicherten Zugangsdaten für diesen Server und leert die Warteschlange. Heruntergeladene Titel bleiben auf dem Rechner.",
+    "signOutConfirm": "Abmelden",
+    "cancel": "Abbrechen"
   }
 }

@@ -1,6 +1,6 @@
 # Subagents: Modell- und Reasoning-Zuteilung
 
-Diese Datei legt fest, **welches Modell mit welcher Reasoning-Stufe** welche Arbeit in Navify übernimmt und
+Diese Datei legt fest, **welches Modell mit welcher Reasoning-Stufe** welche Arbeit in Musify übernimmt und
 **welche Arbeitspakete selbstständig bzw. parallel** laufen können.
 
 Grundsatz: **nicht verschwenden, aber auch nicht unterdimensionieren.** Das Modell richtet sich nach der Schwierigkeit

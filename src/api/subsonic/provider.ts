@@ -377,7 +377,11 @@ export class SubsonicProvider implements MusicProvider {
     const q = res.playQueue;
     const entries = q?.entry ?? [];
     if (!q || entries.length === 0) return null;
-    const saved: SavedPlayQueue = { trackIds: entries.map((e) => e.id), positionMs: q.position ?? 0 };
+    const saved: SavedPlayQueue = {
+      trackIds: entries.map((e) => e.id),
+      tracks: this.tracks(entries),
+      positionMs: q.position ?? 0,
+    };
     if (q.current) saved.currentId = q.current;
     if (q.changed) saved.changedAt = q.changed;
     if (q.changedBy) saved.changedBy = q.changedBy;

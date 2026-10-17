@@ -54,9 +54,9 @@ export interface AutoEntry {
 /**
  * Combines the server's play counts with the local history for the all-time ranking.
  *
- * The server count already includes the plays Navify scrobbled, so adding both would count them
+ * The server count already includes the plays Musify scrobbled, so adding both would count them
  * twice. The larger of the two wins per track: the server count covers other devices and the time
- * before Navify, the local count covers plays the server never learned about (scrobbling off,
+ * before Musify, the local count covers plays the server never learned about (scrobbling off,
  * servers that derive plays differently). Ties keep the server order, then the local order.
  */
 export function mergePlayCounts(server: Track[], local: StatRow[], limit: number): AutoEntry[] {

@@ -9,7 +9,7 @@ export function downloadsApiMock() {
     downloadsApi: {
       subscribe: vi.fn(),
       list: vi.fn(async (): Promise<NativeListing> => ({
-        dir: "D:/Music/Navify",
+        dir: "D:/Music/Musify",
         tracks: [],
         collections: [],
       })),
@@ -20,7 +20,7 @@ export function downloadsApiMock() {
       cancel: vi.fn(async () => {}),
       removeAll: vi.fn(async () => {}),
       storageInfo: vi.fn(async () => ({
-        dir: "D:/Music/Navify",
+        dir: "D:/Music/Musify",
         downloadsBytes: 123_456_789,
         trackCount: 3,
         busy: false,

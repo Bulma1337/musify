@@ -18,7 +18,7 @@ export function trackRow(
     trackId: track.id,
     state,
     path: state === "done" ? `Test Server/x/${track.id}.flac` : null,
-    absolutePath: state === "done" ? `D:/Music/Navify/Test Server/x/${track.id}.flac` : null,
+    absolutePath: state === "done" ? `D:/Music/Musify/Test Server/x/${track.id}.flac` : null,
     quality: "original",
     container: "flac",
     sizeBytes: state === "done" ? 30_000_000 : 0,
@@ -56,7 +56,7 @@ export function seedDownloads(
   options: { available?: boolean } = {},
 ) {
   const parsed = parseListing({
-    dir: "D:/Music/Navify",
+    dir: "D:/Music/Musify",
     tracks: rows.tracks ?? [],
     collections: rows.collections ?? [],
   });
@@ -64,7 +64,7 @@ export function seedDownloads(
     available: options.available ?? true,
     serverId: "srv1",
     loaded: true,
-    dir: "D:/Music/Navify",
+    dir: "D:/Music/Musify",
     ...parsed,
   });
 }
@@ -74,7 +74,7 @@ export function resetDownloads(available = true) {
     available,
     serverId: "srv1",
     loaded: true,
-    dir: "D:/Music/Navify",
+    dir: "D:/Music/Musify",
     entries: {},
     collections: {},
   });

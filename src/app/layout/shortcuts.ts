@@ -3,7 +3,7 @@ import { usePlayer } from "@/player/store";
 import { useLayout } from "./layoutStore";
 
 /** Event the title bar listens to for focusing the search field. */
-export const FOCUS_SEARCH_EVENT = "navify:focus-search";
+export const FOCUS_SEARCH_EVENT = "musify:focus-search";
 
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;

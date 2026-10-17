@@ -1,17 +1,17 @@
 [workspace]
-members = ["crates/navify-audio"]
+members = ["crates/musify-audio"]
 
 [package]
-name = "navify"
+name = "musify"
 version = "0.1.0"
-description = "Navify – a fast, lightweight desktop music player for Navidrome, Subsonic and Jellyfin"
-authors = ["Navify contributors"]
-repository = "https://github.com/Bulma1337/navify"
+description = "Musify – a fast, lightweight desktop music player for Navidrome, Subsonic and Jellyfin"
+authors = ["Musify contributors"]
+repository = "https://github.com/Bulma1337/musify"
 edition = "2024"
 
 [lib]
 # The `_lib` suffix keeps the lib name distinct from the bin name (cargo#8519 on Windows).
-name = "navify_lib"
+name = "musify_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -30,10 +30,11 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 log = "0.4"
 keyring = "4"
-navify-audio = { path = "crates/navify-audio" }
+musify-audio = { path = "crates/musify-audio" }
 crossbeam-channel = "0.5"
 rusqlite = { version = "0.40", features = ["bundled"] }
 sha2 = "0.11"
+souvlaki = "0.8"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-updater = "2"

@@ -71,17 +71,17 @@ describe("PlaybackClock", () => {
 describe("lyrics offset storage", () => {
   afterEach(() => localStorage.clear());
 
-  it("persists per track under navify.lyrics.offset.<id>, in 0.1 s steps, clamped", () => {
+  it("persists per track under musify.lyrics.offset.<id>, in 0.1 s steps, clamped", () => {
     expect(getLyricsOffset("t1")).toBe(0);
     setLyricsOffset("t1", 300);
-    expect(localStorage.getItem("navify.lyrics.offset.t1")).toBe("300");
+    expect(localStorage.getItem("musify.lyrics.offset.t1")).toBe("300");
     expect(getLyricsOffset("t1")).toBe(300);
     setLyricsOffset("t1", 123);
     expect(getLyricsOffset("t1")).toBe(100);
     setLyricsOffset("t1", 99_999);
     expect(getLyricsOffset("t1")).toBe(10_000);
     setLyricsOffset("t1", 0);
-    expect(localStorage.getItem("navify.lyrics.offset.t1")).toBeNull();
+    expect(localStorage.getItem("musify.lyrics.offset.t1")).toBeNull();
     expect(getLyricsOffset("t2")).toBe(0);
   });
 });

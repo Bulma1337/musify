@@ -23,7 +23,7 @@ export class PresetParseError extends Error {}
 
 /** JSON text of a preset for copying to the clipboard. */
 export function serializePreset(name: string, dsp: EqPreset["dsp"]): string {
-  return JSON.stringify({ navify: FORMAT_TAG, version: FORMAT_VERSION, name, dsp }, null, 2);
+  return JSON.stringify({ musify: FORMAT_TAG, version: FORMAT_VERSION, name, dsp }, null, 2);
 }
 
 type Json = Record<string, unknown>;
@@ -110,7 +110,7 @@ export function parsePresets(text: string): SharedPreset[] {
   const list = Array.isArray(data) ? data : [data];
   if (list.length === 0) throw new PresetParseError("empty list");
   return list.map((entry) => {
-    if (!isObject(entry) || entry.navify !== FORMAT_TAG) throw new PresetParseError("not a Navify preset");
+    if (!isObject(entry) || entry.musify !== FORMAT_TAG) throw new PresetParseError("not a Musify preset");
     const name = typeof entry.name === "string" ? entry.name.trim().slice(0, 60) : "";
     return { name, dsp: parseDsp(entry.dsp) };
   });

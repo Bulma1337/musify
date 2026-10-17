@@ -1,4 +1,4 @@
-//! Local SQLite database (`navify.db` in the app data folder): downloads and listening history.
+//! Local SQLite database (`musify.db` in the app data folder): downloads and listening history.
 //!
 //! One connection behind a mutex is plenty for this workload. Never call [`Db::with`] on the main
 //! thread: commands use [`run`], which moves the work to Tauri's blocking pool.
@@ -80,7 +80,7 @@ pub async fn run<T: Send + 'static>(
         .map_err(|e| e.to_string())?
 }
 
-/// Opens `navify.db` in the app data folder. A database that can't be opened (corrupt, or from a
+/// Opens `musify.db` in the app data folder. A database that can't be opened (corrupt, or from a
 /// newer version) is moved aside so the app still starts; as a last resort it runs in memory.
 pub fn open_app_db(app: &tauri::AppHandle) -> Arc<Db> {
     let dir = match app.path().app_data_dir() {
@@ -93,7 +93,17 @@ pub fn open_app_db(app: &tauri::AppHandle) -> Arc<Db> {
     if let Err(e) = std::fs::create_dir_all(&dir) {
         log::error!("cannot create the app data folder: {e}");
     }
-    let path = dir.join("navify.db");
+    let path = dir.join("musify.db");
+    // Database file from before the rename (Navify): take it over once.
+    let old = dir.join("navify.db");
+    if !path.exists() && old.exists() {
+        for suffix in ["", "-wal", "-shm"] {
+            let from = dir.join(format!("navify.db{suffix}"));
+            if from.exists() {
+                let _ = std::fs::rename(&from, dir.join(format!("musify.db{suffix}")));
+            }
+        }
+    }
     match Db::open(&path) {
         Ok(db) => return Arc::new(db),
         Err(e) => log::error!("cannot open the database, moving it aside: {e}"),
@@ -102,7 +112,7 @@ pub fn open_app_db(app: &tauri::AppHandle) -> Arc<Db> {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs())
         .unwrap_or(0);
-    let _ = std::fs::rename(&path, dir.join(format!("navify.db.broken-{stamp}")));
+    let _ = std::fs::rename(&path, dir.join(format!("musify.db.broken-{stamp}")));
     Db::open(&path).map(Arc::new).unwrap_or_else(|e| {
         log::error!("cannot create a new database, using memory: {e}");
         Arc::new(Db::open_in_memory().expect("in-memory database"))

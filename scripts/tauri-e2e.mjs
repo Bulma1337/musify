@@ -56,8 +56,8 @@ const waitFor = async (expression, timeoutMs = 20_000) => {
   throw new Error(`timeout waiting for: ${expression}`);
 };
 
-await waitFor("!!window.__navify && window.__navify.useSession.getState().status !== 'loading'", 60_000);
-const status = await evaluate("window.__navify.useSession.getState().status");
+await waitFor("!!window.__musify && window.__musify.useSession.getState().status !== 'loading'", 60_000);
+const status = await evaluate("window.__musify.useSession.getState().status");
 const report = { initialStatus: status };
 
 if (status !== "ready") {
@@ -73,13 +73,13 @@ if (status !== "ready") {
   })()`);
   await sleep(2500);
   await evaluate("document.querySelector('form').requestSubmit(), true");
-  await waitFor("window.__navify.useSession.getState().status === 'ready'", 30_000);
+  await waitFor("window.__musify.useSession.getState().status === 'ready'", 30_000);
 }
 report.loggedIn = true;
 
-const player = "window.__navify.usePlayer.getState()";
+const player = "window.__musify.usePlayer.getState()";
 const albumId = await evaluate(`(async () => {
-  const p = window.__navify.useSession.getState().provider;
+  const p = window.__musify.useSession.getState().provider;
   const albums = await p.getAlbumList("alphabeticalByName", { size: 50 });
   const album = albums.find((a) => a.name === "Neon Circuits") ?? albums[0];
   return album.id;
@@ -88,16 +88,16 @@ await evaluate(`location.hash = "#/album/${albumId}"; true`);
 await sleep(2000);
 await evaluate(`${player}.setVolume(0), true`);
 await evaluate(`(async () => {
-  const p = window.__navify.useSession.getState().provider;
+  const p = window.__musify.useSession.getState().provider;
   const album = await p.getAlbum(${JSON.stringify(albumId)});
-  window.__navify.usePlayer.getState().playTracks(album.tracks, 0, { type: "album", id: album.id, name: album.name });
+  window.__musify.usePlayer.getState().playTracks(album.tracks, 0, { type: "album", id: album.id, name: album.name });
   return true;
 })()`);
 
 await waitFor(`${player}.positionMs > 1500`, 20_000);
 report.firstTrack = await evaluate(`${player}.current.track.title`);
 report.positionAfterStart = await evaluate(`${player}.positionMs`);
-report.engine = await evaluate("JSON.parse(JSON.stringify(window.__navify.useEngineStatus.getState()))");
+report.engine = await evaluate("JSON.parse(JSON.stringify(window.__musify.useEngineStatus.getState()))");
 await shot("playing");
 
 await evaluate(`${player}.seek(15000), true`);

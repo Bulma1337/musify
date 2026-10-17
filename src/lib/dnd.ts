@@ -5,7 +5,7 @@ import type { Track } from "@/api/provider";
  * Drag-and-drop contract between track lists, the queue and the library sidebar. Uses native HTML5
  * drag events (works with virtualized lists; Tauri's own file drop is disabled for this).
  */
-export const TRACKS_MIME = "application/x-navify-tracks";
+export const TRACKS_MIME = "application/x-musify-tracks";
 
 export interface DraggedTracks {
   /** Track ids in display order. */
@@ -59,7 +59,7 @@ export function currentTrackDrag(): DraggedTracks | null {
   return current;
 }
 
-/** True if the event carries Navify tracks (usable in dragenter/dragover to accept the drop). */
+/** True if the event carries Musify tracks (usable in dragenter/dragover to accept the drop). */
 export function isTrackDrag(event: DragEvent): boolean {
   return event.dataTransfer.types.includes(TRACKS_MIME);
 }

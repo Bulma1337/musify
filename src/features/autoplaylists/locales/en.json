@@ -17,7 +17,7 @@
     "description": {
       "heavyRotation": "What you played the most in the last 30 days.",
       "rediscovered": "Songs you played a lot a while ago and have not heard for months.",
-      "allTime": "Your most played songs ever, from the server's play counts and your history in Navify.",
+      "allTime": "Your most played songs ever, from the server's play counts and your history in Musify.",
       "topYear": "Your most played songs of {{year}}."
     },
     "trackCount_one": "{{count}} track",

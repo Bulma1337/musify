@@ -22,12 +22,16 @@ interface SessionState {
   offline: boolean;
   /** A reconnect attempt is running (offline mode). */
   reconnecting: boolean;
+  /** The add-server form is open on top of a running session. */
+  adding: boolean;
 
   /** Loads the saved servers and connects to the active one. Call once at startup. */
   init(): Promise<void>;
   /** Persists a freshly logged-in server, stores its secret and makes it active. */
   addServer(login: LoginResult): Promise<void>;
   switchServer(id: string): Promise<void>;
+  /** Opens or closes the add-server form while a server is connected. */
+  setAdding(adding: boolean): void;
   removeServer(id: string): Promise<void>;
   /** Retries the connection to the active server (e.g. after the credentials were rejected). */
   reconnect(): Promise<void>;
@@ -145,6 +149,9 @@ export const useSession = create<SessionState>((set, get) => {
     status: "loading",
     offline: false,
     reconnecting: false,
+    adding: false,
+
+    setAdding: (adding) => set({ adding }),
 
     async init() {
       const servers = (await readPersisted<ServerConfig[]>(FILE, "servers")) ?? [];
@@ -158,7 +165,7 @@ export const useSession = create<SessionState>((set, get) => {
     async addServer({ server, secret }) {
       await saveSecret(server.id, secret);
       const servers = [...get().servers.filter((s) => s.id !== server.id), server];
-      set({ servers });
+      set({ servers, adding: false });
       await persist(servers, server.id);
       await connect(server);
     },

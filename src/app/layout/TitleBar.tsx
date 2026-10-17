@@ -4,6 +4,8 @@ import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ChevronLeft, ChevronRight, Copy, House, Minus, Search, Settings, Square, X } from "lucide-react";
 import { DownloadsLink } from "@/features/downloads/DownloadsLink";
+import { UpdateButton } from "@/features/updates/UpdateButton";
+import { AccountMenu } from "./AccountMenu";
 import { cn } from "@/lib/cn";
 import { inTauri } from "@/lib/platform";
 import { FOCUS_SEARCH_EVENT } from "./shortcuts";
@@ -96,7 +98,7 @@ function Navigation() {
   return (
     <>
       <div data-tauri-drag-region className="flex flex-1 items-center gap-2">
-        <img src="/navify.svg" alt="" className="mr-2 size-7" draggable={false} />
+        <img src="/musify.svg" alt="" className="mr-2 size-7" draggable={false} />
         <button type="button" className={roundButton} aria-label={t("nav.back")} onClick={() => navigate(-1)}>
           <ChevronLeft size={20} />
         </button>
@@ -181,13 +183,19 @@ export function TitleBar({ minimal = false }: { minimal?: boolean }) {
     <header data-tauri-drag-region className="flex h-16 shrink-0 items-center gap-2 pl-3">
       {minimal ? (
         <div data-tauri-drag-region className="flex flex-1 items-center">
-          <img src="/navify.svg" alt="" className="size-7" draggable={false} />
+          <img src="/musify.svg" alt="" className="size-7" draggable={false} />
         </div>
       ) : (
         <Navigation />
       )}
       <div data-tauri-drag-region className="flex h-full flex-1 items-start justify-end">
-        {!minimal && <SettingsButton />}
+        {!minimal && (
+          <>
+            <UpdateButton />
+            <SettingsButton />
+            <AccountMenu />
+          </>
+        )}
         <WindowControls />
       </div>
     </header>

@@ -18,8 +18,11 @@ type Detection =
   | { state: "found"; probe: ServerProbe }
   | { state: "failed"; message: string };
 
-/** First-run / add-server screen: address, credentials, automatic server detection. */
-export function ConnectServer() {
+/**
+ * First-run / add-server screen: address, credentials, automatic server detection. With `onCancel`
+ * (adding another server) a back button returns to the running session.
+ */
+export function ConnectServer({ onCancel }: { onCancel?: () => void } = {}) {
   const { t } = useTranslation();
   const addServer = useSession((s) => s.addServer);
   const sessionError = useSession((s) => s.error);
@@ -103,8 +106,10 @@ export function ConnectServer() {
         noValidate
       >
         <div className="mb-2 flex flex-col items-center gap-3 text-center">
-          <img src="/navify.svg" alt="" className="size-12" draggable={false} />
-          <h1 className="text-[28px] leading-tight font-extrabold tracking-tight">{t("onboarding.title")}</h1>
+          <img src="/musify.svg" alt="" className="size-12" draggable={false} />
+          <h1 className="text-[28px] leading-tight font-extrabold tracking-tight">
+            {onCancel ? t("onboarding.addTitle") : t("onboarding.title")}
+          </h1>
           <p className="text-subdued">{t("onboarding.subtitle")}</p>
         </div>
 
@@ -156,6 +161,11 @@ export function ConnectServer() {
         <Button type="submit" size="lg" loading={submitting} disabled={!url.trim() || !password}>
           {t("onboarding.connect")}
         </Button>
+        {onCancel && (
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={submitting}>
+            {t("onboarding.cancel")}
+          </Button>
+        )}
 
         <p className="flex items-start gap-2 text-[13px] text-subdued">
           <ShieldCheck size={16} className="mt-0.5 shrink-0" />

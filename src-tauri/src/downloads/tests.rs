@@ -396,8 +396,8 @@ fn wait(timeout: Duration, mut cond: impl FnMut() -> bool) -> bool {
 
 // --- Transfer ------------------------------------------------------------------------------------
 
-fn client() -> navify_audio::source::BlockingClient {
-    navify_audio::source::build_http_client(false).unwrap()
+fn client() -> musify_audio::source::BlockingClient {
+    musify_audio::source::build_http_client(false).unwrap()
 }
 
 fn source(server: &TestServer, path: &str) -> Source {

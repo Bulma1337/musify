@@ -1,14 +1,14 @@
-//! Tauri bridge to the native audio engine (`navify-audio`): commands from the UI, events and
+//! Tauri bridge to the native audio engine (`musify-audio`): commands from the UI, events and
 //! spectrum frames to the UI over IPC channels.
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use navify_audio::api::{
+use musify_audio::api::{
     BassEnhancerConfig, DeviceInfo, EngineCommand, EngineEvent, EqConfig, EqResponse, SpectrumFrame,
 };
-use navify_audio::source::CacheConfig;
-use navify_audio::{AudioEngine, EngineInit};
+use musify_audio::source::CacheConfig;
+use musify_audio::{AudioEngine, EngineInit};
 use tauri::Manager;
 use tauri::ipc::Channel;
 
@@ -32,7 +32,7 @@ impl AudioState {
             .path()
             .app_cache_dir()
             .map(|d| d.join("audio-cache"))
-            .unwrap_or_else(|_| std::env::temp_dir().join("navify-audio-cache"));
+            .unwrap_or_else(|_| std::env::temp_dir().join("musify-audio-cache"));
         let engine = AudioEngine::new(EngineInit::with_devices(CacheConfig {
             dir,
             max_bytes: DEFAULT_CACHE_BYTES,
@@ -58,7 +58,7 @@ pub fn audio_subscribe(state: tauri::State<'_, AudioState>, on_event: Channel<En
     let current = state.event_generation.clone();
     let events = state.engine.events();
     std::thread::Builder::new()
-        .name("navify-audio-events".into())
+        .name("musify-audio-events".into())
         .spawn(move || {
             while current.load(Ordering::SeqCst) == generation {
                 match events.recv_timeout(std::time::Duration::from_millis(250)) {
@@ -85,7 +85,7 @@ pub fn audio_spectrum_subscribe(
     let current = state.spectrum_generation.clone();
     let frames = state.engine.spectrum();
     std::thread::Builder::new()
-        .name("navify-audio-spectrum".into())
+        .name("musify-audio-spectrum".into())
         .spawn(move || {
             while current.load(Ordering::SeqCst) == generation {
                 match frames.recv_timeout(std::time::Duration::from_millis(250)) {
@@ -128,7 +128,7 @@ pub fn audio_eq_response(
 
 #[tauri::command]
 pub fn audio_parse_autoeq(text: String) -> Result<EqConfig, String> {
-    navify_audio::dsp::parse_autoeq(&text).map_err(|e| e.to_string())
+    musify_audio::dsp::parse_autoeq(&text).map_err(|e| e.to_string())
 }
 
 /// Size and limit of the streaming cache (not the downloads).

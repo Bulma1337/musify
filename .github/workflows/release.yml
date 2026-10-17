@@ -29,8 +29,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: "Navify ${{ github.ref_name }}"
-          releaseBody: "Download the `Navify_*_x64-setup.exe` below to install. Existing installations update automatically."
+          releaseName: "Musify ${{ github.ref_name }}"
+          releaseBody: "Download the `Musify_*_x64-setup.exe` below to install. Existing installations update automatically."
           releaseDraft: true
           prerelease: false
           uploadUpdaterJson: true

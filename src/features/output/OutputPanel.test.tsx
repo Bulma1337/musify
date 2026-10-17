@@ -91,24 +91,35 @@ describe("OutputPanel", () => {
     expect(screen.queryByText("Not bit-perfect")).not.toBeInTheDocument();
   });
 
-  it("shows no badge but the likely reasons when the output is not bit-perfect", () => {
+  it("in shared mode shows the signal path without any bit-perfect status", () => {
     useEngineStatus.setState({ sourceFormat: mp3, outputFormat: sharedOut });
+    useSettings.getState().updateDsp((d) => ({ ...d, eq: { ...d.eq, enabled: true } }));
+    renderPanel();
+    expect(screen.queryByTestId("bit-perfect-badge")).not.toBeInTheDocument();
+    expect(screen.queryByText("Not bit-perfect")).not.toBeInTheDocument();
+    expect(screen.queryByText("The device is used in shared mode.")).not.toBeInTheDocument();
+    expect(screen.getByText("MP3 · 320 kbit/s · 44.1 kHz")).toBeInTheDocument();
+    expect(screen.getByText("Sound Blaster X5 · 48 kHz · shared")).toBeInTheDocument();
+    expect(screen.getByText("Equalizer")).toBeInTheDocument();
+  });
+
+  it("in exclusive mode explains why the output is not bit-perfect", () => {
+    useEngineStatus.setState({
+      sourceFormat: mp3,
+      outputFormat: { ...exclusiveOut, bitPerfect: false, sourceRate: 44100, resampled: true },
+    });
     useSettings.getState().updateDsp((d) => ({ ...d, eq: { ...d.eq, enabled: true } }));
     usePlayer.setState({ volume: 0.5 });
     renderPanel();
     expect(screen.queryByTestId("bit-perfect-badge")).not.toBeInTheDocument();
     expect(screen.getByText("Not bit-perfect")).toBeInTheDocument();
-    expect(screen.getByText("MP3 · 320 kbit/s · 44.1 kHz")).toBeInTheDocument();
-    expect(screen.getByText("Sound Blaster X5 · 48 kHz · shared")).toBeInTheDocument();
     for (const reason of [
       "The equalizer is on.",
-      "The device is used in shared mode.",
       "The volume is below 100 %.",
       "The sample rate of the track differs from the device.",
     ]) {
       expect(screen.getByText(reason)).toBeInTheDocument();
     }
-    expect(screen.getByText("Equalizer")).toBeInTheDocument();
   });
 
   it("asks to play something while the engine reports nothing yet", () => {

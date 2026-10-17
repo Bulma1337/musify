@@ -1,7 +1,7 @@
 import type { DragEvent } from "react";
 
 /** Drag type for moving a library entry (a playlist) onto a folder in the sidebar. */
-export const LIBRARY_ENTRY_MIME = "application/x-navify-library-entry";
+export const LIBRARY_ENTRY_MIME = "application/x-musify-library-entry";
 
 export function startEntryDrag(event: DragEvent, key: string): void {
   event.dataTransfer.effectAllowed = "move";

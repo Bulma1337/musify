@@ -40,7 +40,7 @@ describe("sourceLocation", () => {
     seedDownloads({ tracks: [trackRow(track)] });
     expect(sourceLocation(track)).toEqual({
       kind: "local",
-      path: "D:/Music/Navify/Test Server/x/t1.flac",
+      path: "D:/Music/Musify/Test Server/x/t1.flac",
     });
   });
 

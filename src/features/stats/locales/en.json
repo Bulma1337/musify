@@ -1,7 +1,7 @@
 {
   "stats": {
     "title": "Statistics",
-    "subtitle": "What you listened to, based on your history in Navify.",
+    "subtitle": "What you listened to, based on your history in Musify.",
     "rangeLabel": "Time range",
     "range": {
       "weeks4": "4 weeks",
@@ -9,7 +9,7 @@
       "all": "All time"
     },
     "emptyTitle": "No listening history yet",
-    "emptyText": "Play some music and your statistics show up here. Only listening in Navify is counted.",
+    "emptyText": "Play some music and your statistics show up here. Only listening in Musify is counted.",
     "minutes": "minutes of music",
     "minutesHint": "{{days}} d {{hours}} h in a row",
     "minutesHintHours": "{{hours}} h in a row",

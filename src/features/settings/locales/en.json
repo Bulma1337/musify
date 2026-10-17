@@ -68,13 +68,19 @@
       "widthHint": "100 % is unchanged. Lower values move the sound toward the center, higher values widen it.",
       "equalizer": "Equalizer",
       "equalizerHint": "Shape the sound with graphic or parametric filters, presets and Deep Bass.",
-      "openEqualizer": "Open equalizer"
+      "openEqualizer": "Open equalizer",
+      "resume": "Continue listening",
+      "resumeHint": "If you open the app again within this time, or kept listening on another device, playback continues exactly where it stopped.",
+      "resumeMinutes_one": "{{count}} minute",
+      "resumeMinutes_other": "{{count}} minutes",
+      "syncQueue": "Save the queue on the server",
+      "syncQueueHint": "Saves the queue and position on your server so other devices and apps can continue there (Navidrome and other Subsonic servers)."
     },
     "output": {
       "title": "Output",
       "description": "Where the sound goes and how it gets there.",
       "device": "Output device",
-      "deviceHint": "The device Navify plays through. The system default follows what you pick in your system settings.",
+      "deviceHint": "The device Musify plays through. The system default follows what you pick in your system settings.",
       "unavailable": "Unavailable device",
       "exclusive": "Exclusive mode",
       "exclusiveHint": "Takes over the device so the system mixer cannot change the signal. Bit-perfect output needs exclusive mode, the equalizer and all other sound effects off, and the volume at 100 %. Other apps are silent while it is on."

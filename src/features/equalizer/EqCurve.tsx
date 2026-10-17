@@ -26,7 +26,7 @@ import {
 } from "./curveGeometry";
 import { F_MAX, F_MIN, hasGain, MAX_PARAMETRIC_FILTERS } from "./eqMath";
 import { listenToSpectrum } from "./spectrumFeed";
-import { useElementSize } from "./useElementSize";
+import { useElementSize } from "@/lib/useElementSize";
 
 /** Below this plot width only the decade labels (20, 100, 1k, 10k) fit without overlapping. */
 const NARROW_PLOT_PX = 420;

@@ -68,13 +68,19 @@
       "widthHint": "100 % ist unverändert. Kleinere Werte rücken den Klang zur Mitte, größere machen ihn breiter.",
       "equalizer": "Equalizer",
       "equalizerHint": "Forme den Klang mit grafischen oder parametrischen Filtern, Voreinstellungen und Deep Bass.",
-      "openEqualizer": "Equalizer öffnen"
+      "openEqualizer": "Equalizer öffnen",
+      "resume": "Weiterhören",
+      "resumeHint": "Öffnest du die App innerhalb dieser Zeit wieder oder hast du auf einem anderen Gerät weitergehört, geht es genau an der Stelle weiter.",
+      "resumeMinutes_one": "{{count}} Minute",
+      "resumeMinutes_other": "{{count}} Minuten",
+      "syncQueue": "Warteschlange auf dem Server speichern",
+      "syncQueueHint": "Speichert Warteschlange und Position auf deinem Server, damit andere Geräte und Apps dort weitermachen können (Navidrome und andere Subsonic-Server)."
     },
     "output": {
       "title": "Ausgabe",
       "description": "Wohin der Klang geht und wie er dorthin kommt.",
       "device": "Ausgabegerät",
-      "deviceHint": "Das Gerät, über das Navify abspielt. Der Systemstandard folgt deiner Auswahl in den Systemeinstellungen.",
+      "deviceHint": "Das Gerät, über das Musify abspielt. Der Systemstandard folgt deiner Auswahl in den Systemeinstellungen.",
       "unavailable": "Nicht verfügbares Gerät",
       "exclusive": "Exklusiver Modus",
       "exclusiveHint": "Übernimmt das Gerät, damit der System-Mixer das Signal nicht verändern kann. Bit-perfekte Ausgabe braucht den exklusiven Modus, einen ausgeschalteten Equalizer samt aller Klangeffekte und eine Lautstärke von 100 %. Andere Programme bleiben währenddessen stumm."

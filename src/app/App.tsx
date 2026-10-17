@@ -27,12 +27,21 @@ function CenteredStatus({ children }: { children: ReactNode }) {
 /** Application root: onboarding, connection status, or the routed main shell. */
 export function App() {
   const { t } = useTranslation();
-  const { status, error, servers, activeServerId, init, reconnect, removeServer } = useSession();
+  const { status, error, servers, activeServerId, adding, init, reconnect, removeServer, setAdding } =
+    useSession();
   const active = servers.find((s) => s.id === activeServerId);
 
   useEffect(() => {
     void init();
   }, [init]);
+
+  if (adding) {
+    return (
+      <StandaloneScreen>
+        <ConnectServer onCancel={() => setAdding(false)} />
+      </StandaloneScreen>
+    );
+  }
 
   if (status === "ready") return <RouterProvider router={router} />;
 

@@ -1,3 +1,4 @@
+import "./lib/migrateStorage";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -23,7 +24,7 @@ const queryClient = new QueryClient({
 
 // Dev-only handle for scripts/tauri-e2e.mjs and debugging in the WebView DevTools.
 if (import.meta.env.DEV) {
-  Object.assign(window, { __navify: { usePlayer, useSession, useEngineStatus } });
+  Object.assign(window, { __musify: { usePlayer, useSession, useEngineStatus } });
 }
 
 // The stored language must be in place before the first render (login and onboarding included).

@@ -1,3 +1,10 @@
+import { startUpdateChecks } from "@/features/updates/updater";
+import { useSettings } from "@/settings/store";
+import { startMediaSession } from "@/player/mediaSession";
+import { resumeAtStartup, startQueueSync } from "@/player/resume";
+import { FullscreenPlayer } from "./FullscreenPlayer";
+import { MiniPlayer } from "./MiniPlayer";
+import { normalizeWindowAtStartup, usePlayerView } from "./playerView";
 import { Suspense, useEffect, useState, type PointerEvent } from "react";
 import { Outlet, useLocation } from "react-router";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
@@ -98,6 +105,25 @@ export function AppShell() {
   useAppearance();
   useEffect(() => startEngineBridge(), []);
   useEffect(() => startEngineSettingsSync(), []);
+  useEffect(() => {
+    void resumeAtStartup();
+    return startQueueSync();
+  }, []);
+  useEffect(() => startUpdateChecks(() => useSettings.getState().autoUpdate), []);
+  useEffect(() => startMediaSession(), []);
+  useEffect(() => {
+    void normalizeWindowAtStartup();
+  }, []);
+  const view = usePlayerView((s) => s.view);
+
+  if (view === "mini") {
+    return (
+      <div className="h-full">
+        <MiniPlayer />
+        <Toaster />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -126,6 +152,7 @@ export function AppShell() {
         )}
       </div>
       <PlayerBar />
+      {view === "fullscreen" && <FullscreenPlayer />}
       <Toaster />
       <DownloadsController />
     </div>

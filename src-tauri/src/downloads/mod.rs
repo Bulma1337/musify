@@ -36,7 +36,7 @@ impl DownloadsState {
             .path()
             .app_local_data_dir()
             .map(|d| d.join("downloads"))
-            .unwrap_or_else(|_| std::env::temp_dir().join("navify-downloads"));
+            .unwrap_or_else(|_| std::env::temp_dir().join("musify-downloads"));
         let dir = db
             .with(|c| store::get_setting(c, store::SETTING_DIR))
             .ok()

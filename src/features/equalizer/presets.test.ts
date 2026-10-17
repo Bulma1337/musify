@@ -174,11 +174,11 @@ describe("preset JSON", () => {
     ["not json", "{"],
     ["wrong format", JSON.stringify({ hello: "world" })],
     ["empty list", "[]"],
-    ["missing dsp", JSON.stringify({ navify: "eq-preset", name: "x" })],
+    ["missing dsp", JSON.stringify({ musify: "eq-preset", name: "x" })],
     [
       "unknown filter type",
       JSON.stringify({
-        navify: "eq-preset",
+        musify: "eq-preset",
         name: "x",
         dsp: {
           eq: { mode: { type: "parametric", filters: [{ enabled: true, kind: "wobble", freqHz: 1, q: 1 }] } },

@@ -88,7 +88,7 @@ describe("login", () => {
     expect(p.get("u")).toBe("bob");
     expect(p.get("t")).toBe(makeToken("sesame", p.get("s")!));
     expect(p.get("v")).toBe("1.16.1");
-    expect(p.get("c")).toBe("Navify");
+    expect(p.get("c")).toBe("Musify");
     expect(p.get("f")).toBe("json");
   });
 
