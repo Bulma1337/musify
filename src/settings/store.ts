@@ -55,6 +55,8 @@ interface SettingsState {
   syncPlayQueue: boolean;
   /** Look for new versions and download them in the background. */
   autoUpdate: boolean;
+  /** Look up missing lyrics on LRCLIB (sends title, artist and album there). */
+  onlineLyrics: boolean;
   streamingQuality: QualityPreset;
   downloadQuality: QualityPreset;
   /** Size limit of the audio streaming cache in GB: one of `CACHE_LIMITS_GB`. */
@@ -87,6 +89,7 @@ export const useSettings = create<SettingsState>()(
       resumeWindowMin: 10,
       syncPlayQueue: true,
       autoUpdate: true,
+      onlineLyrics: true,
       streamingQuality: "original",
       downloadQuality: "original",
       cacheLimitGb: 2,

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Lyrics, MusicProvider, Track } from "@/api/provider";
 import { useProvider } from "@/api/session";
+import { useSettings } from "@/settings/store";
 import { fetchLrclib } from "./lrclib";
 
 /** What the lookup found for one track. `lyrics: null` is a cached negative result. */
@@ -31,9 +32,11 @@ export async function resolveLyrics(
   provider: MusicProvider,
   track: Track,
   signal?: AbortSignal,
+  { online = true }: { online?: boolean } = {},
 ): Promise<ResolvedLyrics> {
   const server = await serverLyrics(provider, track);
   if (server?.synced) return { lyrics: server, instrumental: false };
+  if (!online) return { lyrics: server, instrumental: false };
 
   const lrclib = await fetchLrclib(track, signal);
   if (lrclib.lyrics?.synced) return { lyrics: lrclib.lyrics, instrumental: false };
@@ -48,9 +51,10 @@ export async function resolveLyrics(
  */
 export function useLyrics(track: Track | undefined) {
   const provider = useProvider();
+  const online = useSettings((s) => s.onlineLyrics);
   const query = useQuery({
-    queryKey: [provider.server.id, "lyrics", track?.id],
-    queryFn: ({ signal }) => resolveLyrics(provider, track!, signal),
+    queryKey: [provider.server.id, "lyrics", track?.id, online],
+    queryFn: ({ signal }) => resolveLyrics(provider, track!, signal, { online }),
     enabled: !!track,
     staleTime: Infinity,
     retry: false,

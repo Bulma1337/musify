@@ -326,6 +326,7 @@ function OutputSection() {
 function DisplaySection() {
   const { t, i18n } = useTranslation();
   const accent = useSettings((s) => s.accent);
+  const onlineLyrics = useSettings((s) => s.onlineLyrics);
   const set = useSettings((s) => s.set);
   const zoom = useLayout((s) => s.zoom);
   const setZoom = useLayout((s) => s.setZoom);
@@ -365,6 +366,16 @@ function DisplaySection() {
           value={zoomValue}
           options={ZOOM_LEVELS.map((z) => ({ value: z, label: `${Math.round(z * 100)} %` }))}
           onChange={setZoom}
+        />
+      </SettingRow>
+      <SettingRow
+        title={t("settings.display.onlineLyrics")}
+        description={t("settings.display.onlineLyricsHint")}
+      >
+        <Switch
+          checked={onlineLyrics}
+          onCheckedChange={(on) => set("onlineLyrics", on)}
+          label={t("settings.display.onlineLyrics")}
         />
       </SettingRow>
       <SettingRow stacked title={t("settings.display.language")}>

@@ -98,9 +98,9 @@ describe("useLyrics", () => {
   it("caches per server and track, including negative results", async () => {
     const { queryClient } = renderPage(<Probe target={track} />);
     expect(await screen.findByText(/^none:-/)).toBeInTheDocument();
-    const data = queryClient.getQueryData(["srv1", "lyrics", track.id]);
+    const data = queryClient.getQueryData(["srv1", "lyrics", track.id, true]);
     expect(data).toEqual({ lyrics: null, instrumental: false });
-    expect(queryClient.getQueryState(["srv1", "lyrics", track.id])?.isInvalidated).toBe(false);
+    expect(queryClient.getQueryState(["srv1", "lyrics", track.id, true])?.isInvalidated).toBe(false);
   });
 
   it("exposes the source", async () => {
