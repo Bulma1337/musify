@@ -14,10 +14,12 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { Clock3, Disc3, Ellipsis, Heart, Play } from "lucide-react";
 import type { Track } from "@/api/provider";
 import { useSetStarred } from "@/api/queries";
+import { useIsOffline } from "@/api/session";
 import { useScrollContainer } from "@/app/layout/scrollContainer";
 import { cn } from "@/lib/cn";
 import { currentTrackDrag, endTrackDrag, readTrackDrop, startTrackDrag } from "@/lib/dnd";
 import { formatDuration } from "@/lib/format";
+import { DownloadIndicator } from "@/features/downloads/DownloadIndicator";
 import { usePlayer } from "@/player/store";
 import { Cover } from "./Cover";
 import { TrackMenu } from "./TrackMenu";
@@ -118,6 +120,7 @@ const TrackRow = memo(function TrackRow({
 }: RowProps) {
   const { t } = useTranslation();
   const setStarred = useSetStarred();
+  const offline = useIsOffline();
   const { track, index } = row;
 
   return (
@@ -193,12 +196,15 @@ const TrackRow = memo(function TrackRow({
       {hasAdded && <div className="min-w-0 truncate">{added}</div>}
 
       <div className="flex items-center justify-end gap-3 tabular-nums">
+        <DownloadIndicator trackId={track.id} />
         <button
           type="button"
           aria-label={track.starred ? t("menu.removeFromLiked") : t("menu.addToLiked")}
+          disabled={offline}
+          title={offline ? t("downloads.offline.unavailable") : undefined}
           onClick={() => setStarred.mutate({ kind: "track", id: track.id, starred: !track.starred })}
           className={cn(
-            "transition-transform hover:scale-110",
+            "transition-transform hover:scale-110 disabled:pointer-events-none disabled:opacity-40",
             track.starred ? "text-accent" : "invisible text-subdued group-hover:visible hover:text-text",
           )}
         >
@@ -307,7 +313,7 @@ export function TrackList({
     "minmax(160px, 4fr)",
     albumVisible ? "minmax(120px, 3fr)" : null,
     hasAdded ? "minmax(120px, 2fr)" : null,
-    "8rem",
+    "9rem",
   ]
     .filter(Boolean)
     .join(" ");

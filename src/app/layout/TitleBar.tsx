@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ChevronLeft, ChevronRight, Copy, House, Minus, Search, Settings, Square, X } from "lucide-react";
+import { DownloadsLink } from "@/features/downloads/DownloadsLink";
 import { cn } from "@/lib/cn";
 import { inTauri } from "@/lib/platform";
 import { FOCUS_SEARCH_EVENT } from "./shortcuts";
@@ -146,6 +147,7 @@ function Navigation() {
             </button>
           )}
         </label>
+        <DownloadsLink />
       </div>
     </>
   );

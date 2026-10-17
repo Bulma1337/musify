@@ -6,7 +6,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Disc3, Heart, ListEnd, ListPlus, ListStart, Mic2, Plus } from "lucide-react";
 import type { Track } from "@/api/provider";
 import { usePlaylists, useSetStarred } from "@/api/queries";
-import { useProvider } from "@/api/session";
+import { useIsOffline, useProvider } from "@/api/session";
+import { DownloadMenuItem } from "@/features/downloads/TrackMenuItem";
 import { describeError } from "@/api/errors";
 import { usePlayer } from "@/player/store";
 import { toast, toastError } from "@/components/ui/toast";
@@ -30,6 +31,7 @@ export function TrackMenu({ tracks, children, extra }: TrackMenuProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const provider = useProvider();
+  const offline = useIsOffline();
   const client = useQueryClient();
   const playlists = usePlaylists();
   const setStarred = useSetStarred();
@@ -89,7 +91,11 @@ export function TrackMenu({ tracks, children, extra }: TrackMenuProps) {
           </ContextMenu.Item>
           <ContextMenu.Separator className={menuSeparator} />
           <ContextMenu.Sub>
-            <ContextMenu.SubTrigger className={menuItem}>
+            <ContextMenu.SubTrigger
+              className={menuItem}
+              disabled={offline}
+              title={offline ? t("downloads.offline.unavailable") : undefined}
+            >
               <ListPlus size={16} /> {t("menu.addToPlaylist")}
             </ContextMenu.SubTrigger>
             <ContextMenu.Portal>
@@ -114,6 +120,8 @@ export function TrackMenu({ tracks, children, extra }: TrackMenuProps) {
           </ContextMenu.Sub>
           <ContextMenu.Item
             className={menuItem}
+            disabled={offline}
+            title={offline ? t("downloads.offline.unavailable") : undefined}
             onSelect={() => {
               for (const tr of tracks) setStarred.mutate({ kind: "track", id: tr.id, starred: !allStarred });
               toast(allStarred ? t("menu.removedFromLiked") : t("menu.addedToLiked"));
@@ -122,6 +130,7 @@ export function TrackMenu({ tracks, children, extra }: TrackMenuProps) {
             <Heart size={16} className={allStarred ? "fill-accent text-accent" : ""} />
             {allStarred ? t("menu.removeFromLiked") : t("menu.addToLiked")}
           </ContextMenu.Item>
+          <DownloadMenuItem tracks={tracks} className={menuItem} />
           {extra}
           {single && (single.artists[0]?.id || single.album) && (
             <ContextMenu.Separator className={menuSeparator} />

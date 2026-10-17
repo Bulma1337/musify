@@ -9,6 +9,7 @@ import type { LoudnessTarget, NormalizationMode } from "@/player/engineTypes";
 import { supportedLanguages, type Language } from "@/i18n";
 import { useLanguage } from "@/settings/language";
 import { useSettings, type AccentColor, type QualityPreset } from "@/settings/store";
+import { StorageSettings } from "@/features/downloads/StorageSettings";
 import { Segmented, SettingRow, SettingsSection, type SegmentedOption } from "./controls";
 import { RangeSlider } from "./RangeSlider";
 
@@ -359,6 +360,9 @@ export function SettingsPage() {
         <AudioQualitySection />
         <PlaybackSection />
         <OutputSection />
+        <div className="rounded-lg bg-elevated px-6">
+          <StorageSettings />
+        </div>
         <DisplaySection />
       </div>
     </div>

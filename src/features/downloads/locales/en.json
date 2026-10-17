@@ -1,0 +1,88 @@
+{
+  "downloads": {
+    "title": "Downloads",
+    "unavailable": "Downloads are only available in the desktop app.",
+    "filterChip": "Downloaded",
+    "toggle": {
+      "download": "Download",
+      "downloading": "Downloading, {{percent}} %. Click to cancel.",
+      "downloaded": "Downloaded. Click to remove the download.",
+      "failed": "Some tracks could not be downloaded. Click to try again.",
+      "needsConnection": "Downloading needs a connection to the server."
+    },
+    "started": "Download started",
+    "cancelled": "Download cancelled",
+    "removed": "Download removed",
+    "error": "Could not change the download: {{message}}",
+    "menu": {
+      "download": "Download",
+      "remove": "Remove download",
+      "started_one": "Downloading {{count}} track",
+      "started_other": "Downloading {{count}} tracks",
+      "removed_one": "Removed {{count}} download",
+      "removed_other": "Removed {{count}} downloads",
+      "kept": "Part of a downloaded album, playlist or your favorites. Remove that download to delete the track."
+    },
+    "indicator": {
+      "done": "Downloaded",
+      "pending": "Waiting to download"
+    },
+    "page": {
+      "emptyTitle": "Nothing downloaded yet",
+      "emptyHint": "Use the download button on albums, playlists and your favorites, or the track menu, to listen without a connection.",
+      "active": "In progress",
+      "failed": "Failed",
+      "collections": "Albums, playlists and favorites",
+      "tracks": "Downloaded tracks",
+      "summary_one": "{{count}} track • {{size}}",
+      "summary_other": "{{count}} tracks • {{size}}",
+      "collectionProgress": "{{done}} of {{total}} tracks",
+      "favorites": "Favorites",
+      "kindAlbum": "Album",
+      "kindPlaylist": "Playlist",
+      "kindFavorites": "Collection"
+    },
+    "state": {
+      "queued": "Waiting",
+      "downloading": "{{percent}} %",
+      "failed": "Failed"
+    },
+    "retry": "Try again",
+    "retryAll": "Try all again",
+    "cancel": "Cancel",
+    "remove": "Remove",
+    "storage": {
+      "title": "Storage",
+      "folder": "Downloads folder",
+      "change": "Change folder",
+      "open": "Open folder",
+      "moving": "Moving files … {{moved}} of {{total}}",
+      "moved": "Downloads folder changed",
+      "moveBusy": "Wait until the running downloads have finished.",
+      "moveFailed": "Could not move the downloads: {{message}}",
+      "downloads": "Downloaded music",
+      "downloadsDetail_one": "{{count}} track",
+      "downloadsDetail_other": "{{count}} tracks",
+      "cache": "Streaming cache",
+      "cacheHint": "Recently played tracks are kept so they start faster and can be replayed without the server.",
+      "cacheLimit": "Cache size limit",
+      "clearCache": "Clear cache",
+      "cacheCleared": "Cache cleared",
+      "removeAll": "Remove all downloads",
+      "removeAllTitle": "Remove all downloads?",
+      "removeAllBody": "All downloaded music is deleted from this computer. Your library on the server is not affected.",
+      "removeAllDone": "All downloads removed",
+      "cancel": "Cancel",
+      "unavailable": "Storage settings are only available in the desktop app.",
+      "gigabytes": "{{count}} GB"
+    },
+    "offline": {
+      "banner": "You're offline. Only downloaded music is available.",
+      "reconnect": "Reconnect",
+      "reconnecting": "Connecting …",
+      "unavailable": "Not available offline",
+      "emptyTitle": "Nothing to play offline",
+      "emptyHint": "Download albums, playlists or your favorites while you're connected to listen to them here."
+    }
+  }
+}

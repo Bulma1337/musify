@@ -3,6 +3,8 @@ import { Outlet, useLocation } from "react-router";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { Spinner } from "@/components/ui/Spinner";
 import { Toaster } from "@/components/ui/Toaster";
+import { DownloadsController } from "@/features/downloads/DownloadsController";
+import { OfflineBanner } from "@/features/downloads/OfflineBanner";
 import { inTauri } from "@/lib/platform";
 import { startEngineBridge } from "@/player/bridge";
 import { useAppearance } from "@/settings/appearance";
@@ -100,6 +102,7 @@ export function AppShell() {
   return (
     <div className="flex h-full flex-col">
       <TitleBar />
+      <OfflineBanner />
       <div className="flex min-h-0 flex-1 px-2">
         <div
           style={{ width: libraryCollapsed ? LIBRARY_COLLAPSED_WIDTH : libraryWidth }}
@@ -124,6 +127,7 @@ export function AppShell() {
       </div>
       <PlayerBar />
       <Toaster />
+      <DownloadsController />
     </div>
   );
 }

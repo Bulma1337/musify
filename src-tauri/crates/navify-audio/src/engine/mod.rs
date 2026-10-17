@@ -21,7 +21,7 @@ use crate::api::{
     EqConfig, EqResponse, OutputConfig, SpectrumFrame,
 };
 use crate::output::{OutputError, OutputEvent, OutputRequest, OutputStream, SourceSpec};
-use crate::source::CacheConfig;
+use crate::source::{CacheConfig, SourceEventSink, SourceManager};
 
 /// Creates output streams. The default talks to real devices; tests use a null backend.
 pub trait OutputFactory: Send {
@@ -94,6 +94,7 @@ pub struct AudioEngine {
     events: Receiver<EngineEvent>,
     spectrum: Receiver<SpectrumFrame>,
     sample_rate: Arc<AtomicU32>,
+    sources: Arc<SourceManager>,
     thread: Option<JoinHandle<()>>,
 }
 
@@ -104,12 +105,26 @@ impl AudioEngine {
         // Bounded: a slow UI must not make analyzer frames pile up.
         let (spectrum_tx, spectrum) = crossbeam_channel::bounded(4);
         let sample_rate = Arc::new(AtomicU32::new(48_000));
+        let (source_tx, source_rx) = crossbeam_channel::unbounded();
+        let sink: SourceEventSink = Arc::new(move |event| {
+            let _ = source_tx.send(event);
+        });
+        let sources = Arc::new(SourceManager::new(init.cache.clone(), sink));
         let thread = {
             let sample_rate = sample_rate.clone();
+            let sources = sources.clone();
             std::thread::Builder::new()
                 .name("navify-engine".into())
                 .spawn(move || {
-                    controller::run(init, command_rx, event_tx, spectrum_tx, sample_rate)
+                    controller::run(
+                        init,
+                        sources,
+                        source_rx,
+                        command_rx,
+                        event_tx,
+                        spectrum_tx,
+                        sample_rate,
+                    )
                 })
                 .expect("spawn engine control thread")
         };
@@ -118,6 +133,7 @@ impl AudioEngine {
             events,
             spectrum,
             sample_rate,
+            sources,
             thread: Some(thread),
         }
     }
@@ -139,6 +155,22 @@ impl AudioEngine {
 
     pub fn list_devices(&self) -> Vec<DeviceInfo> {
         crate::output::list_devices()
+    }
+
+    /// Changes the size limit of the streaming cache; least recently used entries are evicted
+    /// immediately when the cache is larger than the new limit.
+    pub fn set_cache_limit(&self, max_bytes: u64) {
+        self.sources.set_cache_limit(max_bytes);
+    }
+
+    /// Bytes currently used by the streaming cache.
+    pub fn cache_size(&self) -> u64 {
+        self.sources.cache_size()
+    }
+
+    /// Deletes all cached streams that are not being played right now.
+    pub fn clear_cache(&self) -> std::io::Result<()> {
+        self.sources.clear_cache()
     }
 
     /// Frequency response of the EQ (and, if given, the bass enhancer's shelf) at the current output
