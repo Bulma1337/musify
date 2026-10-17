@@ -976,7 +976,7 @@
       "discord": "แสดงใน Discord",
       "discordHint": "แสดงเพลงที่คุณกำลังฟังบนโปรไฟล์ Discord: ชื่อเพลง ศิลปิน ปก และความคืบหน้า",
       "discordCovers": "ค้นหาปกสำหรับ Discord",
-      "discordCoversHint": "Discord ต้องใช้รูปภาพสาธารณะ จึงส่งชื่อศิลปินและอัลบั้มไปยังการค้นหาเพลงของ Apple หากปิด Discord จะแสดงโลโก้ Musify",
+      "discordCoversHint": "Discord ต้องใช้รูปภาพสาธารณะ จึงส่งชื่อศิลปินและอัลบั้มไปยังการค้นหาเพลงของ Deezer และ Apple หากปิดไว้ Discord จะแสดงโลโก้ Musify",
       "needsDiscord": "ใช้ได้เมื่อเปิด “แสดงใน Discord”"
     },
     "home": {

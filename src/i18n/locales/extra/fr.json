@@ -1022,7 +1022,7 @@
       "discord": "Afficher dans Discord",
       "discordHint": "Affiche ce que tu écoutes sur ton profil Discord : titre, artistes, pochette et progression.",
       "discordCovers": "Trouver des pochettes pour Discord",
-      "discordCoversHint": "Discord a besoin d'une image publique, donc l'artiste et l'album sont envoyés à la recherche musicale d'Apple. Sans cela, Discord affiche le logo de Musify.",
+      "discordCoversHint": "Discord a besoin d'une image publique, donc l'artiste et l'album sont envoyés à la recherche musicale de Deezer et d'Apple. Sans cela, Discord affiche le logo de Musify.",
       "needsDiscord": "Disponible lorsque « Afficher dans Discord » est activé."
     },
     "home": {

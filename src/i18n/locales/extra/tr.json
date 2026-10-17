@@ -999,7 +999,7 @@
       "discord": "Discord'da göster",
       "discordHint": "Discord profilinde ne dinlediğini gösterir: başlık, sanatçılar, kapak ve ilerleme.",
       "discordCovers": "Discord için kapak bul",
-      "discordCoversHint": "Discord herkese açık bir görsele ihtiyaç duyar, bu yüzden sanatçı ve albüm Apple'ın müzik aramasına gönderilir. Bu olmadan Discord Musify logosunu gösterir.",
+      "discordCoversHint": "Discord herkese açık bir görsele ihtiyaç duyar; bu yüzden sanatçı ve albüm Deezer ile Apple'ın müzik aramasına gönderilir. Bu olmadan Discord, Musify logosunu gösterir.",
       "needsDiscord": "“Discord'da göster” açıldığında kullanılabilir."
     },
     "home": {

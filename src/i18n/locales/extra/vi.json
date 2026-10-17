@@ -976,7 +976,7 @@
       "discord": "Hiển thị trên Discord",
       "discordHint": "Hiển thị bạn đang nghe gì trên hồ sơ Discord của bạn: tiêu đề, nghệ sĩ, ảnh bìa và tiến trình.",
       "discordCovers": "Tìm ảnh bìa cho Discord",
-      "discordCoversHint": "Discord cần một hình ảnh công khai, vì vậy nghệ sĩ và album sẽ được gửi tới công cụ tìm kiếm nhạc của Apple. Nếu tắt, Discord sẽ hiện logo Musify.",
+      "discordCoversHint": "Discord cần một hình ảnh công khai, nên nghệ sĩ và album được gửi tới tính năng tìm nhạc của Deezer và Apple. Nếu tắt, Discord sẽ hiển thị logo Musify.",
       "needsDiscord": "Khả dụng khi bật “Hiển thị trên Discord”."
     },
     "home": {

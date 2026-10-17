@@ -1022,7 +1022,7 @@
       "discord": "Mostrar no Discord",
       "discordHint": "Mostra o que estás a ouvir no teu perfil do Discord: título, artistas, capa e progresso.",
       "discordCovers": "Procurar capas para o Discord",
-      "discordCoversHint": "O Discord precisa de uma imagem pública, por isso o artista e o álbum são enviados para a pesquisa de música da Apple. Sem isto, o Discord mostra o logótipo do Musify.",
+      "discordCoversHint": "O Discord precisa de uma imagem pública, por isso o artista e o álbum são enviados para a pesquisa de música da Deezer e da Apple. Sem isso, o Discord mostra o logótipo do Musify.",
       "needsDiscord": "Disponível quando “Mostrar no Discord” está ativo."
     },
     "home": {

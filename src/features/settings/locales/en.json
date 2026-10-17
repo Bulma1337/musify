@@ -143,7 +143,7 @@
       "discord": "Show in Discord",
       "discordHint": "Shows what you are listening to on your Discord profile: title, artists, cover and progress.",
       "discordCovers": "Find covers for Discord",
-      "discordCoversHint": "Discord needs a public image, so artist and album are sent to Apple's music search. Without it Discord shows the Musify logo.",
+      "discordCoversHint": "Discord needs a public image, so artist and album are sent to the music search of Deezer and Apple. Without it Discord shows the Musify logo.",
       "needsDiscord": "Available once “Show in Discord” is on."
     },
     "home": {

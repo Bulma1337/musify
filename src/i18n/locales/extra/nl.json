@@ -999,7 +999,7 @@
       "discord": "Tonen in Discord",
       "discordHint": "Toont op je Discord-profiel waar je naar luistert: titel, artiesten, hoes en voortgang.",
       "discordCovers": "Hoezen zoeken voor Discord",
-      "discordCoversHint": "Discord heeft een openbare afbeelding nodig, dus artiest en album worden naar de muziekzoekfunctie van Apple gestuurd. Zonder dit toont Discord het Musify-logo.",
+      "discordCoversHint": "Discord heeft een openbare afbeelding nodig, daarom worden artiest en album naar de muziekzoekfunctie van Deezer en Apple gestuurd. Zonder dit toont Discord het Musify-logo.",
       "needsDiscord": "Beschikbaar zodra “Tonen in Discord” aan staat."
     },
     "home": {

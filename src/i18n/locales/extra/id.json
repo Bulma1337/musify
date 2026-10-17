@@ -976,7 +976,7 @@
       "discord": "Tampilkan di Discord",
       "discordHint": "Menampilkan apa yang sedang kamu dengarkan di profil Discord-mu: judul, artis, sampul, dan progres.",
       "discordCovers": "Cari sampul untuk Discord",
-      "discordCoversHint": "Discord memerlukan gambar publik, sehingga artis dan album dikirim ke pencarian musik Apple. Tanpa ini, Discord menampilkan logo Musify.",
+      "discordCoversHint": "Discord butuh gambar publik, jadi artis dan album dikirim ke pencarian musik Deezer dan Apple. Tanpa itu, Discord menampilkan logo Musify.",
       "needsDiscord": "Tersedia setelah “Tampilkan di Discord” aktif."
     },
     "home": {

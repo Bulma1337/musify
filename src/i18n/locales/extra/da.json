@@ -999,7 +999,7 @@
       "discord": "Vis i Discord",
       "discordHint": "Viser, hvad du lytter til, på din Discord-profil: titel, kunstnere, cover og forløb.",
       "discordCovers": "Find covers til Discord",
-      "discordCoversHint": "Discord skal bruge et offentligt billede, så kunstner og album sendes til Apples musiksøgning. Uden den viser Discord Musify-logoet.",
+      "discordCoversHint": "Discord skal bruge et offentligt billede, så kunstner og album sendes til musiksøgningen hos Deezer og Apple. Uden det viser Discord Musify-logoet.",
       "needsDiscord": "Tilgængelig, når »Vis i Discord« er slået til."
     },
     "home": {

@@ -999,7 +999,7 @@
       "discord": "Visa i Discord",
       "discordHint": "Visar vad du lyssnar på i din Discord-profil: titel, artister, omslag och förlopp.",
       "discordCovers": "Hitta omslag för Discord",
-      "discordCoversHint": "Discord behöver en offentlig bild, så artist och album skickas till Apples musiksökning. Utan det visar Discord Musify-logotypen.",
+      "discordCoversHint": "Discord behöver en offentlig bild, så artist och album skickas till musiksökningen hos Deezer och Apple. Utan det visar Discord Musify-logotypen.",
       "needsDiscord": "Tillgängligt när ”Visa i Discord” är på."
     },
     "home": {

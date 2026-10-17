@@ -23,7 +23,7 @@ interface PresenceInput {
   pausedLabel: string;
 }
 
-/** Album art from Apple's public search, keyed by artist + album (cleared with the app). */
+/** Album art from public music searches (Deezer, then Apple), keyed by artist + album. */
 const covers = new Map<string, Promise<string | null>>();
 
 const normalize = (s: string) =>
@@ -49,7 +49,27 @@ export function publicCoverUrl(track: Track): Promise<string | null> {
   return found;
 }
 
-async function lookupCover(artist: string, album: string): Promise<string | null> {
+/** The entry whose title is the album ("The Singles 86>98" matches "The Singles 86-98"). */
+function bestMatch<T>(items: T[] | undefined, title: (item: T) => string | undefined, album: string) {
+  const wanted = normalize(album);
+  return (
+    items?.find((item) => normalize(title(item) ?? "") === wanted) ??
+    items?.find((item) => normalize(title(item) ?? "").startsWith(wanted))
+  );
+}
+
+/** Deezer has the widest catalog (also German rap and indie releases Apple lacks). */
+async function deezerCover(artist: string, album: string): Promise<string | null> {
+  const q = encodeURIComponent(`artist:"${artist}" album:"${album}"`);
+  const response = await httpRequest(`https://api.deezer.com/search/album?q=${q}&limit=10`, {
+    timeoutMs: 6000,
+  });
+  if (!response.ok) return null;
+  const data = (await response.json()) as { data?: { title?: string; cover_xl?: string }[] };
+  return bestMatch(data.data, (a) => a.title, album)?.cover_xl ?? null;
+}
+
+async function appleCover(artist: string, album: string): Promise<string | null> {
   const term = encodeURIComponent(`${artist} ${album}`);
   const response = await httpRequest(
     `https://itunes.apple.com/search?term=${term}&media=music&entity=album&limit=10`,
@@ -57,13 +77,18 @@ async function lookupCover(artist: string, album: string): Promise<string | null
   );
   if (!response.ok) return null;
   const data = (await response.json()) as {
-    results?: { collectionName?: string; artistName?: string; artworkUrl100?: string }[];
+    results?: { collectionName?: string; artworkUrl100?: string }[];
   };
-  const wanted = normalize(album);
-  const match =
-    data.results?.find((r) => r.collectionName && normalize(r.collectionName) === wanted) ??
-    data.results?.find((r) => r.collectionName && normalize(r.collectionName).startsWith(wanted));
+  const match = bestMatch(data.results, (r) => r.collectionName, album);
   return match?.artworkUrl100?.replace(/\/\d+x\d+bb\./, "/512x512bb.") ?? null;
+}
+
+async function lookupCover(artist: string, album: string): Promise<string | null> {
+  for (const source of [deezerCover, appleCover]) {
+    const url = await source(artist, album).catch(() => null);
+    if (url) return url;
+  }
+  return null;
 }
 
 async function presenceOf(s: PlayerState): Promise<PresenceInput | null> {
