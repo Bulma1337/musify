@@ -360,3 +360,63 @@ fn pause_and_resume_report_state() {
         ended(s, "full")
     });
 }
+
+/// A next track that cannot be opened (here: a server error document saved as audio) is reported
+/// once. Offering the same track again must not start an error loop; another track still follows.
+#[test]
+fn a_broken_next_track_is_reported_once_and_not_retried() {
+    let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("engine-broken-next");
+    std::fs::create_dir_all(&dir).unwrap();
+    let gone = dir.join("gone.mp3");
+    std::fs::write(
+        &gone,
+        br#"{"subsonic-response":{"status":"failed","error":{"code":70,"message":"data not found"}}}"#,
+    )
+    .unwrap();
+    let broken = TrackSource {
+        id: "broken".into(),
+        location: SourceLocation::Local { path: gone },
+        gain: None,
+        duration_hint_ms: None,
+        album_key: None,
+    };
+
+    let (engine, _samples) = engine();
+    let events = engine.events();
+    let mut seen = Vec::new();
+    engine.send(EngineCommand::Play {
+        track: track("a", "gapless_full.flac", None),
+        start_ms: 0,
+        paused: false,
+    });
+    engine.send(EngineCommand::SetNext {
+        track: Some(broken.clone()),
+    });
+    wait_for(&events, &mut seen, Duration::from_secs(5), |s| {
+        s.iter()
+            .any(|e| matches!(e, EngineEvent::NeedNext { id } if id == "a"))
+    });
+    // What the app did on NeedNext before it skipped broken tracks: offer the same one again.
+    engine.send(EngineCommand::SetNext {
+        track: Some(broken.clone()),
+    });
+    engine.send(EngineCommand::SetNext {
+        track: Some(broken),
+    });
+    engine.send(EngineCommand::SetNext {
+        track: Some(track("b", "gapless_p2.flac", None)),
+    });
+    wait_for(&events, &mut seen, Duration::from_secs(10), |s| {
+        ended(s, "b")
+    });
+
+    let errors = seen
+        .iter()
+        .filter(|e| matches!(e, EngineEvent::Error { id: Some(id), .. } if id == "broken"))
+        .count();
+    assert_eq!(errors, 1, "events: {seen:#?}");
+    assert!(
+        seen.iter()
+            .any(|e| matches!(e, EngineEvent::TrackStarted { id, .. } if id == "b"))
+    );
+}

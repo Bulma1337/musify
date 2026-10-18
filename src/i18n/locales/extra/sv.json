@@ -83,6 +83,8 @@
     "miniplayer": "Öppna minispelare",
     "fullscreen": "Helskärm",
     "playbackError": "Uppspelningsfel: {{message}}",
+    "trackUnavailable": "”{{title}}” är inte tillgänglig på servern.",
+    "trackUnplayable": "”{{title}}” kan inte spelas upp ({{message}}).",
     "deviceLost": "Utgångsenheten kopplades bort. Uppspelningen fortsätter på standardenheten.",
     "shuffleSmart": "Slå på Shuffle+ (med rekommendationer)",
     "recommended": "Rekommendation",

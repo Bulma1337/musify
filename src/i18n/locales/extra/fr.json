@@ -85,6 +85,8 @@
     "miniplayer": "Ouvrir le mini-lecteur",
     "fullscreen": "Plein écran",
     "playbackError": "Erreur de lecture : {{message}}",
+    "trackUnavailable": "« {{title}} » n'est pas disponible sur le serveur.",
+    "trackUnplayable": "Impossible de lire « {{title}} » ({{message}}).",
     "deviceLost": "Le périphérique de sortie a été déconnecté. La lecture continue sur le périphérique par défaut.",
     "shuffleSmart": "Activer Shuffle+ (avec recommandations)",
     "recommended": "Recommandation",

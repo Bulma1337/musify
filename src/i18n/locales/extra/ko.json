@@ -81,6 +81,8 @@
     "miniplayer": "미니 플레이어 열기",
     "fullscreen": "전체 화면",
     "playbackError": "재생 오류: {{message}}",
+    "trackUnavailable": "'{{title}}'은(는) 서버에 없어요.",
+    "trackUnplayable": "'{{title}}'을(를) 재생할 수 없어요({{message}}).",
     "deviceLost": "출력 장치 연결이 끊어졌어요. 기본 장치에서 계속 재생해요.",
     "shuffleSmart": "Shuffle+ 켜기 (추천 포함)",
     "recommended": "추천",

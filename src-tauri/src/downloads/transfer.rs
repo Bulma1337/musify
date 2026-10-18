@@ -8,7 +8,10 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use musify_audio::source::{BlockingClient, BlockingResponse, describe_io, describe_reqwest};
+use musify_audio::source::{
+    BlockingClient, BlockingResponse, describe_io, describe_reqwest, is_document_type,
+    looks_like_document, read_server_message, server_message,
+};
 use serde::Deserialize;
 
 /// Where to fetch a file. Kept in memory only.
@@ -38,6 +41,8 @@ pub enum TransferError {
     Cancelled,
     /// The server answered with an error status.
     Http(u16),
+    /// The server sent an error document instead of the file (e.g. the track is gone).
+    Server(String),
     Network(String),
     Io(String),
     /// The connection ended before all announced bytes arrived.
@@ -51,7 +56,7 @@ impl TransferError {
             TransferError::Cancelled => false,
             TransferError::Http(code) => *code >= 500 || matches!(*code, 408 | 425 | 429),
             TransferError::Network(_) | TransferError::Incomplete => true,
-            TransferError::Io(_) => false,
+            TransferError::Server(_) | TransferError::Io(_) => false,
         }
     }
 
@@ -59,7 +64,9 @@ impl TransferError {
         match self {
             TransferError::Cancelled => "cancelled".into(),
             TransferError::Http(code) => format!("HTTP status {code}"),
-            TransferError::Network(m) | TransferError::Io(m) => m.clone(),
+            TransferError::Server(m) | TransferError::Network(m) | TransferError::Io(m) => {
+                m.clone()
+            }
             TransferError::Incomplete => "connection closed before the file was complete".into(),
         }
     }
@@ -126,6 +133,11 @@ pub fn fetch_to_part(
     let content_type = header(&response, "content-type");
     let content_disposition = header(&response, "content-disposition");
     let content_range = header(&response, "content-range").and_then(|v| parse_content_range(&v));
+    // Subsonic servers report errors (e.g. a track that is gone) with 200 and a JSON/XML body.
+    if matches!(status, 200 | 206) && content_type.as_deref().is_some_and(is_document_type) {
+        let mut response = response;
+        return Err(TransferError::Server(read_server_message(&mut response)));
+    }
 
     // Where the body starts in the final file, and the final size if announced.
     let (offset, total) = match status {
@@ -185,6 +197,12 @@ pub fn fetch_to_part(
             Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
             Err(e) => return Err(TransferError::Network(describe_io(&e, url))),
         };
+        if done == 0 && looks_like_document(&buf[..n]) {
+            // An error document sent as audio: never keep it as the file.
+            drop(file);
+            let _ = fs::remove_file(part);
+            return Err(TransferError::Server(server_message(&buf[..n])));
+        }
         file.write_all(&buf[..n])
             .map_err(|e| TransferError::Io(format!("cannot write the download: {e}")))?;
         done += n as u64;

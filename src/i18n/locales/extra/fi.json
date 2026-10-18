@@ -83,6 +83,8 @@
     "miniplayer": "Avaa minisoitin",
     "fullscreen": "Koko näyttö",
     "playbackError": "Toistovirhe: {{message}}",
+    "trackUnavailable": "Kappale ”{{title}}” ei ole saatavilla palvelimella.",
+    "trackUnplayable": "Kappaletta ”{{title}}” ei voi toistaa ({{message}}).",
     "deviceLost": "Ulostulolaite irrotettiin. Toisto jatkuu oletuslaitteella.",
     "shuffleSmart": "Ota Shuffle+ käyttöön (suosituksilla)",
     "recommended": "Suositus",

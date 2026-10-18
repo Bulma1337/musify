@@ -87,6 +87,8 @@
     "miniplayer": "Відкрити міні-плеєр",
     "fullscreen": "На весь екран",
     "playbackError": "Помилка відтворення: {{message}}",
+    "trackUnavailable": "Трек «{{title}}» недоступний на сервері.",
+    "trackUnplayable": "Не вдається відтворити трек «{{title}}» ({{message}}).",
     "deviceLost": "Пристрій виводу відключено. Відтворення триває на пристрої за замовчуванням.",
     "shuffleSmart": "Увімкнути Shuffle+ (з рекомендаціями)",
     "recommended": "Рекомендація",

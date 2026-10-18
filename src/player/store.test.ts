@@ -80,3 +80,48 @@ describe("player store", () => {
     expect(usePlayer.getState().current?.track.id).toBe("t1");
   });
 });
+
+describe("skipping a track that can't be played", () => {
+  beforeEach(reset);
+
+  it("steps over the next context item without playing it", () => {
+    usePlayer.getState().playTracks(fakeTracks.slice(0, 3), 0, context);
+    const broken = peekNext(usePlayer.getState())!;
+    usePlayer.getState().skipUpcoming(broken.key);
+    const s = usePlayer.getState();
+    expect(s.current?.track.id).toBe("t1");
+    expect(peekNext(s)?.track.id).toBe("t3");
+    expect(upcomingContextItems(s).map((i) => i.track.id)).toEqual(["t3"]);
+    // The engine then moves on to t3 by itself.
+    usePlayer.getState().advanceTo(peekNext(s)!.key);
+    expect(usePlayer.getState().current?.track.id).toBe("t3");
+  });
+
+  it("drops a broken manually queued item", () => {
+    usePlayer.getState().playTracks(fakeTracks.slice(0, 2), 0, context);
+    usePlayer.getState().addToQueue([fakeTracks[8]!]);
+    usePlayer.getState().skipUpcoming(peekNext(usePlayer.getState())!.key);
+    expect(usePlayer.getState().manualQueue).toHaveLength(0);
+    expect(peekNext(usePlayer.getState())?.track.id).toBe("t2");
+  });
+
+  it("wraps around with repeat all and leaves other items alone", () => {
+    usePlayer.getState().playTracks(fakeTracks.slice(0, 3), 2, context);
+    usePlayer.setState({ repeat: "all" });
+    const first = peekNext(usePlayer.getState())!;
+    expect(first.track.id).toBe("t1");
+    usePlayer.getState().skipUpcoming("someone-else");
+    expect(peekNext(usePlayer.getState())).toBe(first);
+    usePlayer.getState().skipUpcoming(first.key);
+    expect(peekNext(usePlayer.getState())?.track.id).toBe("t2");
+  });
+
+  it("never skips the current item (repeat one)", () => {
+    usePlayer.getState().playTracks(fakeTracks.slice(0, 2), 0, context);
+    usePlayer.setState({ repeat: "one" });
+    const current = usePlayer.getState().current!;
+    usePlayer.getState().skipUpcoming(current.key);
+    expect(usePlayer.getState().current).toBe(current);
+    expect(peekNext(usePlayer.getState())).toBe(current);
+  });
+});

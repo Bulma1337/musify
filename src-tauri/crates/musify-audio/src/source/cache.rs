@@ -34,6 +34,8 @@ pub(crate) struct RequestSpec {
 #[derive(Clone, Debug)]
 pub(crate) enum FetchError {
     Http(u16),
+    /// Error document instead of audio, with the server's message.
+    Server(String),
     Network(String),
     Io(String),
 }
@@ -42,6 +44,7 @@ impl FetchError {
     pub(crate) fn to_source_error(&self) -> SourceError {
         match self {
             FetchError::Http(code) => SourceError::Http(*code),
+            FetchError::Server(m) => SourceError::Server(m.clone()),
             FetchError::Network(m) => SourceError::Network(m.clone()),
             FetchError::Io(m) => SourceError::Io(io::Error::other(m.clone())),
         }
@@ -55,7 +58,7 @@ impl FetchError {
     pub(crate) fn message(&self) -> String {
         match self {
             FetchError::Http(code) => format!("HTTP status {code}"),
-            FetchError::Network(m) | FetchError::Io(m) => m.clone(),
+            FetchError::Server(m) | FetchError::Network(m) | FetchError::Io(m) => m.clone(),
         }
     }
 }
@@ -463,6 +466,32 @@ impl Inner {
                 path: entry.data_path.clone(),
             });
         }
+    }
+
+    /// A complete entry whose data is a server error document (older versions cached those as
+    /// audio): forgets the data so that the next request asks the server again. Returns true if
+    /// the entry was discarded.
+    pub(crate) fn discard_document(&self, entry: &Entry) -> bool {
+        {
+            let mut st = entry.state.lock();
+            if !st.complete || !super::file_is_document(&entry.data_path) {
+                return false;
+            }
+            st.complete = false;
+            st.ranges.clear();
+            st.total_len = None;
+            st.seekable = None;
+            st.error = None;
+        }
+        if let Ok(file) = OpenOptions::new().write(true).open(&entry.data_path) {
+            let _ = file.set_len(0);
+        }
+        self.save_meta(entry);
+        log::warn!(
+            "source {}: cached data was a server error, not audio; discarded",
+            entry.key
+        );
+        true
     }
 
     pub(crate) fn is_complete(&self, hash: &str) -> bool {

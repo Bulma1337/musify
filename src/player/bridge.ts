@@ -7,7 +7,14 @@ import i18n from "@/i18n";
 import { currentStreamQuality, useSettings } from "@/settings/store";
 import { recordPlay } from "@/features/stats/recorder";
 import { audioEngine } from "./engine";
-import type { EngineEvent, OutputFormat, SourceFormat, SourceLocation, TrackSource } from "./engineTypes";
+import type {
+  EngineEvent,
+  ErrorKind,
+  OutputFormat,
+  SourceFormat,
+  SourceLocation,
+  TrackSource,
+} from "./engineTypes";
 import { peekNext, usePlayer, type PlayerState, type QueueItem } from "./store";
 
 /** What the engine reports about the signal path (quality badge, bit-perfect indicator). */
@@ -25,6 +32,22 @@ export function shouldScrobble(playedMs: number, durationMs: number): boolean {
 
 /** Engine ids are queue keys; repeats of the same entry get a `#n` suffix. */
 const baseKey = (id: string) => id.split("#")[0] ?? id;
+
+/** The track an engine id refers to: the current one or the one after it. */
+function trackOf(state: PlayerState, id: string | null): Track | undefined {
+  if (!id) return undefined;
+  const key = baseKey(id);
+  if (state.current?.key === key) return state.current.track;
+  const next = peekNext(state);
+  return next?.key === key ? next.track : undefined;
+}
+
+/** Toast text for an engine error, naming the track when it is known. */
+export function playbackErrorText(kind: ErrorKind, message: string, track?: Track): string {
+  if (!track) return i18n.t("player.playbackError", { message });
+  if (kind === "server") return i18n.t("player.trackUnavailable", { title: track.title });
+  return i18n.t("player.trackUnplayable", { title: track.title, message });
+}
 
 /** Where the engine reads a track from: the downloaded file if there is one, otherwise the stream. */
 export function sourceLocation(track: Track): SourceLocation | null {
@@ -236,11 +259,20 @@ export function startEngineBridge(): () => void {
         });
         break;
       }
-      case "error":
-        toastError(i18n.t("player.playbackError", { message: event.message }));
-        // A failing stream may mean the server is gone: switch to offline mode if so.
-        if (event.kind === "network") void useSession.getState().checkConnection();
+      case "error": {
+        toastError(playbackErrorText(event.kind, event.message, trackOf(state, event.id)));
+        if (event.kind === "network") {
+          // A failing stream may mean the server is gone: switch to offline mode if so.
+          void useSession.getState().checkConnection();
+        } else if (event.id !== null && event.id === nextId) {
+          // The track after the current one can't be played (gone from the server, broken file):
+          // step over it. The engine asks for a next track again (needNext) and gets the one after.
+          const failed = event.id;
+          nextId = null;
+          apply(() => usePlayer.getState().skipUpcoming(baseKey(failed)));
+        }
         break;
+      }
       case "outputChanged":
         useEngineStatus.setState({ outputFormat: event.format });
         break;

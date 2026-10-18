@@ -81,6 +81,8 @@
     "miniplayer": "ミニプレーヤーを開く",
     "fullscreen": "全画面表示",
     "playbackError": "再生エラー：{{message}}",
+    "trackUnavailable": "「{{title}}」はサーバー上で利用できません。",
+    "trackUnplayable": "「{{title}}」を再生できません（{{message}}）。",
     "deviceLost": "出力デバイスが切断されました。既定のデバイスで再生を続けます。",
     "shuffleSmart": "Shuffle+ をオンにする（おすすめ付き）",
     "recommended": "おすすめ",

@@ -2,7 +2,10 @@
 
 mod source_support;
 
+use std::io::Read;
 use std::time::Duration;
+
+use musify_audio::source::SourceError;
 
 use source_support::*;
 
@@ -168,4 +171,74 @@ fn partial_entry_resumes_after_restart() {
             .all(|r| r.range.as_deref() != Some("bytes=0-")),
         "{resumed:?}"
     );
+}
+
+/// What Navidrome sends (with HTTP 200) for a track that no longer exists.
+const GONE: &[u8] = br#"{"subsonic-response":{"status":"failed","version":"1.16.1","error":{"code":70,"message":"data not found"}}}"#;
+
+#[test]
+fn server_error_documents_are_reported_and_never_cached() {
+    // With the honest content type, and with a server that claims the error is audio.
+    for content_type in ["application/json", "audio/mpeg"] {
+        let server = TestServer::start(
+            GONE.to_vec(),
+            ServerConfig {
+                content_type: content_type.into(),
+                ..Default::default()
+            },
+        );
+        let dir = tempfile::tempdir().unwrap();
+        let (mgr, events) = manager(dir.path(), 1 << 30);
+        let key = "srv:gone:raw";
+        let loc = http_location(server.url("/gone"), key);
+        let message = match mgr.open(&loc, 0) {
+            Err(SourceError::Server(message)) => message,
+            Err(other) => panic!("{content_type}: {other:?}"),
+            Ok(mut opened) => {
+                let mut buf = [0u8; 16];
+                let error = opened.source.read(&mut buf).expect_err(content_type);
+                match error
+                    .get_ref()
+                    .and_then(|e| e.downcast_ref::<SourceError>())
+                {
+                    Some(SourceError::Server(message)) => message.clone(),
+                    other => panic!("{content_type}: {other:?}"),
+                }
+            }
+        };
+        assert_eq!(message, "data not found (code 70)", "{content_type}");
+        assert!(!mgr.is_available_offline(&loc), "{content_type}");
+        assert!(!events.completed(key), "{content_type}");
+    }
+}
+
+/// Older versions cached such error documents as complete audio. They are dropped and fetched again.
+#[test]
+fn a_cached_error_document_is_discarded() {
+    let data = test_data(MB, 22);
+    let server = TestServer::start(data.clone(), ServerConfig::default());
+    let dir = tempfile::tempdir().unwrap();
+    let key = "srv:poisoned:raw";
+    let hash = hash_hex(key);
+    std::fs::write(dir.path().join(format!("{hash}.data")), GONE).unwrap();
+    std::fs::write(
+        dir.path().join(format!("{hash}.meta")),
+        format!(
+            "musify-cache 1\ntotal {n}\nseekable 1\ncomplete 1\naccess 5\nranges 0-{n}\nend\n",
+            n = GONE.len()
+        ),
+    )
+    .unwrap();
+    let (mgr, events) = manager(dir.path(), 1 << 30);
+    let loc = http_location(server.url("/poisoned"), key);
+    assert!(
+        mgr.is_available_offline(&loc),
+        "the old entry counts as complete"
+    );
+
+    let mut src = mgr.open(&loc, 0).unwrap().source;
+    assert!(read_all(src.as_mut()) == data);
+    events.wait_completed(key);
+    assert!(server.requests() > 0);
+    assert!(mgr.is_available_offline(&loc));
 }

@@ -81,6 +81,8 @@
     "miniplayer": "Mở trình phát mini",
     "fullscreen": "Toàn màn hình",
     "playbackError": "Lỗi phát nhạc: {{message}}",
+    "trackUnavailable": "“{{title}}” không có trên máy chủ.",
+    "trackUnplayable": "Không thể phát “{{title}}” ({{message}}).",
     "deviceLost": "Thiết bị đầu ra đã bị ngắt kết nối. Việc phát nhạc tiếp tục trên thiết bị mặc định.",
     "shuffleSmart": "Bật Shuffle+ (có đề xuất)",
     "recommended": "Đề xuất",

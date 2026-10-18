@@ -81,6 +81,8 @@
     "miniplayer": "打开迷你播放器",
     "fullscreen": "全屏",
     "playbackError": "播放错误：{{message}}",
+    "trackUnavailable": "“{{title}}”在服务器上不可用。",
+    "trackUnplayable": "无法播放“{{title}}”（{{message}}）。",
     "deviceLost": "输出设备已断开连接，将继续在默认设备上播放。",
     "shuffleSmart": "开启 Shuffle+（含推荐）",
     "recommended": "推荐",

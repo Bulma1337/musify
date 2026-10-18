@@ -10,6 +10,8 @@
 //!   restarts the stream with the location's `time_offset` parameter.
 //! - Fully downloaded entries are marked complete; the cache is LRU-evicted to `max_bytes`, never
 //!   evicting entries that are currently open.
+//! - Error documents are never cached: Subsonic servers answer errors (e.g. a track that is gone)
+//!   with 200 and a JSON/XML body, which fails with `SourceError::Server` (see `error_document.rs`).
 //!
 //! Implementation notes:
 //! - Cache entry `<dir>/<sha256(cache_key)>.data` (sparse data, written at absolute offsets) plus
@@ -26,6 +28,7 @@
 mod cache;
 mod client;
 mod download;
+mod error_document;
 mod http;
 mod local;
 mod meta;
@@ -44,6 +47,10 @@ pub use reqwest::blocking::{Client as BlockingClient, Response as BlockingRespon
 pub use client::{
     build_http_client, describe_io, describe_reqwest, redact, time_offset_value,
     url_with_time_offset,
+};
+
+pub use error_document::{
+    file_is_document, is_document_type, looks_like_document, read_server_message, server_message,
 };
 
 use cache::{Holder, Inner, RequestSpec};
@@ -86,6 +93,9 @@ pub enum SourceError {
     Network(String),
     #[error("HTTP status {0}")]
     Http(u16),
+    /// The server answered with an error document instead of audio (e.g. the track is gone).
+    #[error("server error: {0}")]
+    Server(String),
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error("cancelled")]
@@ -192,7 +202,7 @@ impl SourceManager {
             entry,
         };
         let entry = r.entry.clone();
-        if entry.state.lock().complete {
+        if entry.state.lock().complete && !self.inner.discard_document(&entry) {
             // Offline / fully cached: plain buffered file, no network.
             let file = FileSource::open(&entry.data_path)?;
             return Ok(Box::new(file.with_guard(Box::new(r))));

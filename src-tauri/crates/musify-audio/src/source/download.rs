@@ -13,10 +13,13 @@ use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use std::time::{Duration, Instant};
 
-use reqwest::header::{CONTENT_RANGE, HeaderName, HeaderValue, RANGE};
+use reqwest::header::{CONTENT_RANGE, CONTENT_TYPE, HeaderName, HeaderValue, RANGE};
 
 use super::cache::{Entry, FetchError, Inner};
 use super::client::{describe_io, describe_reqwest};
+use super::error_document::{
+    is_document_type, looks_like_document, read_server_message, server_message,
+};
 
 /// A reader miss within this distance ahead of the download position just waits.
 pub(crate) const LOOKAHEAD: u64 = 512 * 1024;
@@ -301,6 +304,16 @@ impl Downloader {
             }
         };
         let status = resp.status().as_u16();
+        // Subsonic servers report errors (e.g. a track that is gone) with 200 and a JSON/XML body.
+        if matches!(status, 200 | 206)
+            && resp
+                .headers()
+                .get(CONTENT_TYPE)
+                .and_then(|v| v.to_str().ok())
+                .is_some_and(is_document_type)
+        {
+            return Outcome::Fatal(FetchError::Server(read_server_message(&mut resp)));
+        }
         let content_range = resp
             .headers()
             .get(CONTENT_RANGE)
@@ -399,6 +412,11 @@ impl Downloader {
                 return Outcome::Replan { progressed };
             }
 
+            if off == 0 && looks_like_document(&buf[..n]) {
+                // An error document without a document content type: never cache it as audio.
+                self.entry.state.lock().dl_pos = None;
+                return Outcome::Fatal(FetchError::Server(server_message(&buf[..n])));
+            }
             let chunk_end = off + n as u64;
             let (missing, end) = {
                 let st = self.entry.state.lock();

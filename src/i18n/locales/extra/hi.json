@@ -83,6 +83,8 @@
     "miniplayer": "मिनी प्लेयर खोलें",
     "fullscreen": "फ़ुल स्क्रीन",
     "playbackError": "प्लेबैक में त्रुटि: {{message}}",
+    "trackUnavailable": "“{{title}}” सर्वर पर उपलब्ध नहीं है।",
+    "trackUnplayable": "“{{title}}” नहीं चलाया जा सकता ({{message}})।",
     "deviceLost": "आउटपुट डिवाइस डिस्कनेक्ट हो गया। प्लेबैक डिफ़ॉल्ट डिवाइस पर जारी है।",
     "shuffleSmart": "Shuffle+ चालू करें (सुझावों के साथ)",
     "recommended": "सुझाव",

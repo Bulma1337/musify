@@ -158,7 +158,8 @@ export interface SourceFormat {
 
 export type PlaybackState = "idle" | "loading" | "playing" | "paused" | "stopped";
 export type Transition = "manual" | "gapless" | "crossfade";
-export type ErrorKind = "network" | "decode" | "unsupportedFormat" | "output" | "io" | "other";
+/** "server": the server sent an error instead of audio (e.g. the track no longer exists). */
+export type ErrorKind = "network" | "server" | "decode" | "unsupportedFormat" | "output" | "io" | "other";
 
 export type EngineCommand =
   | { type: "play"; track: TrackSource; startMs: number; paused: boolean }

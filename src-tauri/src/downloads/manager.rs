@@ -617,7 +617,10 @@ impl Inner {
                 }
                 Err(e) => {
                     // A damaged partial file would only fail again: start over next time.
-                    if matches!(e, TransferError::Http(_) | TransferError::Io(_)) {
+                    if matches!(
+                        e,
+                        TransferError::Http(_) | TransferError::Server(_) | TransferError::Io(_)
+                    ) {
                         let _ = fs::remove_file(&part);
                     }
                     return self.fail(job, e.message());

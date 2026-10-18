@@ -85,6 +85,8 @@
     "miniplayer": "Abrir minirreproductor",
     "fullscreen": "Pantalla completa",
     "playbackError": "Error de reproducción: {{message}}",
+    "trackUnavailable": "«{{title}}» no está disponible en el servidor.",
+    "trackUnplayable": "No se puede reproducir «{{title}}» ({{message}}).",
     "deviceLost": "El dispositivo de salida se ha desconectado. La reproducción continúa en el dispositivo predeterminado.",
     "shuffleSmart": "Activar Shuffle+ (con recomendaciones)",
     "recommended": "Recomendación",

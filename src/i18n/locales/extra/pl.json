@@ -87,6 +87,8 @@
     "miniplayer": "Otwórz miniodtwarzacz",
     "fullscreen": "Pełny ekran",
     "playbackError": "Błąd odtwarzania: {{message}}",
+    "trackUnavailable": "Utwór „{{title}}” jest niedostępny na serwerze.",
+    "trackUnplayable": "Nie można odtworzyć utworu „{{title}}” ({{message}}).",
     "deviceLost": "Urządzenie wyjściowe zostało odłączone. Odtwarzanie jest kontynuowane na urządzeniu domyślnym.",
     "shuffleSmart": "Włącz Shuffle+ (z rekomendacjami)",
     "recommended": "Rekomendacja",

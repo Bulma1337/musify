@@ -81,6 +81,8 @@
     "miniplayer": "เปิดมินิเพลเยอร์",
     "fullscreen": "เต็มหน้าจอ",
     "playbackError": "ข้อผิดพลาดในการเล่น: {{message}}",
+    "trackUnavailable": "“{{title}}” ไม่มีอยู่บนเซิร์ฟเวอร์",
+    "trackUnplayable": "ไม่สามารถเล่น “{{title}}” ได้ ({{message}})",
     "deviceLost": "อุปกรณ์เอาต์พุตถูกถอดออก การเล่นจะดำเนินต่อบนอุปกรณ์เริ่มต้น",
     "shuffleSmart": "เปิด Shuffle+ (พร้อมเพลงแนะนำ)",
     "recommended": "แนะนำ",
