@@ -64,11 +64,30 @@ fn hint_for(location: &SourceLocation) -> Option<String> {
 }
 
 fn error_kind(error: &DecodeError) -> ErrorKind {
+    fn source_kind(error: &SourceError) -> ErrorKind {
+        match error {
+            SourceError::Network(_) | SourceError::Http(_) => ErrorKind::Network,
+            SourceError::Server(_) => ErrorKind::Server,
+            SourceError::Io(_) | SourceError::Cancelled => ErrorKind::Io,
+        }
+    }
     match error {
         DecodeError::Unsupported(_) => ErrorKind::UnsupportedFormat,
         DecodeError::Decode(_) => ErrorKind::Decode,
-        DecodeError::Source(SourceError::Network(_) | SourceError::Http(_)) => ErrorKind::Network,
-        DecodeError::Source(_) | DecodeError::Io(_) => ErrorKind::Io,
+        DecodeError::Source(e) => source_kind(e),
+        // Download failures reach the decoder as I/O errors wrapping the source error.
+        DecodeError::Io(e) => e
+            .get_ref()
+            .and_then(|inner| inner.downcast_ref::<SourceError>())
+            .map_or(ErrorKind::Io, source_kind),
+    }
+}
+
+/// Identifies what a track is read from (for not retrying a source that just failed).
+fn location_key(location: &SourceLocation) -> String {
+    match location {
+        SourceLocation::Http { cache_key, .. } => format!("http:{cache_key}"),
+        SourceLocation::Local { path } => format!("file:{}", path.display()),
     }
 }
 
@@ -131,6 +150,10 @@ struct Controller {
     /// Exclusive stream already requested for the current track (avoids reopen loops on fallback).
     exclusive_attempt: Option<SourceSpec>,
     pending_reopen: Option<PendingReopen>,
+    /// Source of a next track that failed to open while the current one plays. Setting it as next
+    /// again is ignored until another track plays, so a broken track cannot loop (error → NeedNext
+    /// → the same track → error …).
+    failed_next: Option<String>,
     drain_tokens: u64,
     state: PlaybackState,
     paused: bool,
@@ -172,6 +195,7 @@ pub(super) fn run(
         seek_slots: HashMap::new(),
         exclusive_attempt: None,
         pending_reopen: None,
+        failed_next: None,
         drain_tokens: 0,
         state: PlaybackState::Idle,
         paused: false,
@@ -447,6 +471,7 @@ impl Controller {
 
     fn play(&mut self, source: TrackSource, start_ms: u64, paused: bool) {
         self.paused = paused;
+        self.failed_next = None;
         self.exclusive_attempt = None;
         if self.pipeline.is_none() && !self.build_pipeline(None) {
             return;
@@ -470,6 +495,13 @@ impl Controller {
         self.drop_next();
         let Some(source) = source else { return };
         if self.current.is_none() || self.pipeline.is_none() {
+            return;
+        }
+        if self.failed_next.as_deref() == Some(location_key(&source.location).as_str()) {
+            log::debug!(
+                "next track {} failed to open just now; not retrying",
+                source.id
+            );
             return;
         }
         if matches!(source.location, SourceLocation::Http { .. }) {
@@ -729,6 +761,7 @@ impl Controller {
                     }
                 } else if self.next.as_ref().is_some_and(|t| t.slot == slot) {
                     let next_id = self.next.as_ref().map(|t| t.source.id.clone());
+                    self.failed_next = self.next.as_ref().map(|t| location_key(&t.source.location));
                     self.emit(EngineEvent::Error {
                         id: next_id,
                         kind,
@@ -768,6 +801,7 @@ impl Controller {
                         self.retired.insert(current.slot, current);
                     }
                     self.current = self.next.take();
+                    self.failed_next = None;
                 }
                 let Some(track) = self.current.as_mut().filter(|t| t.slot == id) else {
                     return;

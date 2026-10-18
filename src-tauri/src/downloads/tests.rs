@@ -31,6 +31,7 @@ struct Behavior {
     cut_first_after: Option<usize>,
     /// Fixed status for these paths.
     status: HashMap<String, u16>,
+    content_type: &'static str,
 }
 
 impl Default for Behavior {
@@ -41,6 +42,7 @@ impl Default for Behavior {
             chunk_delay: Duration::ZERO,
             cut_first_after: None,
             status: HashMap::new(),
+            content_type: "audio/flac",
         }
     }
 }
@@ -214,7 +216,8 @@ fn respond(
         }
         Some(start) => (
             format!(
-                "HTTP/1.1 206 Partial Content\r\nContent-Type: audio/flac\r\nContent-Range: bytes {start}-{}/{total}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                "HTTP/1.1 206 Partial Content\r\nContent-Type: {}\r\nContent-Range: bytes {start}-{}/{total}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                behavior.content_type,
                 total - 1,
                 total - start
             ),
@@ -222,7 +225,8 @@ fn respond(
         ),
         None => (
             format!(
-                "HTTP/1.1 200 OK\r\nContent-Type: audio/flac\r\nContent-Length: {total}\r\nConnection: close\r\n\r\n"
+                "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {total}\r\nConnection: close\r\n\r\n",
+                behavior.content_type
             ),
             &data[..],
         ),
@@ -1149,4 +1153,35 @@ fn moving_the_folder_updates_paths_and_refuses_while_busy() {
         .unwrap();
     assert_eq!(stored.as_deref(), Some(target.to_string_lossy().as_ref()));
     assert!(!Path::new(&f.dir.join("Home")).exists());
+}
+
+/// Navidrome answers a download of a track that is gone with 200 and this JSON.
+const GONE: &[u8] =
+    br#"{"subsonic-response":{"status":"failed","error":{"code":70,"message":"data not found"}}}"#;
+
+#[test]
+fn transfer_refuses_a_server_error_document() {
+    // With the honest content type, and with a server that claims the error is audio.
+    for content_type in ["application/json", "audio/flac"] {
+        let server = TestServer::start();
+        server.put("/gone", GONE.to_vec());
+        server.behave(|b| b.content_type = content_type);
+        let dir = tempfile::tempdir().unwrap();
+        let part = dir.path().join("gone.part");
+        let err = transfer::fetch_to_part(
+            &client(),
+            &source(&server, "/gone"),
+            &part,
+            &AtomicBool::new(false),
+            &mut |_, _| {},
+        )
+        .unwrap_err();
+        assert_eq!(
+            err,
+            TransferError::Server("data not found (code 70)".into()),
+            "{content_type}"
+        );
+        assert!(!err.retryable());
+        assert!(!part.exists(), "{content_type}");
+    }
 }

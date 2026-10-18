@@ -81,6 +81,8 @@
     "miniplayer": "Buka pemutar mini",
     "fullscreen": "Layar penuh",
     "playbackError": "Kesalahan pemutaran: {{message}}",
+    "trackUnavailable": "“{{title}}” tidak tersedia di server.",
+    "trackUnplayable": "“{{title}}” tidak dapat diputar ({{message}}).",
     "deviceLost": "Perangkat output terputus. Pemutaran dilanjutkan di perangkat default.",
     "shuffleSmart": "Aktifkan Shuffle+ (dengan rekomendasi)",
     "recommended": "Rekomendasi",

@@ -83,6 +83,8 @@
     "miniplayer": "Miniplayer öffnen",
     "fullscreen": "Vollbild",
     "playbackError": "Wiedergabefehler: {{message}}",
+    "trackUnavailable": "„{{title}}“ ist auf dem Server nicht verfügbar.",
+    "trackUnplayable": "„{{title}}“ kann nicht abgespielt werden ({{message}}).",
     "deviceLost": "Das Ausgabegerät wurde getrennt. Die Wiedergabe läuft über das Standardgerät weiter.",
     "shuffleSmart": "Shuffle+ aktivieren (mit Empfehlungen)",
     "recommended": "Empfehlung",

@@ -87,6 +87,8 @@
     "miniplayer": "Otevřít miniplayer",
     "fullscreen": "Celá obrazovka",
     "playbackError": "Chyba přehrávání: {{message}}",
+    "trackUnavailable": "Skladba „{{title}}“ není na serveru k dispozici.",
+    "trackUnplayable": "Skladbu „{{title}}“ nelze přehrát ({{message}}).",
     "deviceLost": "Výstupní zařízení bylo odpojeno. Přehrávání pokračuje na výchozím zařízení.",
     "shuffleSmart": "Zapnout Shuffle+ (s doporučeními)",
     "recommended": "Doporučení",

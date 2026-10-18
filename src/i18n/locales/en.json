@@ -83,6 +83,8 @@
     "miniplayer": "Open mini player",
     "fullscreen": "Full screen",
     "playbackError": "Playback error: {{message}}",
+    "trackUnavailable": "“{{title}}” isn't available on the server.",
+    "trackUnplayable": "“{{title}}” can't be played ({{message}}).",
     "deviceLost": "The output device was disconnected. Playback continues on the default device.",
     "shuffleSmart": "Enable Shuffle+ (with recommendations)",
     "recommended": "Recommendation",

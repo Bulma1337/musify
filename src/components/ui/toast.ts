@@ -17,6 +17,8 @@ let nextId = 1;
 export const useToasts = create<ToastState>((set, get) => ({
   toasts: [],
   show(message, tone = "info") {
+    // The same message again (an error that repeats) is already on screen: don't stack it.
+    if (get().toasts.some((t) => t.message === message && t.tone === tone)) return;
     const id = nextId++;
     set({ toasts: [...get().toasts.slice(-2), { id, message, tone }] });
     setTimeout(() => get().dismiss(id), tone === "error" ? 6000 : 3000);

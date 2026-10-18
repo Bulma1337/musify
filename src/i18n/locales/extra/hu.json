@@ -83,6 +83,8 @@
     "miniplayer": "Minilejátszó megnyitása",
     "fullscreen": "Teljes képernyő",
     "playbackError": "Lejátszási hiba: {{message}}",
+    "trackUnavailable": "A(z) „{{title}}” nem érhető el a szerveren.",
+    "trackUnplayable": "A(z) „{{title}}” nem játszható le ({{message}}).",
     "deviceLost": "A kimeneti eszköz le lett választva. A lejátszás az alapértelmezett eszközön folytatódik.",
     "shuffleSmart": "Shuffle+ bekapcsolása (ajánlásokkal)",
     "recommended": "Ajánlott",

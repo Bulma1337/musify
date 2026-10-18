@@ -56,6 +56,7 @@ pub struct ServerConfig {
     pub fail_first: usize,
     /// Announce this Content-Length on 200 responses instead of the real one (estimated length).
     pub announce_len: Option<u64>,
+    pub content_type: String,
 }
 
 impl Default for ServerConfig {
@@ -67,6 +68,7 @@ impl Default for ServerConfig {
             drop_after: None,
             fail_first: 0,
             announce_len: None,
+            content_type: "application/octet-stream".into(),
         }
     }
 }
@@ -205,7 +207,10 @@ fn handle(
         };
         head.push_str(&format!("Content-Length: {announced}\r\n"));
     }
-    head.push_str("Content-Type: application/octet-stream\r\nConnection: close\r\n\r\n");
+    head.push_str(&format!(
+        "Content-Type: {}\r\nConnection: close\r\n\r\n",
+        cfg.content_type
+    ));
     stream.write_all(head.as_bytes())?;
 
     let limit = cfg.drop_after.map_or(end, |d| (start + d).min(end));

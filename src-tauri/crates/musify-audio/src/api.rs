@@ -605,6 +605,8 @@ pub enum Transition {
 #[serde(rename_all = "camelCase")]
 pub enum ErrorKind {
     Network,
+    /// The server answered with an error instead of audio (e.g. the track no longer exists).
+    Server,
     Decode,
     UnsupportedFormat,
     Output,

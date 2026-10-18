@@ -83,6 +83,8 @@
     "miniplayer": "Mini oynatıcıyı aç",
     "fullscreen": "Tam ekran",
     "playbackError": "Çalma hatası: {{message}}",
+    "trackUnavailable": "“{{title}}” sunucuda mevcut değil.",
+    "trackUnplayable": "“{{title}}” çalınamıyor ({{message}}).",
     "deviceLost": "Çıkış aygıtının bağlantısı kesildi. Çalma varsayılan aygıtta devam ediyor.",
     "shuffleSmart": "Shuffle+ özelliğini aç (önerilerle)",
     "recommended": "Öneri",

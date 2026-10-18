@@ -85,6 +85,8 @@
     "miniplayer": "Deschide mini-playerul",
     "fullscreen": "Ecran complet",
     "playbackError": "Eroare de redare: {{message}}",
+    "trackUnavailable": "Piesa „{{title}}” nu este disponibilă pe server.",
+    "trackUnplayable": "Piesa „{{title}}” nu poate fi redată ({{message}}).",
     "deviceLost": "Dispozitivul de ieșire a fost deconectat. Redarea continuă pe dispozitivul implicit.",
     "shuffleSmart": "Activează Shuffle+ (cu recomandări)",
     "recommended": "Recomandare",

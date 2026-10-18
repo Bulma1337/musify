@@ -81,6 +81,8 @@
     "miniplayer": "開啟迷你播放器",
     "fullscreen": "全螢幕",
     "playbackError": "播放錯誤：{{message}}",
+    "trackUnavailable": "「{{title}}」在伺服器上無法使用。",
+    "trackUnplayable": "無法播放「{{title}}」（{{message}}）。",
     "deviceLost": "輸出裝置已中斷連線，將繼續在預設裝置上播放。",
     "shuffleSmart": "開啟 Shuffle+（含推薦）",
     "recommended": "推薦",

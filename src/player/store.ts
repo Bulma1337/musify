@@ -94,6 +94,8 @@ interface PlayerState {
   appendRecommendations(tracks: Track[]): void;
   /** The engine moved on to the queue item `key` by itself (gapless / crossfade / repeat-one). */
   advanceTo(key: string): void;
+  /** The item `key` after the current one can't be played: step over it without playing it. */
+  skipUpcoming(key: string): void;
   /** The engine reached the end and nothing follows. */
   finished(): void;
   /** Engine/progress updates. */
@@ -388,6 +390,13 @@ export const usePlayer = create<PlayerState>()(
           positionMs: 0,
           durationMs: step.item.track.durationMs,
         });
+      },
+
+      skipUpcoming(key) {
+        const s = get();
+        const step = following(s);
+        if (!step || step.item.key !== key || s.current?.key === key) return;
+        set(step.manual ? { manualQueue: s.manualQueue.slice(1) } : { orderIndex: step.orderIndex });
       },
 
       finished: () => set({ isPlaying: false, positionMs: 0, buffering: false }),

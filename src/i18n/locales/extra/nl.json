@@ -83,6 +83,8 @@
     "miniplayer": "Miniplayer openen",
     "fullscreen": "Volledig scherm",
     "playbackError": "Afspeelfout: {{message}}",
+    "trackUnavailable": "‘{{title}}’ is niet beschikbaar op de server.",
+    "trackUnplayable": "‘{{title}}’ kan niet worden afgespeeld ({{message}}).",
     "deviceLost": "Het uitvoerapparaat is losgekoppeld. Het afspelen gaat verder op het standaardapparaat.",
     "shuffleSmart": "Shuffle+ aanzetten (met aanbevelingen)",
     "recommended": "Aanbeveling",
