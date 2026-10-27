@@ -592,6 +592,10 @@ impl OutputStream for ExclusiveOutput {
         self.control.request_flush();
     }
 
+    fn control(&self) -> Option<Arc<Control>> {
+        Some(self.control.clone())
+    }
+
     fn latency_frames(&self) -> u32 {
         self.latency_frames
     }

@@ -420,3 +420,94 @@ fn a_broken_next_track_is_reported_once_and_not_retried() {
             .any(|e| matches!(e, EngineEvent::TrackStarted { id, .. } if id == "b"))
     );
 }
+
+/// Writes a 16-bit stereo WAV of `frames` frames whose samples are `f(frame)`.
+fn write_wav(path: &std::path::Path, frames: usize, f: impl Fn(usize) -> f64) {
+    let data_len = (frames * 4) as u32;
+    let mut bytes = Vec::with_capacity(44 + data_len as usize);
+    bytes.extend_from_slice(b"RIFF");
+    bytes.extend_from_slice(&(36 + data_len).to_le_bytes());
+    bytes.extend_from_slice(b"WAVEfmt ");
+    bytes.extend_from_slice(&16u32.to_le_bytes());
+    bytes.extend_from_slice(&1u16.to_le_bytes());
+    bytes.extend_from_slice(&2u16.to_le_bytes());
+    bytes.extend_from_slice(&RATE.to_le_bytes());
+    bytes.extend_from_slice(&(RATE * 4).to_le_bytes());
+    bytes.extend_from_slice(&4u16.to_le_bytes());
+    bytes.extend_from_slice(&16u16.to_le_bytes());
+    bytes.extend_from_slice(b"data");
+    bytes.extend_from_slice(&data_len.to_le_bytes());
+    for i in 0..frames {
+        let v = (f(i).clamp(-1.0, 1.0) * 32767.0).round() as i16;
+        bytes.extend_from_slice(&v.to_le_bytes());
+        bytes.extend_from_slice(&v.to_le_bytes());
+    }
+    std::fs::write(path, bytes).unwrap();
+}
+
+/// Switching tracks by hand stops the old one at once. Before, the ~50 ms the mixer keeps queued
+/// for the device (plus its own 10 ms fade) were still played after the switch.
+#[test]
+fn a_manual_switch_stops_the_old_track_within_a_few_milliseconds() {
+    let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("engine-switch");
+    std::fs::create_dir_all(&dir).unwrap();
+    let tone = dir.join("tone.wav");
+    let silence = dir.join("silence.wav");
+    let frames = RATE as usize * 3;
+    write_wav(&tone, frames, |i| {
+        0.5 * (2.0 * std::f64::consts::PI * 440.0 * i as f64 / f64::from(RATE)).sin()
+    });
+    write_wav(&silence, frames, |_| 0.0);
+    let local = |id: &str, path: &std::path::Path| TrackSource {
+        id: id.into(),
+        location: SourceLocation::Local {
+            path: path.to_path_buf(),
+        },
+        gain: None,
+        duration_hint_ms: None,
+        album_key: None,
+    };
+
+    let (engine, samples) = engine();
+    let events = engine.events();
+    let mut seen = Vec::new();
+    engine.send(EngineCommand::Play {
+        track: local("tone", &tone),
+        start_ms: 0,
+        paused: false,
+    });
+    wait_for(&events, &mut seen, Duration::from_secs(5), |s| {
+        s.iter()
+            .any(|e| matches!(e, EngineEvent::Position { id, position_ms, .. } if id == "tone" && *position_ms > 400))
+    });
+    let output = samples.lock().unwrap().as_ref().unwrap().clone();
+    // Output time of the switch: everything rendered until now.
+    let switch_at = output.lock().len() / 2;
+    engine.send(EngineCommand::Play {
+        track: local("silence", &silence),
+        start_ms: 0,
+        paused: false,
+    });
+    std::thread::sleep(Duration::from_millis(400));
+
+    let recorded = output.lock().clone();
+    let frames_recorded = recorded.len() / 2;
+    assert!(
+        frames_recorded > switch_at + RATE as usize / 4,
+        "output kept running"
+    );
+    let last_tone = (switch_at..frames_recorded)
+        .rev()
+        .find(|&f| recorded[2 * f].abs() > 1e-9)
+        .unwrap_or(switch_at);
+    let tail_ms = (last_tone - switch_at) as f64 * 1000.0 / f64::from(RATE);
+    // One null-output block (512 frames ≈ 11.6 ms) until the mixer's cut is seen, plus the 5 ms fade
+    // and scheduling slack. Without the cut this is 60 ms or more.
+    assert!(
+        tail_ms < 30.0,
+        "old track still audible for {tail_ms:.1} ms after the switch"
+    );
+    // And it fades instead of breaking off: no jump at its end.
+    let end = &recorded[2 * last_tone.saturating_sub(8)..2 * (last_tone + 1)];
+    assert!(end.iter().all(|s| s.abs() < 0.05), "abrupt end: {end:?}");
+}

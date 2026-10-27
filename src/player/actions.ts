@@ -11,14 +11,25 @@ export function useIsContextActive(type: PlayContext["type"], id?: string): bool
   return usePlayer((s) => s.context?.type === type && s.context.id === id);
 }
 
-/** Plays the context, or toggles pause when it is already the active one. */
-export function playOrToggle(context: PlayContext, load: () => Promise<Track[]> | Track[], startIndex = 0) {
+/**
+ * Plays the context, or toggles pause when it is already the active one. Without `startIndex` it
+ * starts at the first track, or at a random one while shuffle is on.
+ */
+export function playOrToggle(
+  context: PlayContext,
+  load: () => Promise<Track[]> | Track[],
+  startIndex?: number,
+) {
   const player = usePlayer.getState();
   if (player.context?.type === context.type && player.context.id === context.id && player.current) {
     player.togglePlay();
     return;
   }
-  void Promise.resolve(load()).then((tracks) => usePlayer.getState().playTracks(tracks, startIndex, context));
+  void Promise.resolve(load()).then((tracks) => {
+    const shuffled = usePlayer.getState().shuffle !== "off";
+    const index = startIndex ?? (shuffled ? Math.floor(Math.random() * tracks.length) : 0);
+    usePlayer.getState().playTracks(tracks, index, context);
+  });
 }
 
 export const loaders = {

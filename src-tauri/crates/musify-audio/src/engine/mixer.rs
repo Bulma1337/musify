@@ -17,6 +17,7 @@ use rtrb::{Consumer, Producer};
 use crate::ENGINE_CHANNELS;
 use crate::api::{DspConfig, Transition};
 use crate::dsp::DspChain;
+use crate::output::ramp::Control;
 
 /// Frames processed per iteration.
 pub(crate) const BLOCK_FRAMES: usize = 256;
@@ -250,6 +251,10 @@ struct Crossfade {
 pub(crate) struct Mixer {
     chain: DspChain,
     out: Producer<f64>,
+    /// Samples pushed to `out` since the pipeline started (positions for cuts).
+    written: u64,
+    /// The output callback's control block: manual switches cut the audio queued in `out`.
+    output: Option<Arc<Control>>,
     out_capacity_frames: usize,
     target_fill_frames: usize,
     tap: Producer<f32>,
@@ -293,6 +298,7 @@ impl Mixer {
         msgs: Receiver<MixerMsg>,
         events: Sender<MixerEvent>,
         target_fill_ms: f64,
+        output: Option<Arc<Control>>,
     ) -> Self {
         let rate = f64::from(sample_rate);
         let out_capacity_frames = out.buffer().capacity() / ENGINE_CHANNELS;
@@ -301,6 +307,8 @@ impl Mixer {
         Self {
             chain,
             out,
+            written: 0,
+            output,
             out_capacity_frames,
             target_fill_frames,
             tap,
@@ -425,10 +433,41 @@ impl Mixer {
         }
     }
 
+    /// Manual switch or stop. What plays now must stop right away, not after the ~50 ms queued in
+    /// the output ring: the output fades the queued audio out within a few ms and drops the rest
+    /// (`Control::request_cut`), so the old tracks end here without a fade of their own, and the DSP
+    /// state (filters, limiter look-ahead) starts from silence. Without a cutting output they fade
+    /// out as before.
+    fn cut_current(&mut self) {
+        let Some(output) = self.output.as_ref() else {
+            self.fade_out_current();
+            return;
+        };
+        output.request_cut(self.written);
+        self.crossfade = None;
+        if let Some(old) = self.fading.take() {
+            self.emit(MixerEvent::Ended {
+                id: old.id,
+                played_frames: old.consumed,
+                completed: true,
+            });
+        }
+        if let Some(cur) = self.current.take() {
+            self.emit(MixerEvent::Ended {
+                id: cur.id,
+                played_frames: cur.consumed,
+                completed: false,
+            });
+        }
+        // Their own fades were queued before the cut as well.
+        self.outgoing.clear();
+        self.chain.reset();
+    }
+
     fn handle(&mut self, msg: MixerMsg) {
         match msg {
             MixerMsg::Play(slot) => {
-                self.fade_out_current();
+                self.cut_current();
                 self.current = Some(Slot::new(slot, Transition::Manual, self.switch_step));
                 self.idle_reported = false;
             }
@@ -476,7 +515,7 @@ impl Mixer {
             }
             MixerMsg::SkipToNext => {
                 if let Some(mut next) = self.next.take() {
-                    self.fade_out_current();
+                    self.cut_current();
                     next.transition = Transition::Manual;
                     next.env = 0.0;
                     next.env_step = self.switch_step;
@@ -485,7 +524,7 @@ impl Mixer {
                 }
             }
             MixerMsg::Stop => {
-                self.fade_out_current();
+                self.cut_current();
                 self.next = None;
                 self.idle_reported = true;
             }
@@ -697,6 +736,7 @@ impl Mixer {
             }
             // SAFETY: every slot of the chunk was written above (block.len() == chunk length).
             unsafe { chunk.commit_all() };
+            self.written += block.len() as u64;
         }
         if tap_enabled {
             let frames = block.len() / ENGINE_CHANNELS;

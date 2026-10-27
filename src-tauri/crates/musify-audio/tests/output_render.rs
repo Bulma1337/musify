@@ -145,4 +145,105 @@ mod output_render {
         assert!(out[88..].iter().all(|&s| s == 0.0));
         assert_eq!(control.xruns(), 2);
     }
+
+    /// Left channel of every frame of `out`.
+    fn left(out: &[f64]) -> Vec<f64> {
+        out.chunks(2).map(|f| f[0]).collect()
+    }
+
+    #[test]
+    fn cut_fades_out_the_queued_audio_and_goes_on_with_what_follows_it() {
+        let ramp = ramp_frames(RATE) as usize;
+        let (mut p, mut c) = RingBuffer::new(2 * 8192);
+        let control = Control::new();
+        let mut r = Renderer::new(2, RATE, control.clone());
+        let mut out = vec![9.0; 2 * 128];
+        // Old track playing, then 50 ms of it queued (what the mixer keeps ahead).
+        push_frames(&mut p, 128, 1.0, -1.0);
+        r.render(&mut c, &mut out);
+        push_frames(&mut p, 2400, 1.0, -1.0);
+        // Manual switch: cut after everything written so far; the new track follows.
+        control.request_cut(2 * (128 + 2400));
+        push_frames(&mut p, 4000, 0.25, -0.25);
+
+        // Small callbacks, so that the fade runs across several of them.
+        let mut heard = Vec::new();
+        for _ in 0..8 {
+            let mut out = vec![9.0; 2 * 100];
+            r.render(&mut c, &mut out);
+            assert!(out.chunks(2).all(|f| f[1] == -f[0]));
+            heard.extend(left(&out));
+        }
+        // Exactly one ramp of the old track, falling smoothly to zero (no click), then the new one.
+        let old = &heard[..ramp];
+        assert!(old.windows(2).all(|w| w[1] <= w[0]), "monotonic fade");
+        assert!(
+            old[0] < 1.0 && old[0] > 0.99,
+            "starts at full level: {}",
+            old[0]
+        );
+        assert_eq!(old[ramp - 1], 0.0, "ends at zero");
+        let max_step = old.windows(2).map(|w| w[0] - w[1]).fold(0.0, f64::max);
+        assert!(max_step < 2.0 / ramp as f64, "fade step {max_step}");
+        assert!(
+            heard[ramp..].iter().all(|&s| s == 0.25),
+            "new audio right after the fade"
+        );
+        assert_eq!(control.xruns(), 0, "dropping the queue is no underrun");
+    }
+
+    #[test]
+    fn cut_while_paused_drops_the_old_audio_without_playing_it() {
+        let (mut p, mut c) = RingBuffer::new(2 * 8192);
+        let control = Control::new();
+        let mut r = Renderer::new(2, RATE, control.clone());
+        push_frames(&mut p, 3000, 1.0, 1.0);
+        let mut out = vec![9.0; 2 * 512];
+        r.render(&mut c, &mut out);
+        control.set_paused(true);
+        r.render(&mut c, &mut out);
+        r.render(&mut c, &mut out);
+        assert!(out.iter().all(|&s| s == 0.0));
+
+        // A new track chosen while paused: the queued rest of the old one must never be heard.
+        control.request_cut(2 * 3000);
+        push_frames(&mut p, 2000, 0.25, 0.25);
+        r.render(&mut c, &mut out);
+        assert!(out.iter().all(|&s| s == 0.0), "still paused");
+        control.set_paused(false);
+        let mut heard = Vec::new();
+        for _ in 0..3 {
+            r.render(&mut c, &mut out);
+            heard.extend(left(&out));
+        }
+        assert!(heard.iter().all(|&s| s <= 0.25), "old audio after resume");
+        assert!(
+            heard[ramp_frames(RATE) as usize..1000]
+                .iter()
+                .all(|&s| s == 0.25)
+        );
+    }
+
+    #[test]
+    fn cut_positions_count_audio_dropped_by_a_flush() {
+        let (mut p, mut c) = RingBuffer::new(2 * 8192);
+        let control = Control::new();
+        let mut r = Renderer::new(2, RATE, control.clone());
+        push_frames(&mut p, 1000, 1.0, 1.0);
+        control.request_flush();
+        let mut out = vec![9.0; 2 * 256];
+        r.render(&mut c, &mut out);
+        assert!(out.iter().all(|&s| s == 0.0), "flushed");
+        // Positions go on after the flushed samples: a cut at the end of new audio A keeps A's
+        // fade and then plays B.
+        push_frames(&mut p, 600, 0.5, 0.5);
+        control.request_cut(2 * 1600);
+        push_frames(&mut p, 600, 0.25, 0.25);
+        let mut out = vec![9.0; 2 * 1024];
+        r.render(&mut c, &mut out);
+        let heard = left(&out);
+        let ramp = ramp_frames(RATE) as usize;
+        assert!(heard[0] > 0.49 && heard[ramp - 1] == 0.0, "A fades out");
+        assert!(heard[ramp..ramp + 600].iter().all(|&s| s == 0.25), "then B");
+    }
 }
