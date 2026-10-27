@@ -628,7 +628,23 @@
     "myPresets": "Presetku",
     "off": "Nonaktif",
     "allSettings": "Semua pengaturan",
-    "playsOn": "Diputar di {{output}}"
+    "playsOn": "Diputar di {{output}}",
+    "network": {
+      "title": "Di jaringan",
+      "thisComputer": "Komputer ini",
+      "searching": "Mencari speaker dan TV …",
+      "none": "Tidak ada speaker ditemukan. Speaker harus dinyalakan dan berada di jaringan yang sama.",
+      "connectFailed": "Tidak dapat terhubung ke {{name}}.",
+      "lost": "Koneksi ke {{name}} terputus. Pemutaran dijeda di komputer ini.",
+      "takenOver": "{{name}} sekarang memutar dari aplikasi lain. Pemutaran dijeda di komputer ini.",
+      "playingOn": "Diputar di {{name}}",
+      "soundHint": "Equalizer dan efek suara hanya berfungsi di komputer ini. Speaker menerima lagu tanpa perubahan.",
+      "kinds": {
+        "speaker": "Speaker",
+        "tv": "TV",
+        "group": "Grup speaker"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Playlist publik",
@@ -920,7 +936,9 @@
       "deviceHint": "Perangkat tempat Musify memutar suara. Default sistem mengikuti pilihanmu di pengaturan sistem.",
       "unavailable": "Perangkat tidak tersedia",
       "exclusive": "Mode eksklusif",
-      "exclusiveHint": "Mengambil alih perangkat agar mixer sistem tidak dapat mengubah sinyal. Output bit-perfect memerlukan mode eksklusif, equalizer dan semua efek suara lain nonaktif, serta volume 100%. Aplikasi lain senyap selama mode ini aktif."
+      "exclusiveHint": "Mengambil alih perangkat agar mixer sistem tidak dapat mengubah sinyal. Output bit-perfect memerlukan mode eksklusif, equalizer dan semua efek suara lain nonaktif, serta volume 100%. Aplikasi lain senyap selama mode ini aktif.",
+      "networkSpeakers": "Temukan speaker di jaringan",
+      "networkSpeakersHint": "Menampilkan speaker dan TV dari jaringan rumahmu (UPnP/DLNA dan Cast) di panel audio, supaya kamu bisa memutar musik di sana. Windows mungkin meminta akses jaringan sekali. Saat nonaktif, Musify tidak mengirim permintaan pencarian ke jaringan dan tidak membuka port untuk itu."
     },
     "display": {
       "title": "Tampilan",

@@ -628,7 +628,23 @@
     "myPresets": "我的预设",
     "off": "关闭",
     "allSettings": "全部设置",
-    "playsOn": "正在 {{output}} 上播放"
+    "playsOn": "正在 {{output}} 上播放",
+    "network": {
+      "title": "网络中的设备",
+      "thisComputer": "这台电脑",
+      "searching": "正在查找音箱和电视 …",
+      "none": "未找到音箱。它们需要开机并与电脑处于同一网络。",
+      "connectFailed": "无法连接到 {{name}}。",
+      "lost": "与 {{name}} 的连接已断开。此电脑上的播放已暂停。",
+      "takenOver": "{{name}} 现在正在从其他应用播放。此电脑上的播放已暂停。",
+      "playingOn": "正在 {{name}} 上播放",
+      "soundHint": "均衡器和音效仅在这台电脑上生效。音箱会原样接收歌曲。",
+      "kinds": {
+        "speaker": "音箱",
+        "tv": "电视",
+        "group": "音箱组"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "公开播放列表",
@@ -920,7 +936,9 @@
       "deviceHint": "Musify 播放所用的设备。“系统默认”会跟随你在系统设置中的选择。",
       "unavailable": "设备不可用",
       "exclusive": "独占模式",
-      "exclusiveHint": "接管设备，使系统混音器无法更改信号。Bit-perfect 输出需要开启独占模式，关闭均衡器和所有其他音效，并将音量设为 100%。开启期间，其他应用将没有声音。"
+      "exclusiveHint": "接管设备，使系统混音器无法更改信号。Bit-perfect 输出需要开启独占模式，关闭均衡器和所有其他音效，并将音量设为 100%。开启期间，其他应用将没有声音。",
+      "networkSpeakers": "查找网络中的音箱",
+      "networkSpeakersHint": "在音频面板中列出家庭网络中的音箱和电视（UPnP/DLNA 和 Cast），以便你在它们上播放。Windows 可能会询问一次网络访问权限。关闭时，Musify 不会向网络发送搜索请求，也不会为此开放端口。"
     },
     "display": {
       "title": "外观",

@@ -670,7 +670,23 @@
     "myPresets": "Moje předvolby",
     "off": "Vypnuto",
     "allSettings": "Všechna nastavení",
-    "playsOn": "Přehrává se na: {{output}}"
+    "playsOn": "Přehrává se na: {{output}}",
+    "network": {
+      "title": "V síti",
+      "thisComputer": "Tento počítač",
+      "searching": "Hledání reproduktorů a televizí …",
+      "none": "Nenalezeny žádné reproduktory. Musí být zapnuté a ve stejné síti.",
+      "connectFailed": "Připojení k {{name}} se nezdařilo.",
+      "lost": "Spojení s {{name}} bylo přerušeno. Přehrávání na tomto počítači je pozastaveno.",
+      "takenOver": "{{name}} nyní přehrává z jiné aplikace. Přehrávání na tomto počítači je pozastaveno.",
+      "playingOn": "Přehrává se na: {{name}}",
+      "soundHint": "Ekvalizér a zvukové efekty fungují jen na tomto počítači. Reproduktor dostane skladbu beze změny.",
+      "kinds": {
+        "speaker": "Reproduktor",
+        "tv": "Televize",
+        "group": "Skupina reproduktorů"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Veřejný playlist",
@@ -989,7 +1005,9 @@
       "deviceHint": "Zařízení, přes které Musify hraje. Výchozí zařízení systému sleduje, co vybereš v nastavení systému.",
       "unavailable": "Nedostupné zařízení",
       "exclusive": "Exkluzivní režim",
-      "exclusiveHint": "Převezme zařízení, aby systémový mixér nemohl signál měnit. Bit-perfect výstup vyžaduje exkluzivní režim, vypnutý ekvalizér a všechny ostatní zvukové efekty a hlasitost 100 %. Ostatní aplikace jsou při zapnutí tiché."
+      "exclusiveHint": "Převezme zařízení, aby systémový mixér nemohl signál měnit. Bit-perfect výstup vyžaduje exkluzivní režim, vypnutý ekvalizér a všechny ostatní zvukové efekty a hlasitost 100 %. Ostatní aplikace jsou při zapnutí tiché.",
+      "networkSpeakers": "Hledat reproduktory v síti",
+      "networkSpeakersHint": "Zobrazí v panelu zvuku reproduktory a televize z tvé domácí sítě (UPnP/DLNA a Cast), abys na nich mohl přehrávat. Windows může jednou požádat o přístup k síti. Když je to vypnuto, Musify do sítě neposílá žádné vyhledávací dotazy a neotevírá pro ni žádný port."
     },
     "display": {
       "title": "Vzhled",

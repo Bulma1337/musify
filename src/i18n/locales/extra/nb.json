@@ -642,7 +642,23 @@
     "myPresets": "Mine presets",
     "off": "Av",
     "allSettings": "Alle innstillinger",
-    "playsOn": "Spilles på {{output}}"
+    "playsOn": "Spilles på {{output}}",
+    "network": {
+      "title": "På nettverket",
+      "thisComputer": "Denne datamaskinen",
+      "searching": "Leter etter høyttalere og TV-er …",
+      "none": "Fant ingen høyttalere. De må være påslått og på samme nettverk.",
+      "connectFailed": "Kunne ikke koble til {{name}}.",
+      "lost": "Mistet forbindelsen til {{name}}. Avspillingen er satt på pause på denne datamaskinen.",
+      "takenOver": "{{name}} spiller nå fra en annen app. Avspillingen er satt på pause på denne datamaskinen.",
+      "playingOn": "Spiller på {{name}}",
+      "soundHint": "Equalizer og lydeffekter virker bare på denne datamaskinen. Høyttaleren får sporet uendret.",
+      "kinds": {
+        "speaker": "Høyttaler",
+        "tv": "TV",
+        "group": "Høyttalergruppe"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Offentlig spilleliste",
@@ -943,7 +959,9 @@
       "deviceHint": "Enheten Musify spiller gjennom. Systemstandarden følger det du velger i systeminnstillingene.",
       "unavailable": "Utilgjengelig enhet",
       "exclusive": "Eksklusiv modus",
-      "exclusiveHint": "Tar over enheten slik at systemmikseren ikke kan endre signalet. Bit-perfect utgang krever eksklusiv modus, at equalizeren og alle andre lydeffekter er av, og at volumet er på 100 %. Andre apper er stille mens den er på."
+      "exclusiveHint": "Tar over enheten slik at systemmikseren ikke kan endre signalet. Bit-perfect utgang krever eksklusiv modus, at equalizeren og alle andre lydeffekter er av, og at volumet er på 100 %. Andre apper er stille mens den er på.",
+      "networkSpeakers": "Finn høyttalere på nettverket",
+      "networkSpeakersHint": "Viser høyttalere og TV-er på hjemmenettverket ditt (UPnP/DLNA og Cast) i lydpanelet, så du kan spille av på dem. Windows kan én gang be om nettverkstilgang. Når av, sender Musify ingen søkeforespørsler på nettverket og åpner ingen port for det."
     },
     "display": {
       "title": "Utseende",

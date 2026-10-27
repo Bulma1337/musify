@@ -670,7 +670,23 @@
     "myPresets": "Moje presety",
     "off": "Wyłączone",
     "allSettings": "Wszystkie ustawienia",
-    "playsOn": "Odtwarzanie na: {{output}}"
+    "playsOn": "Odtwarzanie na: {{output}}",
+    "network": {
+      "title": "W sieci",
+      "thisComputer": "Ten komputer",
+      "searching": "Szukanie głośników i telewizorów …",
+      "none": "Nie znaleziono głośników. Muszą być włączone i w tej samej sieci.",
+      "connectFailed": "Nie udało się połączyć z {{name}}.",
+      "lost": "Utracono połączenie z {{name}}. Odtwarzanie na tym komputerze zostało wstrzymane.",
+      "takenOver": "{{name}} odtwarza teraz z innej aplikacji. Odtwarzanie na tym komputerze zostało wstrzymane.",
+      "playingOn": "Odtwarzanie na: {{name}}",
+      "soundHint": "Korektor i efekty dźwiękowe działają tylko na tym komputerze. Głośnik otrzymuje utwór bez zmian.",
+      "kinds": {
+        "speaker": "Głośnik",
+        "tv": "Telewizor",
+        "group": "Grupa głośników"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Playlista publiczna",
@@ -989,7 +1005,9 @@
       "deviceHint": "Urządzenie, przez które gra Musify. Domyślne urządzenie systemowe podąża za wyborem w ustawieniach systemu.",
       "unavailable": "Urządzenie niedostępne",
       "exclusive": "Tryb wyłączny",
-      "exclusiveHint": "Przejmuje urządzenie na wyłączność, aby mikser systemowy nie mógł zmieniać sygnału. Wyjście bit-perfect wymaga trybu wyłącznego, wyłączonego korektora i wszystkich innych efektów dźwiękowych oraz głośności 100 %. Inne aplikacje milczą, gdy tryb jest włączony."
+      "exclusiveHint": "Przejmuje urządzenie na wyłączność, aby mikser systemowy nie mógł zmieniać sygnału. Wyjście bit-perfect wymaga trybu wyłącznego, wyłączonego korektora i wszystkich innych efektów dźwiękowych oraz głośności 100 %. Inne aplikacje milczą, gdy tryb jest włączony.",
+      "networkSpeakers": "Szukaj głośników w sieci",
+      "networkSpeakersHint": "Pokazuje w panelu audio głośniki i telewizory z sieci domowej (UPnP/DLNA i Cast), abyś mógł na nich odtwarzać. System Windows może raz poprosić o dostęp do sieci. Gdy opcja jest wyłączona, Musify nie wysyła żadnych zapytań do sieci i nie otwiera dla nich portu."
     },
     "display": {
       "title": "Wygląd",

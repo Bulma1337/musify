@@ -656,7 +656,23 @@
     "myPresets": "Presetările mele",
     "off": "Oprit",
     "allSettings": "Toate setările",
-    "playsOn": "Se redă pe {{output}}"
+    "playsOn": "Se redă pe {{output}}",
+    "network": {
+      "title": "În rețea",
+      "thisComputer": "Acest computer",
+      "searching": "Se caută boxe și televizoare …",
+      "none": "Nu s-au găsit boxe. Trebuie să fie pornite și în aceeași rețea.",
+      "connectFailed": "Nu s-a putut conecta la {{name}}.",
+      "lost": "Conexiunea cu {{name}} a fost pierdută. Redarea este pusă pe pauză pe acest computer.",
+      "takenOver": "{{name}} redă acum dintr-o altă aplicație. Redarea este pusă pe pauză pe acest computer.",
+      "playingOn": "Se redă pe {{name}}",
+      "soundHint": "Egalizatorul și efectele sonore funcționează doar pe acest computer. Boxa primește piesa nemodificată.",
+      "kinds": {
+        "speaker": "Boxă",
+        "tv": "Televizor",
+        "group": "Grup de boxe"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Listă de redare publică",
@@ -966,7 +982,9 @@
       "deviceHint": "Dispozitivul prin care redă Musify. Implicitul sistemului urmează ce alegi în setările sistemului.",
       "unavailable": "Dispozitiv indisponibil",
       "exclusive": "Mod exclusiv",
-      "exclusiveHint": "Preia dispozitivul, astfel încât mixerul sistemului să nu poată modifica semnalul. Ieșirea bit-perfect necesită modul exclusiv, egalizatorul și toate celelalte efecte sonore dezactivate și volumul la 100 %. Celelalte aplicații sunt mute cât timp este activ."
+      "exclusiveHint": "Preia dispozitivul, astfel încât mixerul sistemului să nu poată modifica semnalul. Ieșirea bit-perfect necesită modul exclusiv, egalizatorul și toate celelalte efecte sonore dezactivate și volumul la 100 %. Celelalte aplicații sunt mute cât timp este activ.",
+      "networkSpeakers": "Caută boxe în rețea",
+      "networkSpeakersHint": "Afișează în panoul audio boxele și televizoarele din rețeaua ta de acasă (UPnP/DLNA și Cast), ca să poți reda pe ele. Windows poate cere o dată acces la rețea. Când este dezactivată, Musify nu trimite cereri de căutare în rețea și nu deschide niciun port pentru asta."
     },
     "display": {
       "title": "Aspect",

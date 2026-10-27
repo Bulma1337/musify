@@ -305,6 +305,7 @@ function PlaybackSection() {
 function OutputSection() {
   const { t } = useTranslation();
   const output = useSettings((s) => s.output);
+  const networkSpeakers = useSettings((s) => s.networkSpeakers);
   const set = useSettings((s) => s.set);
   const { devices, loading, refresh } = useOutputDevices();
   const selected = output.deviceId
@@ -350,6 +351,16 @@ function OutputSection() {
           disabled={unsupported}
           onCheckedChange={(exclusive) => set("output", { ...output, exclusive })}
           label={t("settings.output.exclusive")}
+        />
+      </SettingRow>
+      <SettingRow
+        title={t("settings.output.networkSpeakers")}
+        description={t("settings.output.networkSpeakersHint")}
+      >
+        <Switch
+          checked={networkSpeakers}
+          onCheckedChange={(on) => set("networkSpeakers", on)}
+          label={t("settings.output.networkSpeakers")}
         />
       </SettingRow>
     </SettingsSection>

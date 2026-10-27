@@ -165,6 +165,17 @@ describe("SettingsPage", () => {
     expect(screen.getByText(/Bit-perfect output needs exclusive mode/)).toBeInTheDocument();
   });
 
+  it("turns finding speakers on the network off and on", () => {
+    useSettings.setState({ networkSpeakers: true });
+    renderSettings();
+    const toggle = screen.getByRole("switch", { name: "Find speakers on the network" });
+    expect(screen.getByText(/sends no search requests into the network/)).toBeInTheDocument();
+    fireEvent.click(toggle);
+    expect(useSettings.getState().networkSpeakers).toBe(false);
+    fireEvent.click(toggle);
+    expect(useSettings.getState().networkSpeakers).toBe(true);
+  });
+
   it("switches the accent between colors and gradients", () => {
     renderSettings();
     for (const [group, name, accent] of [

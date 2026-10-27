@@ -642,7 +642,23 @@
     "myPresets": "Mina förinställningar",
     "off": "Av",
     "allSettings": "Alla inställningar",
-    "playsOn": "Spelas på {{output}}"
+    "playsOn": "Spelas på {{output}}",
+    "network": {
+      "title": "På nätverket",
+      "thisComputer": "Den här datorn",
+      "searching": "Söker efter högtalare och TV-apparater …",
+      "none": "Inga högtalare hittades. De måste vara påslagna och i samma nätverk.",
+      "connectFailed": "Det gick inte att ansluta till {{name}}.",
+      "lost": "Anslutningen till {{name}} bröts. Uppspelningen är pausad på den här datorn.",
+      "takenOver": "{{name}} spelar nu från en annan app. Uppspelningen är pausad på den här datorn.",
+      "playingOn": "Spelas upp på {{name}}",
+      "soundHint": "Equalizern och ljudeffekterna fungerar bara på den här datorn. Högtalaren får spåret oförändrat.",
+      "kinds": {
+        "speaker": "Högtalare",
+        "tv": "TV",
+        "group": "Högtalargrupp"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Offentlig spellista",
@@ -943,7 +959,9 @@
       "deviceHint": "Enheten som Musify spelar via. Systemstandarden följer det du väljer i systeminställningarna.",
       "unavailable": "Enheten är inte tillgänglig",
       "exclusive": "Exklusivt läge",
-      "exclusiveHint": "Tar över enheten så att systemets mixer inte kan ändra signalen. Bit-perfect-utgång kräver exklusivt läge, equalizern och alla andra ljudeffekter av, och volymen på 100 %. Andra appar är tysta medan det är på."
+      "exclusiveHint": "Tar över enheten så att systemets mixer inte kan ändra signalen. Bit-perfect-utgång kräver exklusivt läge, equalizern och alla andra ljudeffekter av, och volymen på 100 %. Andra appar är tysta medan det är på.",
+      "networkSpeakers": "Hitta högtalare på nätverket",
+      "networkSpeakersHint": "Visar högtalare och TV-apparater i ditt hemnätverk (UPnP/DLNA och Cast) i ljudpanelen, så att du kan spela upp på dem. Windows kan en gång be om åtkomst till nätverket. När det är av skickar Musify inga sökförfrågningar till nätverket och öppnar ingen port för det."
     },
     "display": {
       "title": "Utseende",

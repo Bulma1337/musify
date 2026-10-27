@@ -83,7 +83,9 @@
       "deviceHint": "Das Gerät, über das Musify abspielt. Der Systemstandard folgt deiner Auswahl in den Systemeinstellungen.",
       "unavailable": "Nicht verfügbares Gerät",
       "exclusive": "Exklusiver Modus",
-      "exclusiveHint": "Übernimmt das Gerät, damit der System-Mixer das Signal nicht verändern kann. Bit-perfekte Ausgabe braucht den exklusiven Modus, einen ausgeschalteten Equalizer samt aller Klangeffekte und eine Lautstärke von 100 %. Andere Programme bleiben währenddessen stumm."
+      "exclusiveHint": "Übernimmt das Gerät, damit der System-Mixer das Signal nicht verändern kann. Bit-perfekte Ausgabe braucht den exklusiven Modus, einen ausgeschalteten Equalizer samt aller Klangeffekte und eine Lautstärke von 100 %. Andere Programme bleiben währenddessen stumm.",
+      "networkSpeakers": "Lautsprecher im Netzwerk finden",
+      "networkSpeakersHint": "Zeigt Lautsprecher und Fernseher aus deinem Heimnetz (UPnP/DLNA und Cast) im Audio-Bereich, damit du darauf abspielen kannst. Windows fragt dafür eventuell einmal nach Netzwerkzugriff. Aus: Musify sendet keine Suchanfragen ins Netzwerk und öffnet dafür keinen Port."
     },
     "display": {
       "title": "Anzeige",

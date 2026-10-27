@@ -642,7 +642,23 @@
     "myPresets": "Omat esiasetukset",
     "off": "Pois",
     "allSettings": "Kaikki asetukset",
-    "playsOn": "Toistetaan: {{output}}"
+    "playsOn": "Toistetaan: {{output}}",
+    "network": {
+      "title": "Verkossa",
+      "thisComputer": "Tämä tietokone",
+      "searching": "Etsitään kaiuttimia ja televisioita …",
+      "none": "Kaiuttimia ei löytynyt. Niiden pitää olla päällä ja samassa verkossa.",
+      "connectFailed": "Yhteyden muodostaminen laitteeseen {{name}} epäonnistui.",
+      "lost": "Yhteys laitteeseen {{name}} katkesi. Toisto on keskeytetty tällä tietokoneella.",
+      "takenOver": "{{name}} toistaa nyt toisesta sovelluksesta. Toisto on keskeytetty tällä tietokoneella.",
+      "playingOn": "Toistetaan: {{name}}",
+      "soundHint": "Taajuuskorjain ja äänitehosteet toimivat vain tällä tietokoneella. Kaiutin saa kappaleen muuttumattomana.",
+      "kinds": {
+        "speaker": "Kaiutin",
+        "tv": "Televisio",
+        "group": "Kaiutinryhmä"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Julkinen soittolista",
@@ -943,7 +959,9 @@
       "deviceHint": "Laite, jonka kautta Musify toistaa. Järjestelmän oletus seuraa järjestelmäasetuksista tekemääsi valintaa.",
       "unavailable": "Ei käytettävissä oleva laite",
       "exclusive": "Yksinomainen tila",
-      "exclusiveHint": "Ottaa laitteen haltuunsa, jotta järjestelmän mikseri ei voi muuttaa signaalia. Bit-perfect-ulostulo vaatii yksinomaisen tilan, taajuuskorjaimen ja kaikkien muiden äänitehosteiden poiskytkemisen sekä 100 %:n äänenvoimakkuuden. Muut sovellukset ovat mykkiä, kun tila on päällä."
+      "exclusiveHint": "Ottaa laitteen haltuunsa, jotta järjestelmän mikseri ei voi muuttaa signaalia. Bit-perfect-ulostulo vaatii yksinomaisen tilan, taajuuskorjaimen ja kaikkien muiden äänitehosteiden poiskytkemisen sekä 100 %:n äänenvoimakkuuden. Muut sovellukset ovat mykkiä, kun tila on päällä.",
+      "networkSpeakers": "Etsi kaiuttimia verkosta",
+      "networkSpeakersHint": "Näyttää kotiverkkosi kaiuttimet ja televisiot (UPnP/DLNA ja Cast) äänipaneelissa, jotta voit toistaa niillä. Windows voi kerran pyytää verkkoyhteyden käyttöoikeutta. Kun tämä on pois päältä, Musify ei lähetä hakupyyntöjä verkkoon eikä avaa siihen porttia."
     },
     "display": {
       "title": "Ulkoasu",

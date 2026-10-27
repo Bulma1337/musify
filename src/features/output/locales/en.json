@@ -34,6 +34,22 @@
     "myPresets": "My presets",
     "off": "Off",
     "allSettings": "All settings",
-    "playsOn": "Playing on {{output}}"
+    "playsOn": "Playing on {{output}}",
+    "network": {
+      "title": "On your network",
+      "thisComputer": "This computer",
+      "searching": "Looking for speakers and TVs …",
+      "none": "No speakers found. They need to be switched on and in the same network.",
+      "connectFailed": "Couldn't connect to {{name}}.",
+      "lost": "Lost the connection to {{name}}. Playback is paused on this computer.",
+      "takenOver": "{{name}} is now playing from another app. Playback is paused on this computer.",
+      "playingOn": "Playing on {{name}}",
+      "soundHint": "Equalizer and sound effects only work on this computer. The speaker gets the track unchanged.",
+      "kinds": {
+        "speaker": "Speaker",
+        "tv": "TV",
+        "group": "Speaker group"
+      }
+    }
   }
 }

@@ -34,6 +34,22 @@
     "myPresets": "Meine Voreinstellungen",
     "off": "Aus",
     "allSettings": "Alle Einstellungen",
-    "playsOn": "Wiedergabe über {{output}}"
+    "playsOn": "Wiedergabe über {{output}}",
+    "network": {
+      "title": "Im Netzwerk",
+      "thisComputer": "Dieser Computer",
+      "searching": "Suche nach Lautsprechern und Fernsehern …",
+      "none": "Keine Lautsprecher gefunden. Sie müssen eingeschaltet und im selben Netzwerk sein.",
+      "connectFailed": "Verbindung zu {{name}} fehlgeschlagen.",
+      "lost": "Verbindung zu {{name}} verloren. Die Wiedergabe ist auf diesem Computer pausiert.",
+      "takenOver": "{{name}} spielt jetzt aus einer anderen App. Die Wiedergabe ist auf diesem Computer pausiert.",
+      "playingOn": "Wiedergabe auf {{name}}",
+      "soundHint": "Equalizer und Klangeffekte wirken nur auf diesem Computer. Der Lautsprecher bekommt den Titel unverändert.",
+      "kinds": {
+        "speaker": "Lautsprecher",
+        "tv": "Fernseher",
+        "group": "Lautsprechergruppe"
+      }
+    }
   }
 }

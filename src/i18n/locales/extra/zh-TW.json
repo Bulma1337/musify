@@ -628,7 +628,23 @@
     "myPresets": "我的預設",
     "off": "關閉",
     "allSettings": "所有設定",
-    "playsOn": "正在 {{output}} 上播放"
+    "playsOn": "正在 {{output}} 上播放",
+    "network": {
+      "title": "網路中的裝置",
+      "thisComputer": "這部電腦",
+      "searching": "正在尋找喇叭和電視 …",
+      "none": "找不到喇叭。它們需要開機，並與這部電腦位於同一網路。",
+      "connectFailed": "無法連線到 {{name}}。",
+      "lost": "與 {{name}} 的連線已中斷。這部電腦上的播放已暫停。",
+      "takenOver": "{{name}} 現在正在從其他應用程式播放。這部電腦上的播放已暫停。",
+      "playingOn": "正在 {{name}} 上播放",
+      "soundHint": "等化器和音效只在這部電腦上有效。喇叭會原樣接收歌曲。",
+      "kinds": {
+        "speaker": "喇叭",
+        "tv": "電視",
+        "group": "喇叭群組"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "公開播放清單",
@@ -920,7 +936,9 @@
       "deviceHint": "Musify 用來播放的裝置。「系統預設」會跟隨你在系統設定中的選擇。",
       "unavailable": "裝置無法使用",
       "exclusive": "獨佔模式",
-      "exclusiveHint": "接管裝置，讓系統混音器無法更動訊號。Bit-perfect 輸出需要開啟獨佔模式、關閉等化器和所有其他音效，並將音量設為 100%。開啟期間，其他應用程式不會有聲音。"
+      "exclusiveHint": "接管裝置，讓系統混音器無法更動訊號。Bit-perfect 輸出需要開啟獨佔模式、關閉等化器和所有其他音效，並將音量設為 100%。開啟期間，其他應用程式不會有聲音。",
+      "networkSpeakers": "尋找網路中的喇叭",
+      "networkSpeakersHint": "在音訊面板中列出家用網路中的喇叭和電視（UPnP/DLNA 與 Cast），讓你可以在它們上播放。Windows 可能會詢問一次網路存取權限。關閉時，Musify 不會向網路發送搜尋要求，也不會為此開放連接埠。"
     },
     "display": {
       "title": "外觀",

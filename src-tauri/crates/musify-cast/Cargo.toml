@@ -1,0 +1,32 @@
+[package]
+name = "musify-cast"
+version = "0.1.0"
+edition = "2024"
+description = "Musify's network speakers: discovery (SSDP, mDNS), UPnP/DLNA and Cast v2 renderer control, LAN stream proxy"
+repository = "https://github.com/Bulma1337/musify"
+license-file = "../../../LICENSE"
+publish = false
+
+[dependencies]
+musify-audio = { path = "../musify-audio" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+log = "0.4"
+thiserror = "2"
+crossbeam-channel = "0.5"
+parking_lot = "0.12"
+# Multicast sockets per interface (SSDP, mDNS) with an explicit outgoing interface.
+socket2 = { version = "0.6", features = ["all"] }
+# Local IPv4 addresses, to send discovery queries on every LAN interface.
+if-addrs = "0.15"
+# UPnP device descriptions and SOAP responses.
+quick-xml = "0.42"
+# Secret tokens of the LAN proxy.
+getrandom = "0.3"
+# LAN requests to UPnP renderers (plain HTTP, no redirects); same reqwest as the engine.
+reqwest = { version = "0.13", default-features = false, features = ["blocking"] }
+# Cast v2 runs over TLS; same rustls + ring stack as the engine.
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+
+[dev-dependencies]
+tempfile = "3"

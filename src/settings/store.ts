@@ -74,6 +74,11 @@ interface SettingsState {
   discordPresence: boolean;
   /** Look up a public album cover for Discord (sends artist and album to Deezer's and Apple's search). */
   discordCovers: boolean;
+  /**
+   * Look for speakers and TVs on the local network (UPnP/DLNA, Cast) and play on them. Off: Musify
+   * sends no discovery packets and opens no network port for it.
+   */
+  networkSpeakers: boolean;
   streamingQuality: QualityPreset;
   downloadQuality: QualityPreset;
   /** Size limit of the audio streaming cache in GB: one of `CACHE_LIMITS_GB`. */
@@ -135,6 +140,7 @@ export const useSettings = create<SettingsState>()(
       notifyTrackChange: false,
       discordPresence: true,
       discordCovers: true,
+      networkSpeakers: true,
       streamingQuality: "original",
       downloadQuality: "original",
       cacheLimitGb: 2,

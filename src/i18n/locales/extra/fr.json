@@ -656,7 +656,23 @@
     "myPresets": "Mes préréglages",
     "off": "Désactivé",
     "allSettings": "Tous les réglages",
-    "playsOn": "Lecture sur {{output}}"
+    "playsOn": "Lecture sur {{output}}",
+    "network": {
+      "title": "Sur le réseau",
+      "thisComputer": "Cet ordinateur",
+      "searching": "Recherche d'enceintes et de téléviseurs …",
+      "none": "Aucune enceinte trouvée. Elles doivent être allumées et sur le même réseau.",
+      "connectFailed": "Impossible de se connecter à {{name}}.",
+      "lost": "Connexion à {{name}} perdue. La lecture est mise en pause sur cet ordinateur.",
+      "takenOver": "{{name}} lit maintenant depuis une autre application. La lecture est mise en pause sur cet ordinateur.",
+      "playingOn": "Lecture sur {{name}}",
+      "soundHint": "L'égaliseur et les effets sonores ne fonctionnent que sur cet ordinateur. L'enceinte reçoit le titre sans modification.",
+      "kinds": {
+        "speaker": "Enceinte",
+        "tv": "Téléviseur",
+        "group": "Groupe d'enceintes"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Playlist publique",
@@ -966,7 +982,9 @@
       "deviceHint": "Le périphérique par lequel Musify lit. Le périphérique par défaut du système suit ce que tu choisis dans les réglages de ton système.",
       "unavailable": "Périphérique indisponible",
       "exclusive": "Mode exclusif",
-      "exclusiveHint": "Prend le contrôle du périphérique pour que le mixeur du système ne puisse pas modifier le signal. Une sortie bit-perfect nécessite le mode exclusif, l'égaliseur et tous les autres effets sonores désactivés, et le volume à 100 %. Les autres applications restent muettes tant qu'il est activé."
+      "exclusiveHint": "Prend le contrôle du périphérique pour que le mixeur du système ne puisse pas modifier le signal. Une sortie bit-perfect nécessite le mode exclusif, l'égaliseur et tous les autres effets sonores désactivés, et le volume à 100 %. Les autres applications restent muettes tant qu'il est activé.",
+      "networkSpeakers": "Trouver des enceintes sur le réseau",
+      "networkSpeakersHint": "Affiche dans le panneau audio les enceintes et téléviseurs de ton réseau domestique (UPnP/DLNA et Cast), pour pouvoir lire dessus. Windows peut demander une fois l'accès au réseau. Désactivé, Musify n'envoie aucune requête de recherche sur le réseau et n'ouvre aucun port pour cela."
     },
     "display": {
       "title": "Apparence",

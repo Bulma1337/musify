@@ -31,6 +31,17 @@ export interface TrackSource {
   gain: ReplayGainInfo | null;
   durationHintMs: number | null;
   albumKey: string | null;
+  /** Network speakers only (the engine ignores it): see `RemoteTrack` in musify-cast's session.rs. */
+  remote?: RemoteMeta;
+}
+
+/** What a network speaker shows, and the stream's MIME type. URLs may carry credentials. */
+export interface RemoteMeta {
+  mime: string;
+  title: string;
+  artist: string | null;
+  album: string | null;
+  cover: { url: string; headers: [string, string][]; allowInsecureTls: boolean } | null;
 }
 
 export type NormalizationMode = "off" | "track" | "album" | "auto";
