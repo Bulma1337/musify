@@ -6,7 +6,7 @@ import { useSettings } from "./store";
 const root = document.documentElement;
 
 afterEach(() => {
-  useSettings.setState({ accent: "purple" });
+  useSettings.setState({ accent: "ember" });
   root.removeAttribute("data-accent");
   root.removeAttribute("style");
 });
@@ -16,15 +16,15 @@ describe("useAppearance", () => {
     useSettings.setState({ accent: "blue" });
     renderHook(() => useAppearance());
     expect(root.dataset.accent).toBe("blue");
-    expect(root.style.getPropertyValue("--accent-500")).toBe("#3b82f6");
+    expect(root.style.getPropertyValue("--accent-500")).toBe("#3d8bff");
     expect(root.style.getPropertyValue("--accent-on")).toBe("#ffffff");
     expect(root.style.getPropertyValue("--accent-fill")).toBe("none");
   });
 
   it("applies a gradient accent and switches back", () => {
-    useSettings.setState({ accent: "sunset" });
+    useSettings.setState({ accent: "ocean" });
     const { rerender } = renderHook(() => useAppearance());
-    expect(root.style.getPropertyValue("--accent-fill")).toBe(accentFill(accentPreset("sunset")));
+    expect(root.style.getPropertyValue("--accent-fill")).toBe(accentFill(accentPreset("ocean")));
     expect(root.style.getPropertyValue("--accent-on")).toBe("#0b0b10");
 
     useSettings.setState({ accent: "red" });
@@ -36,6 +36,6 @@ describe("useAppearance", () => {
   it("uses the default accent for an id it does not know", () => {
     useSettings.setState({ accent: "dynamic" });
     renderHook(() => useAppearance());
-    expect(root.dataset.accent).toBe("purple");
+    expect(root.dataset.accent).toBe("ember");
   });
 });

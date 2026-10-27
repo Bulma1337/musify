@@ -4,7 +4,7 @@ import { useCoverSource } from "@/api/customCovers";
 import { dominantColor, type Rgb } from "@/lib/color";
 import { coverRequestSize } from "./coverSize";
 
-export const FALLBACK_HEADER_COLOR: Rgb = { r: 83, g: 63, b: 140 };
+export const FALLBACK_HEADER_COLOR: Rgb = { r: 72, g: 74, b: 88 };
 
 /** Retries of a failed color extraction, and the pause before each. */
 const RETRIES = 2;
@@ -37,7 +37,7 @@ export function useCoverColorOrNull(cover: CoverRef | undefined): Rgb | null {
   return color && color.src === src ? color.rgb : null;
 }
 
-/** Header color derived from a cover (cached); purple-ish fallback while loading or without cover. */
+/** Header color derived from a cover (cached); a neutral slate while loading or without cover. */
 export function useCoverColor(cover: CoverRef | undefined): Rgb {
   return useCoverColorOrNull(cover) ?? FALLBACK_HEADER_COLOR;
 }

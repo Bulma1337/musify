@@ -5,15 +5,15 @@ import { contrastRatio, hueAndSaturation } from "./accent";
 const SURFACES = ["#111216", "#1c1d23"];
 
 describe("accent presets", () => {
-  it("have unique ids and fall back to purple", () => {
+  it("have unique ids and fall back to Glut (ember), the brand color", () => {
     const ids = ACCENT_PRESETS.map((p) => p.id);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(accentPreset("dynamic").id).toBe("purple");
-    expect(accentPreset(undefined).id).toBe("purple");
+    expect(accentPreset("dynamic").id).toBe("ember");
+    expect(accentPreset(undefined).id).toBe("ember");
   });
 
-  it("offer plenty of colors and gradients", () => {
-    expect(ACCENT_PRESETS.filter((p) => p.kind === "solid").length).toBeGreaterThanOrEqual(16);
+  it("offer a choice of colors and gradients", () => {
+    expect(ACCENT_PRESETS.filter((p) => p.kind === "solid").length).toBeGreaterThanOrEqual(12);
     expect(ACCENT_PRESETS.filter((p) => p.kind === "gradient").length).toBeGreaterThanOrEqual(10);
   });
 

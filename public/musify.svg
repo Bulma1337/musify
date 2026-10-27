@@ -1,11 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <title>Musify</title>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#B794FF"/>
-      <stop offset="0.5" stop-color="#8B5CF6"/>
-      <stop offset="1" stop-color="#5B21B6"/>
+    <linearGradient id="glut" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffa24c"/>
+      <stop offset="1" stop-color="#ff3d7f"/>
     </linearGradient>
+    <mask id="cut">
+      <circle cx="512" cy="512" r="468" fill="#fff"/>
+      <path d="M 232 748 C 232 420 282 330 372 330 C 462 330 512 420 512 572 C 512 420 562 330 652 330 C 742 330 792 420 792 748" transform="translate(512 512) scale(0.5744) translate(-512 -539)" fill="none" stroke="#000" stroke-width="124" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 127.6 387.1 A 404.2 404.2 0 0 1 387.1 127.6" fill="none" stroke="#000" stroke-width="34" stroke-linecap="round"/>
+      <path d="M 896.4 636.9 A 404.2 404.2 0 0 1 636.9 896.4" fill="none" stroke="#000" stroke-width="34" stroke-linecap="round"/>
+      <path d="M 217.1 355.2 A 334 334 0 0 1 355.2 217.1" fill="none" stroke="#000" stroke-width="27.7" stroke-linecap="round"/>
+      <path d="M 806.9 668.8 A 334 334 0 0 1 668.8 806.9" fill="none" stroke="#000" stroke-width="27.7" stroke-linecap="round"/>
+    </mask>
   </defs>
-  <rect width="1024" height="1024" rx="232" fill="url(#bg)"/>
-  <path d="M296 716 V316 L512 596 L728 316 V716" fill="none" stroke="#FFFFFF" stroke-width="116" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect width="1024" height="1024" fill="url(#glut)" mask="url(#cut)"/>
 </svg>

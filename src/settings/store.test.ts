@@ -16,4 +16,12 @@ describe("settings", () => {
     const saved = { crossfade: { durationMs: 3000, skipSameAlbum: true } };
     expect(migrateSettings(saved, 2).crossfade.skipSameAlbum).toBe(true);
   });
+
+  it("moves the old purple default and dropped presets to Glut, keeps the others", () => {
+    expect(useSettings.getInitialState().accent).toBe("ember");
+    expect(migrateSettings({ accent: "purple" }, 3).accent).toBe("ember");
+    expect(migrateSettings({ accent: "teal" }, 3).accent).toBe("ember");
+    expect(migrateSettings({ accent: "violet" }, 3).accent).toBe("violet");
+    expect(migrateSettings({ accent: "ocean" }, 4).accent).toBe("ocean");
+  });
 });

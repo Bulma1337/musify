@@ -3,7 +3,7 @@
 
 /*
  * Design tokens. Colors are CSS variables so the accent can be switched at runtime (presets in
- * src/settings/accentPresets.ts; purple is the default). The neutrals have a slight cool tint.
+ * src/settings/accentPresets.ts; Glut is the default). The neutrals have a slight cool tint.
  */
 @theme {
   --font-sans: "Figtree Variable", "Segoe UI", system-ui, sans-serif;
@@ -109,13 +109,13 @@
   background-image: var(--accent-fill);
 }
 
-/* Purple until the settings are loaded; useAppearance sets the chosen preset. */
+/* Glut until the settings are loaded; useAppearance sets the chosen preset. */
 :root {
-  --accent-400: #a78bfa;
-  --accent-500: #8b5cf6;
-  --accent-600: #7c3aed;
-  --accent-on: #ffffff;
-  --accent-fill: none;
+  --accent-400: #ffa98a;
+  --accent-500: #ff7262;
+  --accent-600: #ff5470;
+  --accent-on: #0b0b10;
+  --accent-fill: linear-gradient(135deg, #ffa24c, #ff3d7f);
   color-scheme: dark;
 }
 

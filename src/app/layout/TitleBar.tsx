@@ -98,7 +98,7 @@ function Navigation() {
   return (
     <>
       <div data-tauri-drag-region className="flex flex-1 items-center gap-2">
-        <img src="/musify.svg" alt="" className="mr-2 size-7" draggable={false} />
+        <img src="/musify-small.svg" alt="" className="mr-2 size-7" draggable={false} />
         <button type="button" className={roundButton} aria-label={t("nav.back")} onClick={() => navigate(-1)}>
           <ChevronLeft size={20} />
         </button>
@@ -184,7 +184,7 @@ export function TitleBar({ minimal = false }: { minimal?: boolean }) {
     <header data-tauri-drag-region className="flex h-16 shrink-0 items-center gap-2 pl-3">
       {minimal ? (
         <div data-tauri-drag-region className="flex flex-1 items-center">
-          <img src="/musify.svg" alt="" className="size-7" draggable={false} />
+          <img src="/musify-small.svg" alt="" className="size-7" draggable={false} />
         </div>
       ) : (
         <Navigation />

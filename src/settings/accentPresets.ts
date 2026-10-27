@@ -48,45 +48,40 @@ const gradient = (
 });
 
 export const ACCENT_PRESETS: readonly AccentPreset[] = [
-  solid("purple", "#a78bfa", "#8b5cf6", "#7c3aed"),
-  solid("violet", "#c084fc", "#a855f7", "#9333ea"),
-  solid("indigo", "#818cf8", "#6366f1", "#4f46e5"),
-  solid("blue", "#60a5fa", "#3b82f6", "#2563eb"),
-  solid("sky", "#7dd3fc", "#38bdf8", "#0ea5e9", DARK),
-  solid("cyan", "#67e8f9", "#22d3ee", "#06b6d4", DARK),
-  solid("teal", "#5eead4", "#2dd4bf", "#14b8a6", DARK),
-  solid("yellow", "#fde047", "#facc15", "#eab308", DARK),
-  solid("amber", "#fcd34d", "#fbbf24", "#f59e0b", DARK),
-  solid("orange", "#fdba74", "#fb923c", "#f97316", DARK),
-  solid("coral", "#fca5a5", "#f87171", "#ef4444", DARK),
-  solid("red", "#fb7185", "#e11d48", "#be123c"),
-  solid("pink", "#f9a8d4", "#f472b6", "#ec4899", DARK),
-  solid("magenta", "#f0abfc", "#e879f9", "#d946ef", DARK),
-  solid("copper", "#e0a07a", "#c97b4f", "#a85f37", DARK),
-  solid("sand", "#eadbbf", "#d6b98c", "#b8975f", DARK),
-  solid("slate", "#cbd5e1", "#94a3b8", "#64748b", DARK),
-  solid("silver", "#f3f4f6", "#d1d5db", "#9ca3af", DARK),
+  // "Glut", the brand color of the logo (src-tauri/icons/musify-logo.svg).
+  gradient("ember", "#ffa24c", "#ff3d7f", ["#ffa98a", "#ff7262", "#ff5470"], DARK),
+  gradient("berry", "#ff5468", "#b5179e", ["#ff9db0", "#ff6b8b", "#f0457a"], DARK),
+  gradient("neon", "#f07cff", "#6d4bff", ["#f5b0ff", "#e27cff", "#c95cff"], DARK),
+  gradient("dusk", "#6a5cff", "#ff6fb5", ["#d0b8ff", "#b48cff", "#9a6bff"], DARK),
+  gradient("midnight", "#4f7cff", "#a14fff", ["#a8bfff", "#7f9dff", "#6680ff"], LIGHT),
+  gradient("ocean", "#3fd0ff", "#5b45f0", ["#9fe3ff", "#5fc4ff", "#4aa3ff"], DARK),
+  gradient("ice", "#a1c4fd", "#c2e9fb", ["#d2ecff", "#a8d4ff", "#86bdf7"], DARK),
+  gradient("gold", "#ffe259", "#ffa751", ["#ffe58a", "#ffc94d", "#ffb22e"], DARK),
+  gradient("peach", "#ffcf8a", "#ff8fa3", ["#ffd2b0", "#ffb08f", "#ff9478"], DARK),
+  gradient("slate", "#e0e3ea", "#8b93a7", ["#e6e8ef", "#c3c8d4", "#a1a8b8"], DARK),
 
-  gradient("sunset", "#f97316", "#ec4899", ["#f9a8d4", "#f472b6", "#ec4899"], DARK),
-  gradient("ocean", "#2563eb", "#06b6d4", ["#67e8f9", "#38bdf8", "#0ea5e9"], DARK),
-  gradient("flame", "#dc2626", "#f59e0b", ["#fcd34d", "#fbbf24", "#f59e0b"], DARK),
-  gradient("berry", "#c026d3", "#6366f1", ["#f0abfc", "#e879f9", "#d946ef"], LIGHT),
-  gradient("peach", "#fb923c", "#f472b6", ["#fdba74", "#fb923c", "#f97316"], DARK),
-  gradient("neon", "#ec4899", "#8b5cf6", ["#f9a8d4", "#f472b6", "#ec4899"], LIGHT),
-  gradient("ember", "#e11d48", "#f97316", ["#fda4af", "#fb7185", "#f43f5e"], DARK),
-  gradient("dusk", "#6366f1", "#ec4899", ["#c7d2fe", "#a5b4fc", "#818cf8"], LIGHT),
-  gradient("gold", "#fde047", "#f97316", ["#fef08a", "#fde047", "#facc15"], DARK),
-  gradient("ice", "#7dd3fc", "#a5b4fc", ["#bae6fd", "#7dd3fc", "#38bdf8"], DARK),
-  gradient("blossom", "#fda4af", "#c4b5fd", ["#fbcfe8", "#f9a8d4", "#f472b6"], DARK),
-  gradient("midnight", "#3b82f6", "#a855f7", ["#93c5fd", "#60a5fa", "#3b82f6"], LIGHT),
+  solid("red", "#ff7a8c", "#f43f5e", "#dc2a4b"),
+  solid("coral", "#ffa197", "#ff7363", "#f2564a", DARK),
+  solid("orange", "#ffb07a", "#ff8a3d", "#f27022", DARK),
+  solid("amber", "#ffd27a", "#ffb224", "#f29b00", DARK),
+  solid("yellow", "#ffe680", "#ffd60a", "#f0c400", DARK),
+  solid("sand", "#f2dcc0", "#e3bf94", "#c9a06e", DARK),
+  solid("blossom", "#ffd3de", "#ffadc2", "#ff8aa8", DARK),
+  solid("pink", "#ff9cc6", "#ff5fa2", "#f03d88", DARK),
+  solid("magenta", "#f2a6ff", "#e05cfa", "#c83fe6", DARK),
+  solid("violet", "#caa8ff", "#a66bff", "#8f4ff5"),
+  solid("indigo", "#a9b0ff", "#7d85ff", "#626af2"),
+  solid("blue", "#82b6ff", "#3d8bff", "#2272ec"),
+  solid("sky", "#94ddff", "#4cc3ff", "#20a9ee", DARK),
+  solid("silver", "#f4f5f8", "#d6d9e2", "#b0b5c3", DARK),
 ];
 
 export type AccentId = string;
 
-export const DEFAULT_ACCENT: AccentId = "purple";
+export const DEFAULT_ACCENT: AccentId = "ember";
 
 export function accentPreset(id: AccentId | undefined): AccentPreset {
-  return ACCENT_PRESETS.find((p) => p.id === id) ?? ACCENT_PRESETS[0]!;
+  return ACCENT_PRESETS.find((p) => p.id === id) ?? ACCENT_PRESETS.find((p) => p.id === DEFAULT_ACCENT)!;
 }
 
 /** CSS background of filled accent surfaces: the gradient, or the solid 500 shade. */
