@@ -216,6 +216,8 @@
     "shuffle": "シャッフル再生",
     "save": "アルバムを保存",
     "unsave": "アルバムをライブラリから削除",
+    "addToLibrary": "ライブラリに追加",
+    "removeFromLibrary": "ライブラリから削除",
     "saved": "アルバムを保存しました",
     "unsaved": "アルバムを削除しました",
     "more": "その他のオプション",

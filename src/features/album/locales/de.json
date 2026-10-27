@@ -10,6 +10,8 @@
     "shuffle": "Zufällig abspielen",
     "save": "Album speichern",
     "unsave": "Album aus der Bibliothek entfernen",
+    "addToLibrary": "Zur Bibliothek hinzufügen",
+    "removeFromLibrary": "Aus der Bibliothek entfernen",
     "saved": "Album gespeichert",
     "unsaved": "Album entfernt",
     "more": "Weitere Optionen",

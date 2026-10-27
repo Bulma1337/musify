@@ -221,6 +221,8 @@
     "shuffle": "Satunnaistoisto",
     "save": "Tallenna albumi",
     "unsave": "Poista albumi kirjastosta",
+    "addToLibrary": "Lisää kirjastoon",
+    "removeFromLibrary": "Poista kirjastosta",
     "saved": "Albumi tallennettu",
     "unsaved": "Albumi poistettu",
     "more": "Lisää vaihtoehtoja",

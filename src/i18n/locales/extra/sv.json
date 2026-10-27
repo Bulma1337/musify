@@ -221,6 +221,8 @@
     "shuffle": "Spela blandat",
     "save": "Spara album",
     "unsave": "Ta bort albumet från biblioteket",
+    "addToLibrary": "Lägg till i biblioteket",
+    "removeFromLibrary": "Ta bort från biblioteket",
     "saved": "Albumet sparades",
     "unsaved": "Albumet togs bort",
     "more": "Fler alternativ",

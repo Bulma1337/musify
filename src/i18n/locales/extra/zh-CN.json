@@ -216,6 +216,8 @@
     "shuffle": "随机播放",
     "save": "保存专辑",
     "unsave": "从音乐库中移除专辑",
+    "addToLibrary": "添加到音乐库",
+    "removeFromLibrary": "从音乐库中移除",
     "saved": "已保存专辑",
     "unsaved": "已移除专辑",
     "more": "更多选项",

@@ -37,7 +37,7 @@ import {
   mapStructuredLyrics,
   mapTrack,
 } from "./mappers";
-import type { WireChild } from "./wire";
+import type { WireArtist, WireChild } from "./wire";
 
 const ALBUM_LIST_TYPES: Record<AlbumListType, string> = {
   recentlyPlayed: "recent",
@@ -54,6 +54,17 @@ const ALBUM_LIST_TYPES: Record<AlbumListType, string> = {
 
 /** Above this many ids a GET URL gets risky; POST is used if the server supports `formPost`. */
 const POST_ID_THRESHOLD = 200;
+
+/**
+ * Whether the user has music by a similar artist the server suggests. Navidrome looks the suggestions
+ * up by name among everyone credited in the library, also people only credited as composer, lyricist
+ * or producer; their pages would be empty. Without roles (older servers), the album count decides.
+ */
+export function hasOwnMusic(artist: WireArtist): boolean {
+  if (artist.roles)
+    return artist.roles.some((r) => r === "artist" || r === "albumartist" || r === "maincredit");
+  return artist.albumCount !== 0;
+}
 
 export class SubsonicProvider implements MusicProvider {
   constructor(
@@ -119,7 +130,7 @@ export class SubsonicProvider implements MusicProvider {
     const res = await this.client.call("getArtistInfo2", { id });
     const info = res.artistInfo2;
     if (!info) return null;
-    const similar = (info.similarArtist ?? []).map((a) => mapArtist(this.sid, a));
+    const similar = (info.similarArtist ?? []).filter(hasOwnMusic).map((a) => mapArtist(this.sid, a));
     const result: ArtistInfo = { similarArtists: similar };
     if (info.biography?.trim()) result.biography = info.biography;
     if (info.largeImageUrl) result.imageUrl = info.largeImageUrl;

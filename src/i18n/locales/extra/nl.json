@@ -221,6 +221,8 @@
     "shuffle": "Shuffle afspelen",
     "save": "Album opslaan",
     "unsave": "Album uit bibliotheek verwijderen",
+    "addToLibrary": "Toevoegen aan bibliotheek",
+    "removeFromLibrary": "Uit bibliotheek verwijderen",
     "saved": "Album opgeslagen",
     "unsaved": "Album verwijderd",
     "more": "Meer opties",

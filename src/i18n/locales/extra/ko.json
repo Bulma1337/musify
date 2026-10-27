@@ -216,6 +216,8 @@
     "shuffle": "셔플 재생",
     "save": "앨범 저장",
     "unsave": "라이브러리에서 앨범 제거",
+    "addToLibrary": "라이브러리에 추가",
+    "removeFromLibrary": "라이브러리에서 제거",
     "saved": "앨범을 저장했어요",
     "unsaved": "앨범을 제거했어요",
     "more": "옵션 더 보기",

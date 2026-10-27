@@ -2,6 +2,7 @@ import { createEvent, fireEvent, screen, waitFor, within } from "@testing-librar
 import { LibrarySidebar } from "@/app/layout/LibrarySidebar";
 import { TRACKS_MIME, type DraggedTracks } from "@/lib/dnd";
 import { renderPage } from "@/test/renderPage";
+import { usePlayer } from "@/player/store";
 import { LIBRARY_ENTRY_MIME } from "./libraryDnd";
 import { useLibrary } from "./libraryStore";
 
@@ -41,6 +42,17 @@ describe("LibrarySidebar", () => {
     renderSidebar();
     expect(await order()).toEqual(["Favorites", "Aurora Lane", "Morning Static", "Road Trip"]);
     expect(screen.getAllByLabelText("Pinned")).toHaveLength(3); // Favorites and the two pins
+  });
+
+  it("plays a playlist from its cover without opening it", async () => {
+    renderSidebar();
+    await order();
+    const row = screen.getByRole("link", { name: /^Road Trip/ }).parentElement!;
+    fireEvent.click(within(row).getByRole("button", { name: "Play" }));
+    await waitFor(() =>
+      expect(usePlayer.getState().context).toMatchObject({ type: "playlist", name: "Road Trip" }),
+    );
+    expect(usePlayer.getState().contextItems.length).toBeGreaterThan(0);
   });
 
   it("pins through the context menu", async () => {

@@ -231,6 +231,8 @@
     "shuffle": "Náhodné přehrávání",
     "save": "Uložit album",
     "unsave": "Odebrat album z knihovny",
+    "addToLibrary": "Přidat do knihovny",
+    "removeFromLibrary": "Odebrat z knihovny",
     "saved": "Album uloženo",
     "unsaved": "Album odebráno",
     "more": "Další možnosti",

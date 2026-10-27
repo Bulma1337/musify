@@ -551,6 +551,22 @@ describe("misc endpoints", () => {
       biography: "bio",
       similarArtists: [{ id: "2" }],
     });
+    // Only artists the user has music by: not people credited only as composer, lyricist, …
+    mock.respond(() =>
+      subsonicOk({
+        artistInfo2: {
+          similarArtist: [
+            { id: "3", name: "Performer", roles: ["artist", "composer"] },
+            { id: "4", name: "Songwriter only", roles: ["composer", "lyricist"] },
+            { id: "5", name: "Album artist", roles: ["albumartist"], albumCount: 2 },
+            { id: "6", name: "Old server, no albums", albumCount: 0 },
+            { id: "7", name: "Old server", albumCount: 1 },
+          ],
+        },
+      }),
+    );
+    const info = await provider.getArtistInfo("1");
+    expect(info?.similarArtists.map((a) => a.id)).toEqual(["3", "5", "7"]);
   });
 
   it("searches with limits and offsets", async () => {

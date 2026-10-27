@@ -216,6 +216,8 @@
     "shuffle": "隨機播放",
     "save": "儲存專輯",
     "unsave": "從音樂庫移除專輯",
+    "addToLibrary": "加入音樂庫",
+    "removeFromLibrary": "從音樂庫移除",
     "saved": "已儲存專輯",
     "unsaved": "已移除專輯",
     "more": "更多選項",
