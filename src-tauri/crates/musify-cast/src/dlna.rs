@@ -10,8 +10,8 @@ use musify_audio::source::{BlockingClient, describe_io, describe_reqwest};
 use crate::gate::NetGate;
 use crate::renderer::{MediaItem, Renderer, RendererError, RendererStatus, TransportState};
 use crate::upnp::{
-    DeviceDescription, ServiceInfo, didl_lite, format_time, parse_soap_response, parse_time, protocol_info_for,
-    sink_mimes, soap_action_header, soap_envelope, UpnpError,
+    DeviceDescription, ServiceInfo, UpnpError, didl_lite, format_time, parse_soap_response,
+    parse_time, protocol_info_for, sink_mimes, soap_action_header, soap_envelope,
 };
 
 /// Per request; a renderer that doesn't answer in this time is treated as gone.
@@ -58,11 +58,11 @@ impl DlnaRenderer {
         client: BlockingClient,
         description: &DeviceDescription,
     ) -> Result<Self, RendererError> {
-        gate.check().map_err(|err| RendererError::Connection(err.to_string()))?;
-        let av_transport = description
-            .av_transport
-            .clone()
-            .ok_or_else(|| RendererError::Rejected("the device has no AVTransport service".into()))?;
+        gate.check()
+            .map_err(|err| RendererError::Connection(err.to_string()))?;
+        let av_transport = description.av_transport.clone().ok_or_else(|| {
+            RendererError::Rejected("the device has no AVTransport service".into())
+        })?;
         let mut renderer = Self {
             gate,
             client,
@@ -77,12 +77,20 @@ impl DlnaRenderer {
         if let Some(manager) = &description.connection_manager
             && let Ok(reply) = renderer.call(manager, "GetProtocolInfo", &[])
         {
-            renderer.mimes = reply.get("Sink").map(|sink| sink_mimes(sink)).unwrap_or_default();
+            renderer.mimes = reply
+                .get("Sink")
+                .map(|sink| sink_mimes(sink))
+                .unwrap_or_default();
         }
         Ok(renderer)
     }
 
-    fn call(&self, service: &ServiceInfo, action: &str, args: &[(&str, &str)]) -> Result<Reply, RendererError> {
+    fn call(
+        &self,
+        service: &ServiceInfo,
+        action: &str,
+        args: &[(&str, &str)],
+    ) -> Result<Reply, RendererError> {
         self.send(service, action, args).map_err(|err| match err {
             CallError::Fault(code) => fault_error(code, action),
             CallError::Failed(err) => err,
@@ -101,16 +109,26 @@ impl DlnaRenderer {
     }
 
     /// One SOAP round trip. The error messages name the action and the UPnP code, never a URL.
-    fn send(&self, service: &ServiceInfo, action: &str, args: &[(&str, &str)]) -> Result<Reply, CallError> {
+    fn send(
+        &self,
+        service: &ServiceInfo,
+        action: &str,
+        args: &[(&str, &str)],
+    ) -> Result<Reply, CallError> {
         let connection = |message: String| CallError::Failed(RendererError::Connection(message));
-        self.gate.check().map_err(|err| connection(err.to_string()))?;
+        self.gate
+            .check()
+            .map_err(|err| connection(err.to_string()))?;
 
         let url = &service.control_url;
         let response = self
             .client
             .post(url)
             .header("Content-Type", "text/xml; charset=\"utf-8\"")
-            .header("SOAPACTION", soap_action_header(&service.service_type, action))
+            .header(
+                "SOAPACTION",
+                soap_action_header(&service.service_type, action),
+            )
             .timeout(SOAP_TIMEOUT)
             .body(soap_envelope(&service.service_type, action, args))
             .send()
@@ -122,7 +140,8 @@ impl DlnaRenderer {
             .read_to_end(&mut body)
             .map_err(|err| connection(describe_io(&err, url)))?;
 
-        let rejected = |what: &str| CallError::Failed(RendererError::Rejected(format!("{what} ({action})")));
+        let rejected =
+            |what: &str| CallError::Failed(RendererError::Rejected(format!("{what} ({action})")));
         match parse_soap_response(&String::from_utf8_lossy(&body), action) {
             Err(UpnpError::Fault { code, .. }) => Err(CallError::Fault(code)),
             _ if status >= 400 => Err(rejected(&format!("HTTP error {status}"))),
@@ -137,7 +156,11 @@ impl DlnaRenderer {
         self.send(
             &self.av_transport,
             "SetAVTransportURI",
-            &[INSTANCE, ("CurrentURI", &item.url), ("CurrentURIMetaData", &metadata)],
+            &[
+                INSTANCE,
+                ("CurrentURI", &item.url),
+                ("CurrentURIMetaData", &metadata),
+            ],
         )
     }
 
@@ -156,7 +179,9 @@ impl DlnaRenderer {
                         break;
                     }
                 }
-                Err(err @ (RendererError::Connection(_) | RendererError::TakenOver)) => return Err(err),
+                Err(err @ (RendererError::Connection(_) | RendererError::TakenOver)) => {
+                    return Err(err);
+                }
                 Err(_) => break,
             }
             if Instant::now() >= deadline {
@@ -175,7 +200,11 @@ impl DlnaRenderer {
 
     fn seek_rel(&self, position_ms: u64) -> Result<(), RendererError> {
         let target = format_time(position_ms);
-        self.av("Seek", &[INSTANCE, ("Unit", "REL_TIME"), ("Target", &target)]).map(drop)
+        self.av(
+            "Seek",
+            &[INSTANCE, ("Unit", "REL_TIME"), ("Target", &target)],
+        )
+        .map(drop)
     }
 }
 
@@ -240,11 +269,16 @@ impl Renderer for DlnaRenderer {
         if self.next_unsupported {
             return Err(RendererError::Unsupported);
         }
-        let metadata = item.map(|item| didl_lite(item, &protocol_info_for(&item.mime, item.seekable)));
+        let metadata =
+            item.map(|item| didl_lite(item, &protocol_info_for(&item.mime, item.seekable)));
         let uri = item.map_or("", |item| item.url.as_str());
         let result = self.av(
             "SetNextAVTransportURI",
-            &[INSTANCE, ("NextURI", uri), ("NextURIMetaData", metadata.as_deref().unwrap_or(""))],
+            &[
+                INSTANCE,
+                ("NextURI", uri),
+                ("NextURIMetaData", metadata.as_deref().unwrap_or("")),
+            ],
         );
         if matches!(result, Err(RendererError::Unsupported)) {
             self.next_unsupported = true;
@@ -278,7 +312,11 @@ impl Renderer for DlnaRenderer {
         let percent = (volume * 100.0).round().clamp(0.0, 100.0) as u32;
         self.rendering(
             "SetVolume",
-            &[INSTANCE, ("Channel", "Master"), ("DesiredVolume", &percent.to_string())],
+            &[
+                INSTANCE,
+                ("Channel", "Master"),
+                ("DesiredVolume", &percent.to_string()),
+            ],
         )?;
         self.volume = Some(f64::from(percent) / 100.0);
         Ok(())
@@ -299,7 +337,10 @@ impl Renderer for DlnaRenderer {
 
         if self.rendering_control.is_some() && self.status_calls.is_multiple_of(VOLUME_EVERY) {
             let reply = self.rendering("GetVolume", &[INSTANCE, ("Channel", "Master")]);
-            if let Some(percent) = reply.ok().and_then(|r| r.get("CurrentVolume")?.parse::<u32>().ok()) {
+            if let Some(percent) = reply
+                .ok()
+                .and_then(|r| r.get("CurrentVolume")?.parse::<u32>().ok())
+            {
                 self.volume = Some((f64::from(percent) / 100.0).clamp(0.0, 1.0));
             }
         }
@@ -325,16 +366,40 @@ mod tests {
 
     #[test]
     fn maps_transport_states() {
-        assert_eq!(map_state(Some("PLAYING"), Some("OK")), TransportState::Playing);
-        assert_eq!(map_state(Some("PAUSED_PLAYBACK"), None), TransportState::Paused);
-        assert_eq!(map_state(Some("PAUSED_RECORDING"), None), TransportState::Paused);
-        assert_eq!(map_state(Some("TRANSITIONING"), Some("OK")), TransportState::Buffering);
-        assert_eq!(map_state(Some("STOPPED"), Some("OK")), TransportState::Stopped);
-        assert_eq!(map_state(Some("NO_MEDIA_PRESENT"), None), TransportState::Stopped);
+        assert_eq!(
+            map_state(Some("PLAYING"), Some("OK")),
+            TransportState::Playing
+        );
+        assert_eq!(
+            map_state(Some("PAUSED_PLAYBACK"), None),
+            TransportState::Paused
+        );
+        assert_eq!(
+            map_state(Some("PAUSED_RECORDING"), None),
+            TransportState::Paused
+        );
+        assert_eq!(
+            map_state(Some("TRANSITIONING"), Some("OK")),
+            TransportState::Buffering
+        );
+        assert_eq!(
+            map_state(Some("STOPPED"), Some("OK")),
+            TransportState::Stopped
+        );
+        assert_eq!(
+            map_state(Some("NO_MEDIA_PRESENT"), None),
+            TransportState::Stopped
+        );
         assert_eq!(map_state(Some("WEIRD"), None), TransportState::Stopped);
         assert_eq!(map_state(None, None), TransportState::Stopped);
-        assert_eq!(map_state(Some("PLAYING"), Some("ERROR_OCCURRED")), TransportState::Failed);
-        assert_eq!(map_state(Some("STOPPED"), Some("ERROR_OCCURRED")), TransportState::Failed);
+        assert_eq!(
+            map_state(Some("PLAYING"), Some("ERROR_OCCURRED")),
+            TransportState::Failed
+        );
+        assert_eq!(
+            map_state(Some("STOPPED"), Some("ERROR_OCCURRED")),
+            TransportState::Failed
+        );
     }
 
     #[test]
@@ -342,7 +407,9 @@ mod tests {
         assert!(matches!(fault_error(401, "X"), RendererError::Unsupported));
         assert!(matches!(fault_error(602, "X"), RendererError::Unsupported));
         match fault_error(714, "SetAVTransportURI") {
-            RendererError::Rejected(message) => assert_eq!(message, "UPnP error 714 (SetAVTransportURI)"),
+            RendererError::Rejected(message) => {
+                assert_eq!(message, "UPnP error 714 (SetAVTransportURI)")
+            }
             other => panic!("unexpected {other:?}"),
         }
     }

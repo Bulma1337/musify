@@ -83,7 +83,9 @@
       "deviceHint": "The device Musify plays through. The system default follows what you pick in your system settings.",
       "unavailable": "Unavailable device",
       "exclusive": "Exclusive mode",
-      "exclusiveHint": "Takes over the device so the system mixer cannot change the signal. Bit-perfect output needs exclusive mode, the equalizer and all other sound effects off, and the volume at 100 %. Other apps are silent while it is on."
+      "exclusiveHint": "Takes over the device so the system mixer cannot change the signal. Bit-perfect output needs exclusive mode, the equalizer and all other sound effects off, and the volume at 100 %. Other apps are silent while it is on.",
+      "networkSpeakers": "Find speakers on the network",
+      "networkSpeakersHint": "Lists speakers and TVs from your home network (UPnP/DLNA and Cast) in the audio panel, so you can play on them. Windows may ask once for network access. When off, Musify sends no search requests into the network and opens no port for it."
     },
     "display": {
       "title": "Appearance",

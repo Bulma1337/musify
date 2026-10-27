@@ -50,3 +50,8 @@ jobs:
         working-directory: src-tauri
       - run: cargo test
         working-directory: src-tauri
+      # Network speakers live in their own crate; `cargo test` above covers only the app.
+      - run: cargo clippy -p musify-cast --all-targets -- -D warnings
+        working-directory: src-tauri
+      - run: cargo test -p musify-cast
+        working-directory: src-tauri

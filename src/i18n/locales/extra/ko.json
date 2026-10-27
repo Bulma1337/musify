@@ -628,7 +628,23 @@
     "myPresets": "내 프리셋",
     "off": "끔",
     "allSettings": "모든 설정",
-    "playsOn": "{{output}}에서 재생 중"
+    "playsOn": "{{output}}에서 재생 중",
+    "network": {
+      "title": "네트워크 기기",
+      "thisComputer": "이 컴퓨터",
+      "searching": "스피커와 TV를 찾는 중 …",
+      "none": "스피커를 찾을 수 없어요. 전원이 켜져 있고 같은 네트워크에 있어야 해요.",
+      "connectFailed": "{{name}}에 연결할 수 없어요.",
+      "lost": "{{name}}과의 연결이 끊어졌어요. 이 컴퓨터에서 재생이 일시 정지됐어요.",
+      "takenOver": "{{name}}이(가) 이제 다른 앱에서 재생 중이에요. 이 컴퓨터에서 재생이 일시 정지됐어요.",
+      "playingOn": "{{name}}에서 재생 중",
+      "soundHint": "이퀄라이저와 사운드 효과는 이 컴퓨터에서만 적용돼요. 스피커는 곡을 그대로 받아요.",
+      "kinds": {
+        "speaker": "스피커",
+        "tv": "TV",
+        "group": "스피커 그룹"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "공개 플레이리스트",
@@ -920,7 +936,9 @@
       "deviceHint": "Musify가 재생에 사용하는 장치예요. 시스템 기본값은 시스템 설정에서 선택한 장치를 따라가요.",
       "unavailable": "사용할 수 없는 장치",
       "exclusive": "독점 모드",
-      "exclusiveHint": "장치를 독점해서 시스템 믹서가 신호를 바꾸지 못하게 해요. Bit-perfect 출력에는 독점 모드를 켜고, 이퀄라이저와 다른 모든 사운드 효과를 끄고, 볼륨을 100 %로 맞춰야 해요. 켜져 있는 동안 다른 앱은 소리가 나지 않아요."
+      "exclusiveHint": "장치를 독점해서 시스템 믹서가 신호를 바꾸지 못하게 해요. Bit-perfect 출력에는 독점 모드를 켜고, 이퀄라이저와 다른 모든 사운드 효과를 끄고, 볼륨을 100 %로 맞춰야 해요. 켜져 있는 동안 다른 앱은 소리가 나지 않아요.",
+      "networkSpeakers": "네트워크에서 스피커 찾기",
+      "networkSpeakersHint": "홈 네트워크의 스피커와 TV(UPnP/DLNA 및 Cast)를 오디오 패널에 표시해서 거기서 재생할 수 있게 해요. Windows가 네트워크 접근을 한 번 물을 수 있어요. 꺼져 있으면 Musify는 네트워크에 검색 요청을 보내지 않고, 이를 위한 포트도 열지 않아요."
     },
     "display": {
       "title": "외관",

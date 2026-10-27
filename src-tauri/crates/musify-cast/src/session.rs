@@ -470,7 +470,9 @@ impl SessionCore {
             RendererError::Connection(message) => {
                 self.failures += 1;
                 let first = *self.first_failure.get_or_insert(now);
-                if self.failures >= MAX_FAILURES && now.saturating_duration_since(first) >= LOST_AFTER {
+                if self.failures >= MAX_FAILURES
+                    && now.saturating_duration_since(first) >= LOST_AFTER
+                {
                     self.finish_current(now, false);
                     self.host.retain(&[]);
                     self.end(EndReason::Lost { message });
@@ -509,7 +511,11 @@ impl SessionCore {
         // A server transcode can't seek by bytes: restart it at the position instead.
         let restart = matches!(
             &track.location,
-            SourceLocation::Http { transcoded: true, time_offset: Some(_), .. }
+            SourceLocation::Http {
+                transcoded: true,
+                time_offset: Some(_),
+                ..
+            }
         ) && start_ms > 0;
         let offset = if restart { start_ms } else { 0 };
         let item = self.host.publish(&track, offset)?;
@@ -632,9 +638,8 @@ impl SessionCore {
         }
         self.next = track;
         if self.next_on_device.take().is_some() {
-            match self.renderer.set_next(None) {
-                Err(RendererError::Connection(m)) => return Err(RendererError::Connection(m)),
-                _ => {}
+            if let Err(RendererError::Connection(m)) = self.renderer.set_next(None) {
+                return Err(RendererError::Connection(m));
             }
             self.retain_published();
         }
@@ -647,7 +652,9 @@ impl SessionCore {
         if !self.can_set_next || self.current.is_none() || self.next_on_device.is_some() {
             return;
         }
-        let Some(next) = self.next.clone() else { return };
+        let Some(next) = self.next.clone() else {
+            return;
+        };
         let Ok((published, _)) = self.publish(next, 0) else {
             return;
         };
@@ -660,7 +667,9 @@ impl SessionCore {
     }
 
     fn pause(&mut self, now: Instant) -> Result<(), RendererError> {
-        let Some(current) = self.current.as_mut() else { return Ok(()) };
+        let Some(current) = self.current.as_mut() else {
+            return Ok(());
+        };
         current.halt(now);
         current.settle_until = now + SETTLE;
         self.want_playing = false;
@@ -670,7 +679,9 @@ impl SessionCore {
     }
 
     fn resume(&mut self, now: Instant) -> Result<(), RendererError> {
-        let Some(current) = self.current.as_mut() else { return Ok(()) };
+        let Some(current) = self.current.as_mut() else {
+            return Ok(());
+        };
         current.settle_until = now + SETTLE;
         self.want_playing = true;
         self.last_poll = None;
@@ -686,22 +697,26 @@ impl SessionCore {
         self.want_playing = false;
         self.host.retain(&[]);
         self.emit_state(PlaybackState::Stopped);
-        if had_track {
-            match self.renderer.stop() {
-                Err(RendererError::Connection(m)) => return Err(RendererError::Connection(m)),
-                _ => {}
-            }
+        if had_track && let Err(RendererError::Connection(m)) = self.renderer.stop() {
+            return Err(RendererError::Connection(m));
         }
         Ok(())
     }
 
     fn seek(&mut self, position_ms: u64, now: Instant) -> Result<(), RendererError> {
-        let Some(current) = self.current.as_ref() else { return Ok(()) };
-        let position_ms = current.duration_ms.map_or(position_ms, |d| position_ms.min(d));
+        let Some(current) = self.current.as_ref() else {
+            return Ok(());
+        };
+        let position_ms = current
+            .duration_ms
+            .map_or(position_ms, |d| position_ms.min(d));
         let restart = !current.media.item.seekable
             && matches!(
                 &current.media.track.location,
-                SourceLocation::Http { time_offset: Some(_), .. }
+                SourceLocation::Http {
+                    time_offset: Some(_),
+                    ..
+                }
             );
         if restart {
             // Restart the transcode at the new position; the player keeps the same track.
@@ -710,7 +725,8 @@ impl SessionCore {
                 Ok(published) => published,
                 Err(message) => return Err(RendererError::Rejected(message)),
             };
-            self.renderer.load(&media.item, device_start, self.want_playing)?;
+            self.renderer
+                .load(&media.item, device_start, self.want_playing)?;
             let current = self.current.as_mut().expect("checked above");
             current.media = media;
             current.seen_playing = false;
@@ -733,7 +749,9 @@ impl SessionCore {
     fn apply_status(&mut self, status: RendererStatus, now: Instant) {
         self.failures = 0;
         self.first_failure = None;
-        let Some(current) = self.current.as_mut() else { return };
+        let Some(current) = self.current.as_mut() else {
+            return;
+        };
 
         if let Some(url) = status.current_url.as_deref().filter(|u| !u.is_empty()) {
             let ours = same_media(url, &current.media.item);
@@ -840,7 +858,9 @@ impl SessionCore {
 
     /// The device went on to the preloaded track by itself (gapless).
     fn moved_on_by_itself(&mut self, status: RendererStatus, now: Instant) {
-        let Some(media) = self.next_on_device.take() else { return };
+        let Some(media) = self.next_on_device.take() else {
+            return;
+        };
         self.finish_current(now, true);
         self.next = None;
         let id = media.track.id.clone();
@@ -893,7 +913,7 @@ impl SessionCore {
 }
 
 enum Control {
-    Command(RemoteCommand),
+    Command(Box<RemoteCommand>),
     Close,
 }
 
@@ -924,7 +944,7 @@ impl Session {
                 let mut core = SessionCore::new(renderer, host);
                 loop {
                     match rx.recv_timeout(TICK) {
-                        Ok(Control::Command(command)) => core.handle(command, Instant::now()),
+                        Ok(Control::Command(command)) => core.handle(*command, Instant::now()),
                         Ok(Control::Close) | Err(RecvTimeoutError::Disconnected) => {
                             core.close(Instant::now());
                         }
@@ -949,7 +969,7 @@ impl Session {
     }
 
     pub fn send(&self, command: RemoteCommand) {
-        let _ = self.tx.send(Control::Command(command));
+        let _ = self.tx.send(Control::Command(Box::new(command)));
     }
 
     /// Stops playback on the device and waits up to `timeout` for the session to end.

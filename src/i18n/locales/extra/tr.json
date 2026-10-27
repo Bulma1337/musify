@@ -642,7 +642,23 @@
     "myPresets": "Ön ayarlarım",
     "off": "Kapalı",
     "allSettings": "Tüm ayarlar",
-    "playsOn": "{{output}} üzerinde çalıyor"
+    "playsOn": "{{output}} üzerinde çalıyor",
+    "network": {
+      "title": "Ağda",
+      "thisComputer": "Bu bilgisayar",
+      "searching": "Hoparlörler ve televizyonlar aranıyor …",
+      "none": "Hoparlör bulunamadı. Açık olmaları ve aynı ağda bulunmaları gerekir.",
+      "connectFailed": "{{name}} cihazına bağlanılamadı.",
+      "lost": "{{name}} ile bağlantı koptu. Bu bilgisayarda oynatma duraklatıldı.",
+      "takenOver": "{{name}} artık başka bir uygulamadan çalıyor. Bu bilgisayarda oynatma duraklatıldı.",
+      "playingOn": "{{name}} üzerinde çalıyor",
+      "soundHint": "Ekolayzır ve ses efektleri yalnızca bu bilgisayarda çalışır. Hoparlör parçayı değiştirilmeden alır.",
+      "kinds": {
+        "speaker": "Hoparlör",
+        "tv": "Televizyon",
+        "group": "Hoparlör grubu"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Herkese açık çalma listesi",
@@ -943,7 +959,9 @@
       "deviceHint": "Musify'ın üzerinden çaldığı aygıt. Sistem varsayılanı, sistem ayarlarında seçtiğini izler.",
       "unavailable": "Kullanılamayan aygıt",
       "exclusive": "Özel erişim modu",
-      "exclusiveHint": "Aygıtı devralır, böylece sistem karıştırıcısı sinyali değiştiremez. Bit-perfect çıkış için özel erişim modu, kapalı ekolayzır ve diğer tüm ses efektleri ile %100 ses düzeyi gerekir. Açıkken diğer uygulamalar sessizdir."
+      "exclusiveHint": "Aygıtı devralır, böylece sistem karıştırıcısı sinyali değiştiremez. Bit-perfect çıkış için özel erişim modu, kapalı ekolayzır ve diğer tüm ses efektleri ile %100 ses düzeyi gerekir. Açıkken diğer uygulamalar sessizdir.",
+      "networkSpeakers": "Ağdaki hoparlörleri bul",
+      "networkSpeakersHint": "Ev ağındaki hoparlörleri ve televizyonları (UPnP/DLNA ve Cast) ses panelinde listeler, böylece bunlar üzerinden çalabilirsin. Windows ağ erişimi için bir kez izin isteyebilir. Kapalıyken Musify ağa arama isteği göndermez ve bunun için bir bağlantı noktası açmaz."
     },
     "display": {
       "title": "Görünüm",

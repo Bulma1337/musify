@@ -656,7 +656,23 @@
     "myPresets": "Mis preajustes",
     "off": "Desactivado",
     "allSettings": "Todos los ajustes",
-    "playsOn": "Reproduciendo en {{output}}"
+    "playsOn": "Reproduciendo en {{output}}",
+    "network": {
+      "title": "En la red",
+      "thisComputer": "Este equipo",
+      "searching": "Buscando altavoces y televisores …",
+      "none": "No se han encontrado altavoces. Deben estar encendidos y en la misma red.",
+      "connectFailed": "No se pudo conectar con {{name}}.",
+      "lost": "Se ha perdido la conexión con {{name}}. La reproducción se ha pausado en este equipo.",
+      "takenOver": "{{name}} ahora reproduce desde otra aplicación. La reproducción se ha pausado en este equipo.",
+      "playingOn": "Reproduciendo en {{name}}",
+      "soundHint": "El ecualizador y los efectos de sonido solo funcionan en este equipo. El altavoz recibe la canción sin cambios.",
+      "kinds": {
+        "speaker": "Altavoz",
+        "tv": "Televisor",
+        "group": "Grupo de altavoces"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Playlist pública",
@@ -966,7 +982,9 @@
       "deviceHint": "El dispositivo por el que reproduce Musify. El predeterminado del sistema sigue lo que elijas en los ajustes de tu sistema.",
       "unavailable": "Dispositivo no disponible",
       "exclusive": "Modo exclusivo",
-      "exclusiveHint": "Toma el control del dispositivo para que el mezclador del sistema no pueda alterar la señal. La salida bit-perfect requiere el modo exclusivo, el ecualizador y los demás efectos de sonido desactivados y el volumen al 100 %. Las demás aplicaciones quedan en silencio mientras está activado."
+      "exclusiveHint": "Toma el control del dispositivo para que el mezclador del sistema no pueda alterar la señal. La salida bit-perfect requiere el modo exclusivo, el ecualizador y los demás efectos de sonido desactivados y el volumen al 100 %. Las demás aplicaciones quedan en silencio mientras está activado.",
+      "networkSpeakers": "Buscar altavoces en la red",
+      "networkSpeakersHint": "Muestra en el panel de audio los altavoces y televisores de tu red doméstica (UPnP/DLNA y Cast) para que puedas reproducir en ellos. Windows puede pedir una vez acceso a la red. Si está desactivado, Musify no envía solicitudes de búsqueda a la red ni abre ningún puerto para ello."
     },
     "display": {
       "title": "Apariencia",

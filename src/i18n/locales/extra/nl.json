@@ -642,7 +642,23 @@
     "myPresets": "Mijn presets",
     "off": "Uit",
     "allSettings": "Alle instellingen",
-    "playsOn": "Afspelen op {{output}}"
+    "playsOn": "Afspelen op {{output}}",
+    "network": {
+      "title": "Op je netwerk",
+      "thisComputer": "Deze computer",
+      "searching": "Zoeken naar speakers en tv's …",
+      "none": "Geen speakers gevonden. Ze moeten aan staan en in hetzelfde netwerk zitten.",
+      "connectFailed": "Kan geen verbinding maken met {{name}}.",
+      "lost": "Verbinding met {{name}} verbroken. Afspelen is op deze computer gepauzeerd.",
+      "takenOver": "{{name}} speelt nu af vanuit een andere app. Afspelen is op deze computer gepauzeerd.",
+      "playingOn": "Afspelen op {{name}}",
+      "soundHint": "Equalizer en geluidseffecten werken alleen op deze computer. De speaker krijgt het nummer ongewijzigd.",
+      "kinds": {
+        "speaker": "Speaker",
+        "tv": "Tv",
+        "group": "Speakergroep"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Openbare afspeellijst",
@@ -943,7 +959,9 @@
       "deviceHint": "Het apparaat waarop Musify afspeelt. De systeemstandaard volgt wat je in je systeeminstellingen kiest.",
       "unavailable": "Apparaat niet beschikbaar",
       "exclusive": "Exclusieve modus",
-      "exclusiveHint": "Neemt het apparaat over, zodat de systeemmixer het signaal niet kan wijzigen. Bit-perfecte uitvoer vereist de exclusieve modus, een uitgeschakelde equalizer en uitgeschakelde geluidseffecten, en het volume op 100 %. Andere apps zijn stil zolang dit aan staat."
+      "exclusiveHint": "Neemt het apparaat over, zodat de systeemmixer het signaal niet kan wijzigen. Bit-perfecte uitvoer vereist de exclusieve modus, een uitgeschakelde equalizer en uitgeschakelde geluidseffecten, en het volume op 100 %. Andere apps zijn stil zolang dit aan staat.",
+      "networkSpeakers": "Speakers op het netwerk zoeken",
+      "networkSpeakersHint": "Toont speakers en tv's van je thuisnetwerk (UPnP/DLNA en Cast) in het audiopaneel, zodat je erop kunt afspelen. Windows kan één keer om netwerktoegang vragen. Als dit uit staat, stuurt Musify geen zoekverzoeken het netwerk in en opent het er geen poort voor."
     },
     "display": {
       "title": "Weergave",

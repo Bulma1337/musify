@@ -642,7 +642,23 @@
     "myPresets": "Mine forudindstillinger",
     "off": "Fra",
     "allSettings": "Alle indstillinger",
-    "playsOn": "Afspiller på {{output}}"
+    "playsOn": "Afspiller på {{output}}",
+    "network": {
+      "title": "På netværket",
+      "thisComputer": "Denne computer",
+      "searching": "Søger efter højttalere og tv …",
+      "none": "Ingen højttalere fundet. De skal være tændt og på samme netværk.",
+      "connectFailed": "Kunne ikke oprette forbindelse til {{name}}.",
+      "lost": "Forbindelsen til {{name}} er tabt. Afspilningen er sat på pause på denne computer.",
+      "takenOver": "{{name}} spiller nu fra en anden app. Afspilningen er sat på pause på denne computer.",
+      "playingOn": "Afspiller på {{name}}",
+      "soundHint": "Equalizer og lydeffekter virker kun på denne computer. Højttaleren får sporet uændret.",
+      "kinds": {
+        "speaker": "Højttaler",
+        "tv": "TV",
+        "group": "Højttalergruppe"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Offentlig playliste",
@@ -943,7 +959,9 @@
       "deviceHint": "Den enhed, Musify afspiller gennem. Systemstandarden følger det, du vælger i dine systemindstillinger.",
       "unavailable": "Utilgængelig enhed",
       "exclusive": "Eksklusiv tilstand",
-      "exclusiveHint": "Overtager enheden, så systemets mixer ikke kan ændre signalet. Bit-perfect udgang kræver eksklusiv tilstand, equalizeren og alle andre lydeffekter slået fra og lydstyrken på 100 %. Andre apps er lydløse, mens den er slået til."
+      "exclusiveHint": "Overtager enheden, så systemets mixer ikke kan ændre signalet. Bit-perfect udgang kræver eksklusiv tilstand, equalizeren og alle andre lydeffekter slået fra og lydstyrken på 100 %. Andre apps er lydløse, mens den er slået til.",
+      "networkSpeakers": "Find højttalere på netværket",
+      "networkSpeakersHint": "Viser højttalere og tv fra dit hjemmenetværk (UPnP/DLNA og Cast) i lydpanelet, så du kan afspille på dem. Windows kan én gang bede om netværksadgang. Når den er slået fra, sender Musify ingen søgeforespørgsler ud på netværket og åbner ingen port til det."
     },
     "display": {
       "title": "Udseende",

@@ -11,7 +11,11 @@ use crate::renderer::{MediaItem, Renderer, RendererError, RendererStatus, Transp
 
 #[derive(Debug, Clone, PartialEq)]
 enum Call {
-    Load { url: String, start_ms: u64, play: bool },
+    Load {
+        url: String,
+        start_ms: u64,
+        play: bool,
+    },
     SetNext(Option<String>),
     Play,
     Pause,
@@ -113,7 +117,13 @@ impl MediaHost for FakeHost {
         let url = format!("http://192.168.1.2:4000/m/{:032x}.flac", h.counter);
         h.published.push((track.id.clone(), offset_ms));
         h.valid.push(url.clone());
-        let seekable = !matches!(track.location, SourceLocation::Http { transcoded: true, .. });
+        let seekable = !matches!(
+            track.location,
+            SourceLocation::Http {
+                transcoded: true,
+                ..
+            }
+        );
         Ok(MediaItem {
             url,
             mime: track.remote.mime.clone(),
@@ -126,7 +136,10 @@ impl MediaHost for FakeHost {
         })
     }
     fn retain(&mut self, keep: &[&MediaItem]) {
-        self.0.lock().valid.retain(|u| keep.iter().any(|i| &i.url == u));
+        self.0
+            .lock()
+            .valid
+            .retain(|u| keep.iter().any(|i| &i.url == u));
     }
 }
 
@@ -294,7 +307,12 @@ fn commands_arrive_in_the_engine_json_shape() {
         "remote":{"mime":"audio/flac","title":"Song","artist":"Band","album":"Record",
                   "cover":{"url":"https://s/rest/getCoverArt?id=1","headers":[]}}}}"#;
     let command: RemoteCommand = serde_json::from_str(json).unwrap();
-    let RemoteCommand::Play { track, start_ms, .. } = command else { panic!() };
+    let RemoteCommand::Play {
+        track, start_ms, ..
+    } = command
+    else {
+        panic!()
+    };
     assert_eq!(start_ms, 1500);
     assert_eq!(track.remote.artist.as_deref(), Some("Band"));
     assert!(serde_json::from_str::<RemoteCommand>(r#"{"type":"seek","positionMs":5}"#).is_ok());
@@ -316,7 +334,10 @@ fn play_loads_the_proxy_url_and_reports_progress() {
         }]
     );
 
-    let events = h.run(2_000, status(TransportState::Playing, 31_000, Some(h.url(1))));
+    let events = h.run(
+        2_000,
+        status(TransportState::Playing, 31_000, Some(h.url(1))),
+    );
     let position = last_position(&events).unwrap();
     assert!((31_000..=33_500).contains(&position), "position {position}");
     assert!(ended(&events).is_empty());
@@ -326,8 +347,14 @@ fn play_loads_the_proxy_url_and_reports_progress() {
 fn moves_on_to_the_next_track_when_the_device_stops_at_the_end() {
     let mut h = Harness::new();
     h.play(track("a", 60_000), 0);
-    h.run(1_000, status(TransportState::Playing, 40_000, Some(h.url(1))));
-    let events = h.run(1_000, status(TransportState::Playing, 57_000, Some(h.url(1))));
+    h.run(
+        1_000,
+        status(TransportState::Playing, 40_000, Some(h.url(1))),
+    );
+    let events = h.run(
+        1_000,
+        status(TransportState::Playing, 57_000, Some(h.url(1))),
+    );
     assert!(
         engine(&events)
             .iter()
@@ -336,7 +363,10 @@ fn moves_on_to_the_next_track_when_the_device_stops_at_the_end() {
     h.send(RemoteCommand::SetNext {
         track: Some(track("b", 90_000)),
     });
-    h.run(1_000, status(TransportState::Playing, 59_000, Some(h.url(1))));
+    h.run(
+        1_000,
+        status(TransportState::Playing, 59_000, Some(h.url(1))),
+    );
     // Past the settle time after load, a stop near the end means the track finished.
     let events = h.run(4_000, status(TransportState::Stopped, 0, None));
     assert_eq!(ended(&events), vec![("a".into(), true)]);
@@ -355,7 +385,10 @@ fn moves_on_to_the_next_track_when_the_device_stops_at_the_end() {
 fn finished_without_next_stops() {
     let mut h = Harness::new();
     h.play(track("a", 60_000), 0);
-    h.run(1_000, status(TransportState::Playing, 1_000, Some(h.url(1))));
+    h.run(
+        1_000,
+        status(TransportState::Playing, 1_000, Some(h.url(1))),
+    );
     let events = h.run(500, status(TransportState::Finished, 0, None));
     assert_eq!(ended(&events), vec![("a".into(), true)]);
     assert_eq!(states(&events), vec![PlaybackState::Stopped]);
@@ -366,7 +399,10 @@ fn finished_without_next_stops() {
 fn stopping_on_the_device_mid_track_pauses() {
     let mut h = Harness::new();
     h.play(track("a", 200_000), 0);
-    h.run(5_000, status(TransportState::Playing, 60_000, Some(h.url(1))));
+    h.run(
+        5_000,
+        status(TransportState::Playing, 60_000, Some(h.url(1))),
+    );
     let events = h.run(1_000, status(TransportState::Stopped, 0, None));
     assert_eq!(states(&events), vec![PlaybackState::Paused]);
     assert!(ended(&events).is_empty());
@@ -383,12 +419,21 @@ fn devices_that_preload_go_gapless() {
         track: Some(track("b", 90_000)),
     });
     assert_eq!(h.calls().last(), Some(&Call::SetNext(Some(h.url(2)))));
-    h.run(5_000, status(TransportState::Playing, 58_000, Some(h.url(1))));
+    h.run(
+        5_000,
+        status(TransportState::Playing, 58_000, Some(h.url(1))),
+    );
     let events = h.run(1_000, status(TransportState::Playing, 500, Some(h.url(2))));
     assert_eq!(ended(&events), vec![("a".into(), true)]);
     assert_eq!(started(&events), vec![("b".into(), Transition::Gapless)]);
     // The device moved on by itself: no second load.
-    assert_eq!(h.calls().iter().filter(|c| matches!(c, Call::Load { .. })).count(), 1);
+    assert_eq!(
+        h.calls()
+            .iter()
+            .filter(|c| matches!(c, Call::Load { .. }))
+            .count(),
+        1
+    );
 }
 
 #[test]
@@ -409,15 +454,28 @@ fn unsupported_preloading_is_not_retried() {
 fn controls_reach_the_device() {
     let mut h = Harness::new();
     h.play(track("a", 200_000), 0);
-    assert_eq!(states(&h.send(RemoteCommand::Pause)), vec![PlaybackState::Paused]);
-    assert_eq!(states(&h.send(RemoteCommand::Resume)), vec![PlaybackState::Playing]);
-    let events = h.send(RemoteCommand::Seek { position_ms: 90_000 });
+    assert_eq!(
+        states(&h.send(RemoteCommand::Pause)),
+        vec![PlaybackState::Paused]
+    );
+    assert_eq!(
+        states(&h.send(RemoteCommand::Resume)),
+        vec![PlaybackState::Playing]
+    );
+    let events = h.send(RemoteCommand::Seek {
+        position_ms: 90_000,
+    });
     assert_eq!(last_position(&events), Some(90_000));
     h.send(RemoteCommand::SetVolume { volume: 1.7 });
     let calls = h.calls();
     assert_eq!(
         &calls[1..],
-        &[Call::Pause, Call::Play, Call::Seek(90_000), Call::Volume(1.0)]
+        &[
+            Call::Pause,
+            Call::Play,
+            Call::Seek(90_000),
+            Call::Volume(1.0)
+        ]
     );
     let events = h.send(RemoteCommand::Stop);
     assert_eq!(ended(&events), vec![("a".into(), false)]);
@@ -429,8 +487,13 @@ fn controls_reach_the_device() {
 fn seeking_a_transcode_restarts_it_at_the_position() {
     let mut h = Harness::new();
     h.play(transcoded("a", 200_000), 0);
-    h.send(RemoteCommand::Seek { position_ms: 60_000 });
-    assert_eq!(h.host.0.lock().published.last(), Some(&("a".to_string(), 60_000)));
+    h.send(RemoteCommand::Seek {
+        position_ms: 60_000,
+    });
+    assert_eq!(
+        h.host.0.lock().published.last(),
+        Some(&("a".to_string(), 60_000))
+    );
     assert_eq!(
         h.calls().last(),
         Some(&Call::Load {
@@ -440,7 +503,10 @@ fn seeking_a_transcode_restarts_it_at_the_position() {
         })
     );
     // The device counts from the restart; the player sees the track position.
-    let events = h.run(1_000, status(TransportState::Playing, 2_000, Some(h.url(2))));
+    let events = h.run(
+        1_000,
+        status(TransportState::Playing, 2_000, Some(h.url(2))),
+    );
     let position = last_position(&events).unwrap();
     assert!((62_000..=63_500).contains(&position), "position {position}");
 }
@@ -449,7 +515,10 @@ fn seeking_a_transcode_restarts_it_at_the_position() {
 fn an_unreachable_device_ends_the_session_once() {
     let mut h = Harness::new();
     h.play(track("a", 200_000), 0);
-    h.run(2_000, status(TransportState::Playing, 2_000, Some(h.url(1))));
+    h.run(
+        2_000,
+        status(TransportState::Playing, 2_000, Some(h.url(1))),
+    );
     h.device.0.lock().status_error = Some(|| RendererError::Connection("timed out".into()));
     let events = h.run(8_000, None);
     let ends: Vec<_> = events
@@ -471,10 +540,17 @@ fn an_unreachable_device_ends_the_session_once() {
 fn another_controller_takes_over() {
     let mut h = Harness::new();
     h.play(track("a", 200_000), 0);
-    h.run(5_000, status(TransportState::Playing, 5_000, Some(h.url(1))));
+    h.run(
+        5_000,
+        status(TransportState::Playing, 5_000, Some(h.url(1))),
+    );
     let events = h.run(
         4_000,
-        status(TransportState::Playing, 1_000, Some("http://other-app/song.mp3".into())),
+        status(
+            TransportState::Playing,
+            1_000,
+            Some("http://other-app/song.mp3".into()),
+        ),
     );
     assert!(events.contains(&SessionEvent::Ended(EndReason::TakenOver)));
     assert!(!h.calls().contains(&Call::Close));
@@ -498,14 +574,20 @@ fn a_rejected_track_is_reported_and_skipped() {
 fn closing_stops_the_device_and_reports_the_listen() {
     let mut h = Harness::new();
     h.play(track("a", 200_000), 0);
-    h.run(10_000, status(TransportState::Playing, 10_000, Some(h.url(1))));
+    h.run(
+        10_000,
+        status(TransportState::Playing, 10_000, Some(h.url(1))),
+    );
     h.core.close(h.now);
     let events = h.core.take_events();
     let played = engine(&events).iter().find_map(|e| match e {
         EngineEvent::TrackEnded { played_ms, .. } => Some(*played_ms),
         _ => None,
     });
-    assert!(played.is_some_and(|p| (8_000..=10_500).contains(&p)), "{played:?}");
+    assert!(
+        played.is_some_and(|p| (8_000..=10_500).contains(&p)),
+        "{played:?}"
+    );
     assert_eq!(events.last(), Some(&SessionEvent::Ended(EndReason::Closed)));
     assert_eq!(h.calls().last(), Some(&Call::Close));
     assert!(h.host.0.lock().valid.is_empty());

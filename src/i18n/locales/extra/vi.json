@@ -628,7 +628,23 @@
     "myPresets": "Cài đặt sẵn của tôi",
     "off": "Tắt",
     "allSettings": "Tất cả cài đặt",
-    "playsOn": "Đang phát trên {{output}}"
+    "playsOn": "Đang phát trên {{output}}",
+    "network": {
+      "title": "Trên mạng",
+      "thisComputer": "Máy tính này",
+      "searching": "Đang tìm loa và TV …",
+      "none": "Không tìm thấy loa nào. Loa cần được bật và nằm trong cùng mạng.",
+      "connectFailed": "Không thể kết nối tới {{name}}.",
+      "lost": "Mất kết nối với {{name}}. Phát nhạc trên máy tính này đã tạm dừng.",
+      "takenOver": "{{name}} hiện đang phát từ ứng dụng khác. Phát nhạc trên máy tính này đã tạm dừng.",
+      "playingOn": "Đang phát trên {{name}}",
+      "soundHint": "Bộ chỉnh âm và hiệu ứng âm thanh chỉ hoạt động trên máy tính này. Loa nhận bản nhạc không thay đổi.",
+      "kinds": {
+        "speaker": "Loa",
+        "tv": "TV",
+        "group": "Nhóm loa"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Danh sách phát công khai",
@@ -920,7 +936,9 @@
       "deviceHint": "Thiết bị mà Musify phát qua. Mặc định của hệ thống sẽ theo lựa chọn của bạn trong cài đặt hệ thống.",
       "unavailable": "Thiết bị không khả dụng",
       "exclusive": "Chế độ độc quyền",
-      "exclusiveHint": "Chiếm quyền điều khiển thiết bị để bộ trộn âm của hệ thống không thể thay đổi tín hiệu. Đầu ra Bit-perfect cần bật chế độ độc quyền, tắt bộ chỉnh âm cùng mọi hiệu ứng âm thanh khác và đặt âm lượng ở mức 100%. Các ứng dụng khác sẽ im lặng khi chế độ này đang bật."
+      "exclusiveHint": "Chiếm quyền điều khiển thiết bị để bộ trộn âm của hệ thống không thể thay đổi tín hiệu. Đầu ra Bit-perfect cần bật chế độ độc quyền, tắt bộ chỉnh âm cùng mọi hiệu ứng âm thanh khác và đặt âm lượng ở mức 100%. Các ứng dụng khác sẽ im lặng khi chế độ này đang bật.",
+      "networkSpeakers": "Tìm loa trên mạng",
+      "networkSpeakersHint": "Hiển thị loa và TV trong mạng gia đình (UPnP/DLNA và Cast) trong bảng âm thanh để bạn có thể phát trên chúng. Windows có thể hỏi một lần về quyền truy cập mạng. Khi tắt, Musify không gửi yêu cầu tìm kiếm nào vào mạng và không mở cổng cho việc này."
     },
     "display": {
       "title": "Giao diện",

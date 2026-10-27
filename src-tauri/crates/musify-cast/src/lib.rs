@@ -18,6 +18,7 @@
 
 pub mod cast;
 pub mod castv2;
+pub mod connect;
 pub mod discovery;
 pub mod dlna;
 pub mod gate;

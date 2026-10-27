@@ -59,7 +59,10 @@ fn put_string(out: &mut Vec<u8>, field: u8, text: &str) {
 /// Protobuf encoding of `msg` (protocol version CASTV2_1_0, payload type STRING), without the prefix.
 pub fn encode_message(msg: &CastMessage) -> Vec<u8> {
     let mut out = Vec::with_capacity(
-        16 + msg.source_id.len() + msg.destination_id.len() + msg.namespace.len() + msg.payload.len(),
+        16 + msg.source_id.len()
+            + msg.destination_id.len()
+            + msg.namespace.len()
+            + msg.payload.len(),
     );
     out.extend_from_slice(&[1 << 3, 0]);
     put_string(&mut out, 2, &msg.source_id);
@@ -101,7 +104,8 @@ impl<'a> Cursor<'a> {
     fn string(&mut self) -> Result<String, CastError> {
         let len = self.varint()?;
         let bytes = self.take(len)?;
-        String::from_utf8(bytes.to_vec()).map_err(|_| CastError::Invalid("text is not UTF-8".into()))
+        String::from_utf8(bytes.to_vec())
+            .map_err(|_| CastError::Invalid("text is not UTF-8".into()))
     }
 }
 
@@ -232,7 +236,9 @@ impl<S: Read + Write> CastChannel<S> {
             Err(e)
                 if matches!(
                     e.kind(),
-                    io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut | io::ErrorKind::Interrupted
+                    io::ErrorKind::WouldBlock
+                        | io::ErrorKind::TimedOut
+                        | io::ErrorKind::Interrupted
                 ) =>
             {
                 Ok(None)
@@ -333,9 +339,18 @@ mod tests {
             decode_message(&[0x28, 1, 0x32, 1, b'x']),
             Err(CastError::Invalid(_))
         ));
-        assert!(matches!(decode_message(&[0x3A, 2, 1, 2]), Err(CastError::Invalid(_))));
-        assert!(matches!(decode_message(&[0x13]), Err(CastError::Invalid(_))));
-        assert!(matches!(decode_message(&[0x80; 11]), Err(CastError::Invalid(_))));
+        assert!(matches!(
+            decode_message(&[0x3A, 2, 1, 2]),
+            Err(CastError::Invalid(_))
+        ));
+        assert!(matches!(
+            decode_message(&[0x13]),
+            Err(CastError::Invalid(_))
+        ));
+        assert!(matches!(
+            decode_message(&[0x80; 11]),
+            Err(CastError::Invalid(_))
+        ));
         assert!(matches!(
             decode_message(&[0x12, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]),
             Err(CastError::Invalid(_))

@@ -51,7 +51,10 @@ pub struct DeviceDescription {
 }
 
 /// GETs and parses the description at `location` (timeout ~5 s, body limited to 256 KiB).
-pub fn fetch_description(client: &BlockingClient, location: &str) -> Result<DeviceDescription, UpnpError> {
+pub fn fetch_description(
+    client: &BlockingClient,
+    location: &str,
+) -> Result<DeviceDescription, UpnpError> {
     let response = client
         .get(location)
         .timeout(DESCRIPTION_TIMEOUT)
@@ -77,11 +80,16 @@ pub fn fetch_description(client: &BlockingClient, location: &str) -> Result<Devi
 /// otherwise against `location`.
 pub fn parse_description(xml: &str, location: &str) -> Result<DeviceDescription, UpnpError> {
     let document = xml::parse(xml)?;
-    let root = document.children.first().ok_or(UpnpError::Missing("root"))?;
+    let root = document
+        .children
+        .first()
+        .ok_or(UpnpError::Missing("root"))?;
     let root_device = root.child("device").ok_or(UpnpError::Missing("device"))?;
     let device = find_renderer(root_device).ok_or(UpnpError::Missing("MediaRenderer"))?;
 
-    let base = root.child_text("URLBase").unwrap_or_else(|| location.to_string());
+    let base = root
+        .child_text("URLBase")
+        .unwrap_or_else(|| location.to_string());
     let udn = device.child_text("UDN").ok_or(UpnpError::Missing("UDN"))?;
     let device_type = device.child_text("deviceType").unwrap_or_default();
     let model_name = device.child_text("modelName");
@@ -95,8 +103,10 @@ pub fn parse_description(xml: &str, location: &str) -> Result<DeviceDescription,
     let mut connection_manager = None;
     if let Some(list) = device.child("serviceList") {
         for service in list.children_named("service") {
-            let (Some(service_type), Some(control)) = (service.child_text("serviceType"), service.child_text("controlURL"))
-            else {
+            let (Some(service_type), Some(control)) = (
+                service.child_text("serviceType"),
+                service.child_text("controlURL"),
+            ) else {
                 continue;
             };
             let slot = if service_type.starts_with("urn:schemas-upnp-org:service:AVTransport:") {
@@ -109,7 +119,10 @@ pub fn parse_description(xml: &str, location: &str) -> Result<DeviceDescription,
                 continue;
             };
             if slot.is_none() {
-                *slot = Some(ServiceInfo { service_type, control_url: resolve_url(&base, &control) });
+                *slot = Some(ServiceInfo {
+                    service_type,
+                    control_url: resolve_url(&base, &control),
+                });
             }
         }
     }
@@ -129,7 +142,10 @@ pub fn parse_description(xml: &str, location: &str) -> Result<DeviceDescription,
 
 /// The device itself if it is a MediaRenderer, else the first embedded one (depth first).
 fn find_renderer(device: &xml::Node) -> Option<&xml::Node> {
-    if device.child_text("deviceType").is_some_and(|t| t.contains(":MediaRenderer:")) {
+    if device
+        .child_text("deviceType")
+        .is_some_and(|t| t.contains(":MediaRenderer:"))
+    {
         return Some(device);
     }
     device
@@ -164,7 +180,10 @@ fn resolve_url(base: &str, reference: &str) -> String {
     let base_path = base[authority_end..].split(['?', '#']).next().unwrap_or("");
     let directory = &base_path[..base_path.rfind('/').map_or(0, |i| i + 1)];
     let directory = if directory.is_empty() { "/" } else { directory };
-    format!("{origin}{}", normalize_path(&format!("{directory}{reference}")))
+    format!(
+        "{origin}{}",
+        normalize_path(&format!("{directory}{reference}"))
+    )
 }
 
 /// Removes `.` and `..` segments; keeps a query string as it is.
@@ -230,13 +249,21 @@ pub fn soap_action_header(service_type: &str, action: &str) -> String {
 }
 
 /// Output arguments of `<action>Response` by local name (unescaped), or the SOAP fault's UPnP error.
-pub fn parse_soap_response(xml_text: &str, action: &str) -> Result<HashMap<String, String>, UpnpError> {
+pub fn parse_soap_response(
+    xml_text: &str,
+    action: &str,
+) -> Result<HashMap<String, String>, UpnpError> {
     let document = xml::parse(xml_text)?;
-    let envelope = document.children.first().ok_or(UpnpError::Missing("Envelope"))?;
+    let envelope = document
+        .children
+        .first()
+        .ok_or(UpnpError::Missing("Envelope"))?;
     let body = envelope.child("Body").ok_or(UpnpError::Missing("Body"))?;
 
     if let Some(fault) = body.child("Fault") {
-        let upnp_error = fault.child("detail").and_then(|detail| detail.child("UPnPError"));
+        let upnp_error = fault
+            .child("detail")
+            .and_then(|detail| detail.child("UPnPError"));
         let code = upnp_error
             .and_then(|e| e.child_text("errorCode"))
             .and_then(|code| code.parse().ok())
@@ -324,13 +351,20 @@ pub fn sink_mimes(sink: &str) -> Vec<String> {
     let mut mimes: Vec<String> = Vec::new();
     for entry in sink.split(',') {
         let mut fields = entry.trim().splitn(4, ':');
-        let (Some(protocol), Some(_network), Some(content_format)) = (fields.next(), fields.next(), fields.next()) else {
+        let (Some(protocol), Some(_network), Some(content_format)) =
+            (fields.next(), fields.next(), fields.next())
+        else {
             continue;
         };
         if !protocol.trim().eq_ignore_ascii_case("http-get") {
             continue;
         }
-        let mime = content_format.split(';').next().unwrap_or("").trim().to_ascii_lowercase();
+        let mime = content_format
+            .split(';')
+            .next()
+            .unwrap_or("")
+            .trim()
+            .to_ascii_lowercase();
         if mime.starts_with("audio/") && !mimes.contains(&mime) {
             mimes.push(mime);
         }
@@ -341,7 +375,12 @@ pub fn sink_mimes(sink: &str) -> Vec<String> {
 /// `H:MM:SS` (hours unpadded), e.g. `0:03:05`; milliseconds are dropped.
 pub fn format_time(ms: u64) -> String {
     let seconds = ms / 1000;
-    format!("{}:{:02}:{:02}", seconds / 3600, seconds / 60 % 60, seconds % 60)
+    format!(
+        "{}:{:02}:{:02}",
+        seconds / 3600,
+        seconds / 60 % 60,
+        seconds % 60
+    )
 }
 
 /// Parses `H+:MM:SS[.F+]` (also `H:MM:SS.mmm`, and `F0/F1` fractions); `None` for empty strings and
@@ -364,7 +403,8 @@ pub fn parse_time(text: &str) -> Option<u64> {
         None => 0,
         Some(fraction) => match fraction.split_once('/') {
             Some((numerator, denominator)) => {
-                let (numerator, denominator) = (parse_digits(numerator)?, parse_digits(denominator)?);
+                let (numerator, denominator) =
+                    (parse_digits(numerator)?, parse_digits(denominator)?);
                 if denominator == 0 {
                     return None;
                 }
@@ -374,13 +414,20 @@ pub fn parse_time(text: &str) -> Option<u64> {
                 if fraction.is_empty() || !fraction.bytes().all(|b| b.is_ascii_digit()) {
                     return None;
                 }
-                let mut digits = fraction.bytes().take(3).map(|b| u64::from(b - b'0')).collect::<Vec<_>>();
+                let mut digits = fraction
+                    .bytes()
+                    .take(3)
+                    .map(|b| u64::from(b - b'0'))
+                    .collect::<Vec<_>>();
                 digits.resize(3, 0);
                 digits[0] * 100 + digits[1] * 10 + digits[2]
             }
         },
     };
-    let total_seconds = hours.checked_mul(3600)?.checked_add(minutes.checked_mul(60)?)?.checked_add(seconds)?;
+    let total_seconds = hours
+        .checked_mul(3600)?
+        .checked_add(minutes.checked_mul(60)?)?
+        .checked_add(seconds)?;
     total_seconds.checked_mul(1000)?.checked_add(fraction_ms)
 }
 
@@ -432,17 +479,24 @@ mod xml {
         reader.config_mut().expand_empty_elements = true;
         let mut stack = vec![Node::default()];
         loop {
-            let event = reader.read_event().map_err(|err| UpnpError::Xml(err.to_string()))?;
+            let event = reader
+                .read_event()
+                .map_err(|err| UpnpError::Xml(err.to_string()))?;
             match event {
                 Event::Start(start) => {
                     if stack.len() > MAX_DEPTH {
                         return Err(UpnpError::Xml("nesting is too deep".into()));
                     }
                     let name = start.local_name().as_ref().to_string();
-                    stack.push(Node { name, ..Node::default() });
+                    stack.push(Node {
+                        name,
+                        ..Node::default()
+                    });
                 }
                 Event::End(_) => {
-                    let node = stack.pop().ok_or_else(|| UpnpError::Xml("unbalanced tags".into()))?;
+                    let node = stack
+                        .pop()
+                        .ok_or_else(|| UpnpError::Xml("unbalanced tags".into()))?;
                     stack
                         .last_mut()
                         .ok_or_else(|| UpnpError::Xml("unbalanced tags".into()))?
@@ -477,7 +531,9 @@ mod xml {
     }
 
     fn current(stack: &mut [Node]) -> Result<&mut Node, UpnpError> {
-        stack.last_mut().ok_or_else(|| UpnpError::Xml("unbalanced tags".into()))
+        stack
+            .last_mut()
+            .ok_or_else(|| UpnpError::Xml("unbalanced tags".into()))
     }
 
     /// Escapes text for element content and attribute values; drops characters XML 1.0 forbids.
@@ -536,7 +592,8 @@ mod tests {
 
     #[test]
     fn parses_a_root_renderer() {
-        let d = parse_description(ROOT_RENDERER, "http://192.168.1.20:49152/description.xml").unwrap();
+        let d =
+            parse_description(ROOT_RENDERER, "http://192.168.1.20:49152/description.xml").unwrap();
         assert_eq!(d.udn, "uuid:1234");
         assert_eq!(d.device_type, "urn:schemas-upnp-org:device:MediaRenderer:1");
         assert_eq!(d.friendly_name, "Living Room");
@@ -550,8 +607,14 @@ mod tests {
                 control_url: "http://192.168.1.20:49152/AVTransport/control".into(),
             })
         );
-        assert_eq!(d.rendering_control.unwrap().control_url, "http://192.168.1.20:49152/RenderingControl/control");
-        assert_eq!(d.connection_manager.unwrap().control_url, "http://192.168.1.20:49152/ConnectionManager/control");
+        assert_eq!(
+            d.rendering_control.unwrap().control_url,
+            "http://192.168.1.20:49152/RenderingControl/control"
+        );
+        assert_eq!(
+            d.connection_manager.unwrap().control_url,
+            "http://192.168.1.20:49152/ConnectionManager/control"
+        );
     }
 
     #[test]
@@ -578,7 +641,10 @@ mod tests {
         assert_eq!(d.udn, "uuid:deep");
         assert_eq!(d.friendly_name, "Deep");
         let av = d.av_transport.unwrap();
-        assert_eq!(av.service_type, "urn:schemas-upnp-org:service:AVTransport:3");
+        assert_eq!(
+            av.service_type,
+            "urn:schemas-upnp-org:service:AVTransport:3"
+        );
         assert_eq!(av.control_url, "http://10.0.0.2:8000/dev/av");
         assert!(d.rendering_control.is_none());
     }
@@ -587,10 +653,22 @@ mod tests {
     fn missing_renderer_is_reported() {
         let xml = r#"<root><device><deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
             <friendlyName>NAS</friendlyName><UDN>uuid:nas</UDN></device></root>"#;
-        assert!(matches!(parse_description(xml, "http://10.0.0.2/d.xml"), Err(UpnpError::Missing("MediaRenderer"))));
-        assert!(matches!(parse_description("<root/>", "http://10.0.0.2/d.xml"), Err(UpnpError::Missing("device"))));
-        assert!(matches!(parse_description("", "http://10.0.0.2/d.xml"), Err(UpnpError::Missing(_))));
-        assert!(matches!(parse_description("<root><device>", "http://10.0.0.2/d.xml"), Err(UpnpError::Xml(_))));
+        assert!(matches!(
+            parse_description(xml, "http://10.0.0.2/d.xml"),
+            Err(UpnpError::Missing("MediaRenderer"))
+        ));
+        assert!(matches!(
+            parse_description("<root/>", "http://10.0.0.2/d.xml"),
+            Err(UpnpError::Missing("device"))
+        ));
+        assert!(matches!(
+            parse_description("", "http://10.0.0.2/d.xml"),
+            Err(UpnpError::Missing(_))
+        ));
+        assert!(matches!(
+            parse_description("<root><device>", "http://10.0.0.2/d.xml"),
+            Err(UpnpError::Xml(_))
+        ));
     }
 
     #[test]
@@ -604,9 +682,18 @@ mod tests {
                 <controlURL>http://192.168.1.51:1234/cm</controlURL></service>
             </serviceList></device></root>"#;
         let d = parse_description(xml, "http://192.168.1.20:49152/x/description.xml").unwrap();
-        assert_eq!(d.av_transport.unwrap().control_url, "http://192.168.1.50:9000/upnp/av");
-        assert_eq!(d.rendering_control.unwrap().control_url, "http://192.168.1.50:9000/rc");
-        assert_eq!(d.connection_manager.unwrap().control_url, "http://192.168.1.51:1234/cm");
+        assert_eq!(
+            d.av_transport.unwrap().control_url,
+            "http://192.168.1.50:9000/upnp/av"
+        );
+        assert_eq!(
+            d.rendering_control.unwrap().control_url,
+            "http://192.168.1.50:9000/rc"
+        );
+        assert_eq!(
+            d.connection_manager.unwrap().control_url,
+            "http://192.168.1.51:1234/cm"
+        );
     }
 
     #[test]
@@ -619,12 +706,24 @@ mod tests {
         assert_eq!(resolve_url(base, "./a"), "http://10.0.0.2:8080/dev/a");
         assert_eq!(resolve_url(base, "../a"), "http://10.0.0.2:8080/a");
         assert_eq!(resolve_url(base, "//10.0.0.3/a"), "http://10.0.0.3/a");
-        assert_eq!(resolve_url("http://10.0.0.2:8080", "a"), "http://10.0.0.2:8080/a");
-        assert_eq!(resolve_url("http://10.0.0.2:8080", "/a?b=1"), "http://10.0.0.2:8080/a?b=1");
+        assert_eq!(
+            resolve_url("http://10.0.0.2:8080", "a"),
+            "http://10.0.0.2:8080/a"
+        );
+        assert_eq!(
+            resolve_url("http://10.0.0.2:8080", "/a?b=1"),
+            "http://10.0.0.2:8080/a?b=1"
+        );
         assert_eq!(resolve_url("http://10.0.0.2/", "a"), "http://10.0.0.2/a");
-        assert_eq!(resolve_url("http://10.0.0.2/base/", "a"), "http://10.0.0.2/base/a");
+        assert_eq!(
+            resolve_url("http://10.0.0.2/base/", "a"),
+            "http://10.0.0.2/base/a"
+        );
         assert_eq!(resolve_url("http://10.0.0.2?q=1", "a"), "http://10.0.0.2/a");
-        assert_eq!(resolve_url("http://[fe80::1]:80/d/x.xml", "c"), "http://[fe80::1]:80/d/c");
+        assert_eq!(
+            resolve_url("http://[fe80::1]:80/d/x.xml", "c"),
+            "http://[fe80::1]:80/d/c"
+        );
     }
 
     #[test]
@@ -647,14 +746,22 @@ mod tests {
         assert_eq!(d.friendly_name, "Tom & Jerry's <Speaker> \u{e4}");
         assert_eq!(d.manufacturer.as_deref(), Some("R&D <Labs>"));
         assert_eq!(d.model_name.as_deref(), Some("Prefixes are ignored"));
-        assert_eq!(d.av_transport.unwrap().control_url, "http://1.2.3.4:5/ctl?a=1&b=2");
+        assert_eq!(
+            d.av_transport.unwrap().control_url,
+            "http://1.2.3.4:5/ctl?a=1&b=2"
+        );
     }
 
     #[test]
     fn description_without_friendly_name_falls_back() {
         let xml = r#"<root><device><deviceType>urn:schemas-upnp-org:device:MediaRenderer:1</deviceType>
             <modelName>M1</modelName><UDN>uuid:m</UDN></device></root>"#;
-        assert_eq!(parse_description(xml, "http://1.2.3.4/d").unwrap().friendly_name, "M1");
+        assert_eq!(
+            parse_description(xml, "http://1.2.3.4/d")
+                .unwrap()
+                .friendly_name,
+            "M1"
+        );
     }
 
     #[test]
@@ -665,16 +772,26 @@ mod tests {
 
     #[test]
     fn soap_envelope_escapes_arguments() {
-        let envelope = soap_envelope(AV_TRANSPORT, "SetAVTransportURI", &[("InstanceID", "0"), ("CurrentURI", "a<&>\"'b")]);
+        let envelope = soap_envelope(
+            AV_TRANSPORT,
+            "SetAVTransportURI",
+            &[("InstanceID", "0"), ("CurrentURI", "a<&>\"'b")],
+        );
         assert!(envelope.starts_with("<?xml version=\"1.0\" encoding=\"utf-8\"?><s:Envelope"));
         assert!(envelope.contains("s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\""));
-        assert!(envelope.contains("<u:SetAVTransportURI xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\">"));
+        assert!(envelope.contains(
+            "<u:SetAVTransportURI xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\">"
+        ));
         assert!(envelope.contains("<InstanceID>0</InstanceID>"));
         assert!(envelope.contains("<CurrentURI>a&lt;&amp;&gt;&quot;&apos;b</CurrentURI>"));
         assert!(envelope.ends_with("</u:SetAVTransportURI></s:Body></s:Envelope>"));
         // Well-formed, and the value round-trips.
         let parsed = xml::parse(&envelope).unwrap();
-        let action = parsed.children[0].child("Body").unwrap().child("SetAVTransportURI").unwrap();
+        let action = parsed.children[0]
+            .child("Body")
+            .unwrap()
+            .child("SetAVTransportURI")
+            .unwrap();
         assert_eq!(action.child("CurrentURI").unwrap().text, "a<&>\"'b");
     }
 
@@ -723,7 +840,10 @@ mod tests {
         let xml = r#"<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>
             <u:PlayResponse xmlns:u="urn:schemas-upnp-org:service:AVTransport:1"/></s:Body></s:Envelope>"#;
         assert!(parse_soap_response(xml, "Play").unwrap().is_empty());
-        assert!(matches!(parse_soap_response(xml, "Stop"), Err(UpnpError::Missing(_))));
+        assert!(matches!(
+            parse_soap_response(xml, "Stop"),
+            Err(UpnpError::Missing(_))
+        ));
     }
 
     #[test]
@@ -792,7 +912,9 @@ mod tests {
         assert!(didl.contains("<upnp:artist>AC/DC &quot;Band&quot;</upnp:artist>"));
         assert!(didl.contains("<dc:creator>AC/DC &quot;Band&quot;</dc:creator>"));
         assert!(didl.contains("<upnp:album>It&apos;s</upnp:album>"));
-        assert!(didl.contains("<upnp:albumArtURI>http://192.168.1.2:4000/c/tok?size=300&amp;x=y</upnp:albumArtURI>"));
+        assert!(didl.contains(
+            "<upnp:albumArtURI>http://192.168.1.2:4000/c/tok?size=300&amp;x=y</upnp:albumArtURI>"
+        ));
         assert!(didl.contains("<upnp:class>object.item.audioItem.musicTrack</upnp:class>"));
         assert!(didl.contains("duration=\"0:03:05.000\""));
         assert!(didl.contains(">http://192.168.1.2:4000/s/tok?a=1&amp;b=2</res>"));
@@ -803,7 +925,10 @@ mod tests {
         assert_eq!(didl_node.name, "DIDL-Lite");
         let node = didl_node.child("item").unwrap();
         assert_eq!(node.child("title").unwrap().text, "Rock & Roll <Live>");
-        assert_eq!(node.child("res").unwrap().text, "http://192.168.1.2:4000/s/tok?a=1&b=2");
+        assert_eq!(
+            node.child("res").unwrap().text,
+            "http://192.168.1.2:4000/s/tok?a=1&b=2"
+        );
     }
 
     #[test]
@@ -814,18 +939,33 @@ mod tests {
         minimal.cover_url = None;
         minimal.duration_ms = None;
         let didl = didl_lite(&minimal, "http-get:*:audio/flac:*");
-        assert!(!didl.contains("upnp:artist") && !didl.contains("upnp:album") && !didl.contains("albumArtURI"));
+        assert!(
+            !didl.contains("upnp:artist")
+                && !didl.contains("upnp:album")
+                && !didl.contains("albumArtURI")
+        );
         assert!(!didl.contains("duration="));
 
-        let envelope = soap_envelope(AV_TRANSPORT, "SetAVTransportURI", &[("CurrentURIMetaData", &didl_lite(&item(), "p"))]);
-        assert!(envelope.contains("&lt;dc:title&gt;Rock &amp;amp; Roll &amp;lt;Live&amp;gt;&lt;/dc:title&gt;"));
+        let envelope = soap_envelope(
+            AV_TRANSPORT,
+            "SetAVTransportURI",
+            &[("CurrentURIMetaData", &didl_lite(&item(), "p"))],
+        );
+        assert!(
+            envelope.contains(
+                "&lt;dc:title&gt;Rock &amp;amp; Roll &amp;lt;Live&amp;gt;&lt;/dc:title&gt;"
+            )
+        );
     }
 
     #[test]
     fn sink_mimes_keeps_audio_http_get_entries() {
         let sink = "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3, http-get:*:audio/FLAC:*,http-get:*:audio/L16;rate=44100;channels=2:DLNA.ORG_PN=LPCM,\
             http-get:*:video/mp4:*,rtsp-rtp-udp:*:audio/mpeg:*,http-get:*:audio/flac:*,http-get:*:*:*,garbage,, http-get:*:audio/x-wav";
-        assert_eq!(sink_mimes(sink), vec!["audio/mpeg", "audio/flac", "audio/l16", "audio/x-wav"]);
+        assert_eq!(
+            sink_mimes(sink),
+            vec!["audio/mpeg", "audio/flac", "audio/l16", "audio/x-wav"]
+        );
         assert!(sink_mimes("").is_empty());
     }
 
@@ -855,8 +995,20 @@ mod tests {
     #[test]
     fn parse_time_rejects_junk() {
         for text in [
-            "", "NOT_IMPLEMENTED", "abc", "1:2", "1:2:3:4", "-0:00:01", "+0:00:01", "0:00:01.", "0:00:01.x", "0:00:01.1/0", "::",
-            "0:0a:01", "99999999999999999999:00:00", "18446744073709551615:00:00",
+            "",
+            "NOT_IMPLEMENTED",
+            "abc",
+            "1:2",
+            "1:2:3:4",
+            "-0:00:01",
+            "+0:00:01",
+            "0:00:01.",
+            "0:00:01.x",
+            "0:00:01.1/0",
+            "::",
+            "0:0a:01",
+            "99999999999999999999:00:00",
+            "18446744073709551615:00:00",
         ] {
             assert_eq!(parse_time(text), None, "{text:?}");
         }

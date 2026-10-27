@@ -35,7 +35,10 @@ fn capture_logs() {
 
 fn assert_no_secret(text: &str, what: &str) {
     for secret in SECRETS {
-        assert!(!text.contains(secret), "{what} contains a credential: {text}");
+        assert!(
+            !text.contains(secret),
+            "{what} contains a credential: {text}"
+        );
     }
 }
 
@@ -73,8 +76,14 @@ fn request(url: &str, method: &str, extra: &str) -> Option<Response> {
     let (host, path) = rest.split_at(rest.find('/').unwrap());
     let addr: SocketAddr = host.parse().unwrap();
     let mut stream = TcpStream::connect_timeout(&addr, Duration::from_secs(2)).ok()?;
-    stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
-    write!(stream, "{method} {path} HTTP/1.1\r\nHost: {host}\r\n{extra}\r\n").ok()?;
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
+    write!(
+        stream,
+        "{method} {path} HTTP/1.1\r\nHost: {host}\r\n{extra}\r\n"
+    )
+    .ok()?;
     let mut raw = Vec::new();
     let _ = stream.read_to_end(&mut raw);
     let end = raw.windows(4).position(|w| w == b"\r\n\r\n")?;
@@ -105,7 +114,9 @@ fn serves_files_with_ranges() {
     let path = dir.path().join("track.flac");
     std::fs::write(&path, data()).unwrap();
     let proxy = Proxy::start(open_gate(), localhost(), localhost()).unwrap();
-    let url = proxy.register(ResourceKind::Media, file_resource(path)).unwrap();
+    let url = proxy
+        .register(ResourceKind::Media, file_resource(path))
+        .unwrap();
     assert!(url.ends_with(".flac"));
 
     let full = get(&url, "");
@@ -114,11 +125,20 @@ fn serves_files_with_ranges() {
     assert_eq!(full.header("content-length").as_deref(), Some("1000"));
     assert_eq!(full.header("accept-ranges").as_deref(), Some("bytes"));
 
-    let part = get(&url, "Range: bytes=100-199\r\ngetcontentFeatures.dlna.org: 1\r\n");
+    let part = get(
+        &url,
+        "Range: bytes=100-199\r\ngetcontentFeatures.dlna.org: 1\r\n",
+    );
     assert_eq!(part.status, 206);
     assert_eq!(part.body, &data()[100..200]);
-    assert_eq!(part.header("content-range").as_deref(), Some("bytes 100-199/1000"));
-    assert_eq!(part.header("contentfeatures.dlna.org").as_deref(), Some("DLNA.ORG_OP=01"));
+    assert_eq!(
+        part.header("content-range").as_deref(),
+        Some("bytes 100-199/1000")
+    );
+    assert_eq!(
+        part.header("contentfeatures.dlna.org").as_deref(),
+        Some("DLNA.ORG_OP=01")
+    );
 
     let tail = get(&url, "Range: bytes=-10\r\n");
     assert_eq!(tail.body, &data()[990..]);
@@ -128,8 +148,17 @@ fn serves_files_with_ranges() {
     assert!(head.body.is_empty());
 
     assert_eq!(get(&url, "Range: bytes=5000-\r\n").status, 416);
-    assert_eq!(request(&url, "POST", "Content-Length: 0\r\n").unwrap().status, 405);
-    let unknown = format!("{}/m/{}.flac", url.rsplitn(3, '/').nth(2).unwrap(), "0".repeat(32));
+    assert_eq!(
+        request(&url, "POST", "Content-Length: 0\r\n")
+            .unwrap()
+            .status,
+        405
+    );
+    let unknown = format!(
+        "{}/m/{}.flac",
+        url.rsplitn(3, '/').nth(2).unwrap(),
+        "0".repeat(32)
+    );
     assert_eq!(get(&unknown, "").status, 404);
 
     proxy.retain(&[]);
@@ -144,7 +173,9 @@ fn other_hosts_are_refused() {
     std::fs::write(&path, data()).unwrap();
     let renderer = "10.9.8.7".parse().unwrap();
     let proxy = Proxy::start(open_gate(), localhost(), renderer).unwrap();
-    let url = proxy.register(ResourceKind::Media, file_resource(path)).unwrap();
+    let url = proxy
+        .register(ResourceKind::Media, file_resource(path))
+        .unwrap();
     let response = get(&url, "");
     assert_eq!(response.status, 403);
     assert!(response.body.is_empty());
@@ -164,7 +195,9 @@ fn turning_off_stops_serving() {
     std::fs::write(&path, data()).unwrap();
     let gate = open_gate();
     let proxy = Proxy::start(gate.clone(), localhost(), localhost()).unwrap();
-    let url = proxy.register(ResourceKind::Media, file_resource(path)).unwrap();
+    let url = proxy
+        .register(ResourceKind::Media, file_resource(path))
+        .unwrap();
     assert_eq!(get(&url, "").status, 200);
     gate.set_open(false);
     assert!(request(&url, "GET", "").is_none_or(|r| r.status != 200));
@@ -201,9 +234,11 @@ fn fake_server() -> (String, Arc<Mutex<Vec<String>>>) {
                 let _ = stream.write_all(body);
                 continue;
             }
-            let range = head
-                .lines()
-                .find_map(|l| l.to_ascii_lowercase().strip_prefix("range: bytes=").map(str::to_string));
+            let range = head.lines().find_map(|l| {
+                l.to_ascii_lowercase()
+                    .strip_prefix("range: bytes=")
+                    .map(str::to_string)
+            });
             let all = data();
             let (status, body, extra) = match range.and_then(|r| {
                 let (s, e) = r.split_once('-')?;
@@ -239,7 +274,10 @@ fn forwards_to_the_server_without_leaking_credentials() {
             ProxyResource {
                 source: ProxySource::Http {
                     url: server_url,
-                    headers: vec![("Authorization".into(), "MediaBrowser Token=\"JFKEY789\"".into())],
+                    headers: vec![(
+                        "Authorization".into(),
+                        "MediaBrowser Token=\"JFKEY789\"".into(),
+                    )],
                     allow_insecure_tls: false,
                 },
                 content_type: "audio/flac".into(),
@@ -252,7 +290,10 @@ fn forwards_to_the_server_without_leaking_credentials() {
     let part = get(&url, "Range: bytes=10-19\r\n");
     assert_eq!(part.status, 206);
     assert_eq!(part.body, &data()[10..20]);
-    assert_eq!(part.header("content-range").as_deref(), Some("bytes 10-19/1000"));
+    assert_eq!(
+        part.header("content-range").as_deref(),
+        Some("bytes 10-19/1000")
+    );
     assert_no_secret(&part.head, "response head");
 
     let full = get(&url, "");
@@ -260,9 +301,16 @@ fn forwards_to_the_server_without_leaking_credentials() {
     assert_eq!(full.body, data());
 
     let requests = seen.lock().unwrap().clone();
-    assert!(requests[0].contains("t=SECRETTOKEN123"), "the server gets the credentials");
+    assert!(
+        requests[0].contains("t=SECRETTOKEN123"),
+        "the server gets the credentials"
+    );
     assert!(requests[0].contains("JFKEY789"));
-    assert!(requests[0].to_ascii_lowercase().contains("range: bytes=10-19"));
+    assert!(
+        requests[0]
+            .to_ascii_lowercase()
+            .contains("range: bytes=10-19")
+    );
 
     // Error document and an unreachable server: 502, and the log stays free of credentials.
     let gone = proxy
@@ -280,7 +328,11 @@ fn forwards_to_the_server_without_leaking_credentials() {
         )
         .unwrap();
     assert_eq!(get(&gone, "").status, 502);
-    let dead_port = TcpListener::bind("127.0.0.1:0").unwrap().local_addr().unwrap().port();
+    let dead_port = TcpListener::bind("127.0.0.1:0")
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port();
     let dead = proxy
         .register(
             ResourceKind::Media,
@@ -298,7 +350,10 @@ fn forwards_to_the_server_without_leaking_credentials() {
     assert_eq!(get(&dead, "").status, 502);
 
     let logs = LOG.lock().unwrap().join("\n");
-    assert!(logs.contains("server request failed"), "the failure is logged: {logs}");
+    assert!(
+        logs.contains("server request failed"),
+        "the failure is logged: {logs}"
+    );
     assert_no_secret(&logs, "log");
     for line in LOG.lock().unwrap().iter() {
         assert!(!line.contains("/m/"), "the log names a proxy path: {line}");

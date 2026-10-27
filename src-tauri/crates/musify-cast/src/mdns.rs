@@ -90,7 +90,9 @@ pub fn parse_response(packet: &[u8], service: &str) -> Vec<ServiceInstance> {
         }
     }
     for record in &records {
-        if matches!(record.data, Data::Srv { .. } | Data::Txt(_)) && normalize(&record.owner).ends_with(&suffix) {
+        if matches!(record.data, Data::Srv { .. } | Data::Txt(_))
+            && normalize(&record.owner).ends_with(&suffix)
+        {
             instance_index(&mut instances, &record.owner);
         }
     }
@@ -136,7 +138,10 @@ fn normalize(name: &str) -> String {
 
 fn instance_index(instances: &mut Vec<ServiceInstance>, name: &str) -> usize {
     let wanted = normalize(name);
-    if let Some(index) = instances.iter().position(|i| normalize(&i.instance) == wanted) {
+    if let Some(index) = instances
+        .iter()
+        .position(|i| normalize(&i.instance) == wanted)
+    {
         return index;
     }
     instances.push(ServiceInstance {
@@ -159,7 +164,9 @@ fn collect_records(packet: &[u8], out: &mut Vec<Record>) -> Option<()> {
         return None;
     }
     let questions = u16_at(packet, 4)?;
-    let records = usize::from(u16_at(packet, 6)?) + usize::from(u16_at(packet, 8)?) + usize::from(u16_at(packet, 10)?);
+    let records = usize::from(u16_at(packet, 6)?)
+        + usize::from(u16_at(packet, 8)?)
+        + usize::from(u16_at(packet, 10)?);
 
     let mut pos = HEADER_LEN;
     for _ in 0..questions {
@@ -360,7 +367,10 @@ mod tests {
 
         assert_eq!(build_query(CAST_SERVICE, 0x1234, false), multicast);
         assert_eq!(build_query(CAST_SERVICE, 0x1234, true), unicast);
-        assert_eq!(build_query("_googlecast._tcp.local.", 0x1234, true), unicast);
+        assert_eq!(
+            build_query("_googlecast._tcp.local.", 0x1234, true),
+            unicast
+        );
     }
 
     #[test]
@@ -381,7 +391,10 @@ mod tests {
                 ],
             }]
         );
-        assert_eq!(parse_response(&cast_response(), "_GoogleCast._tcp.local."), found);
+        assert_eq!(
+            parse_response(&cast_response(), "_GoogleCast._tcp.local."),
+            found
+        );
         assert!(parse_response(&cast_response(), "_airplay._tcp.local").is_empty());
     }
 
@@ -427,7 +440,10 @@ mod tests {
             let _ = parse_response(&packet[..len], CAST_SERVICE);
         }
         // The PTR record alone is enough for an instance without details.
-        let ptr_end = packet.windows(4).position(|w| w == [0, 33, 0x80, 1]).unwrap();
+        let ptr_end = packet
+            .windows(4)
+            .position(|w| w == [0, 33, 0x80, 1])
+            .unwrap();
         let partial = parse_response(&packet[..ptr_end - 14], CAST_SERVICE);
         assert_eq!(partial.len(), 1);
         assert_eq!(partial[0].host, None);

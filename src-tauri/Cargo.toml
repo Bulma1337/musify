@@ -34,6 +34,7 @@ keyring = "4"
 musify-audio = { path = "crates/musify-audio" }
 musify-cast = { path = "crates/musify-cast" }
 crossbeam-channel = "0.5"
+parking_lot = "0.12"
 rusqlite = { version = "0.40", features = ["bundled"] }
 sha2 = "0.11"
 souvlaki = "0.8"

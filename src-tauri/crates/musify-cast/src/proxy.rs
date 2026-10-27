@@ -179,7 +179,14 @@ fn new_token() -> io::Result<String> {
 
 /// File extension for a MIME type; some renderers pick the decoder by the URL's extension.
 pub fn extension_for(mime: &str) -> &'static str {
-    match mime.split(';').next().unwrap_or("").trim().to_ascii_lowercase().as_str() {
+    match mime
+        .split(';')
+        .next()
+        .unwrap_or("")
+        .trim()
+        .to_ascii_lowercase()
+        .as_str()
+    {
         "audio/flac" | "audio/x-flac" => ".flac",
         "audio/mpeg" | "audio/mp3" => ".mp3",
         "audio/mp4" | "audio/x-m4a" | "audio/m4a" => ".m4a",
@@ -276,7 +283,10 @@ fn read_head(stream: &mut TcpStream) -> io::Result<Vec<u8>> {
             return Ok(head);
         }
         if head.len() > MAX_HEAD {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "request head too large"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "request head too large",
+            ));
         }
     }
 }
@@ -409,13 +419,15 @@ fn handle(mut stream: TcpStream, shared: &Shared) -> io::Result<()> {
         "HEAD" => true,
         _ => return respond_status(&mut stream, 405),
     };
-    let resource = parse_path(&request.path)
-        .and_then(|(_, token)| shared.entries.lock().get(token).cloned());
+    let resource =
+        parse_path(&request.path).and_then(|(_, token)| shared.entries.lock().get(token).cloned());
     let Some(resource) = resource else {
         return respond_status(&mut stream, 404);
     };
     match &resource.source {
-        ProxySource::File(path) => serve_file(&mut stream, &request, &resource, path, head_only, shared),
+        ProxySource::File(path) => {
+            serve_file(&mut stream, &request, &resource, path, head_only, shared)
+        }
         ProxySource::Http {
             url,
             headers,
@@ -475,7 +487,10 @@ fn serve_file(
         resource.content_type
     );
     if status == 206 {
-        head.push_str(&format!("Content-Range: bytes {start}-{}/{len}\r\n", start + count - 1));
+        head.push_str(&format!(
+            "Content-Range: bytes {start}-{}/{len}\r\n",
+            start + count - 1
+        ));
     }
     head.push_str(&common_headers(request, resource));
     head.push_str("\r\n");
@@ -502,7 +517,11 @@ fn serve_http(
             return respond_status(stream, 502);
         }
     };
-    let mut upstream = if head_only { client.head(url) } else { client.get(url) };
+    let mut upstream = if head_only {
+        client.head(url)
+    } else {
+        client.get(url)
+    };
     for (name, value) in headers {
         upstream = upstream.header(name.as_str(), value.as_str());
     }
@@ -512,7 +531,10 @@ fn serve_http(
     let mut response = match upstream.send() {
         Ok(response) => response,
         Err(e) => {
-            log::warn!("network speakers: server request failed: {}", describe_reqwest(e, url));
+            log::warn!(
+                "network speakers: server request failed: {}",
+                describe_reqwest(e, url)
+            );
             return respond_status(stream, 502);
         }
     };
@@ -576,7 +598,12 @@ fn serve_http(
 }
 
 /// Copies the body, stopping as soon as the proxy stops (session ended, network speakers off).
-fn pump(from: &mut impl Read, to: &mut TcpStream, chunked: bool, shared: &Shared) -> io::Result<()> {
+fn pump(
+    from: &mut impl Read,
+    to: &mut TcpStream,
+    chunked: bool,
+    shared: &Shared,
+) -> io::Result<()> {
     let mut buf = vec![0u8; CHUNK];
     loop {
         if shared.stopped() {
@@ -618,9 +645,18 @@ mod tests {
     #[test]
     fn paths_carry_only_valid_tokens() {
         let token = "0123456789abcdef0123456789abcdef";
-        assert_eq!(parse_path(&format!("/m/{token}.flac")), Some((ResourceKind::Media, token)));
-        assert_eq!(parse_path(&format!("/c/{token}")), Some((ResourceKind::Cover, token)));
-        assert_eq!(parse_path(&format!("/m/{token}.mp3?x=1")), Some((ResourceKind::Media, token)));
+        assert_eq!(
+            parse_path(&format!("/m/{token}.flac")),
+            Some((ResourceKind::Media, token))
+        );
+        assert_eq!(
+            parse_path(&format!("/c/{token}")),
+            Some((ResourceKind::Cover, token))
+        );
+        assert_eq!(
+            parse_path(&format!("/m/{token}.mp3?x=1")),
+            Some((ResourceKind::Media, token))
+        );
         assert_eq!(parse_path(&format!("/x/{token}")), None);
         assert_eq!(parse_path("/m/short"), None);
         assert_eq!(parse_path(&format!("/m/../{token}")), None);
@@ -629,7 +665,8 @@ mod tests {
 
     #[test]
     fn request_head_parsing() {
-        let r = parse_request(b"GET /m/abc HTTP/1.1\r\nHost: x\r\nRange: bytes=0-\r\n\r\n").unwrap();
+        let r =
+            parse_request(b"GET /m/abc HTTP/1.1\r\nHost: x\r\nRange: bytes=0-\r\n\r\n").unwrap();
         assert_eq!(r.method, "GET");
         assert_eq!(r.path, "/m/abc");
         assert!(r.http11);
@@ -642,12 +679,30 @@ mod tests {
     #[test]
     fn ranges() {
         assert_eq!(parse_range(None, 100), ByteRange::Full);
-        assert_eq!(parse_range(Some("bytes=0-"), 100), ByteRange::Partial(0, 99));
-        assert_eq!(parse_range(Some("bytes=10-19"), 100), ByteRange::Partial(10, 19));
-        assert_eq!(parse_range(Some("bytes=90-200"), 100), ByteRange::Partial(90, 99));
-        assert_eq!(parse_range(Some("bytes=-10"), 100), ByteRange::Partial(90, 99));
-        assert_eq!(parse_range(Some("bytes=-500"), 100), ByteRange::Partial(0, 99));
-        assert_eq!(parse_range(Some("bytes=100-"), 100), ByteRange::Unsatisfiable);
+        assert_eq!(
+            parse_range(Some("bytes=0-"), 100),
+            ByteRange::Partial(0, 99)
+        );
+        assert_eq!(
+            parse_range(Some("bytes=10-19"), 100),
+            ByteRange::Partial(10, 19)
+        );
+        assert_eq!(
+            parse_range(Some("bytes=90-200"), 100),
+            ByteRange::Partial(90, 99)
+        );
+        assert_eq!(
+            parse_range(Some("bytes=-10"), 100),
+            ByteRange::Partial(90, 99)
+        );
+        assert_eq!(
+            parse_range(Some("bytes=-500"), 100),
+            ByteRange::Partial(0, 99)
+        );
+        assert_eq!(
+            parse_range(Some("bytes=100-"), 100),
+            ByteRange::Unsatisfiable
+        );
         assert_eq!(parse_range(Some("bytes=0-1,5-6"), 100), ByteRange::Full);
         assert_eq!(parse_range(Some("bytes=5-2"), 100), ByteRange::Full);
         assert_eq!(parse_range(Some("items=0-1"), 100), ByteRange::Full);
@@ -656,7 +711,10 @@ mod tests {
     #[test]
     fn only_simple_ranges_are_forwarded() {
         assert_eq!(forwardable_range(Some("bytes=0-")), Some("bytes=0-".into()));
-        assert_eq!(forwardable_range(Some("bytes=-500")), Some("bytes=-500".into()));
+        assert_eq!(
+            forwardable_range(Some("bytes=-500")),
+            Some("bytes=-500".into())
+        );
         assert_eq!(forwardable_range(Some("bytes=1-2,4-5")), None);
         assert_eq!(forwardable_range(Some("bytes=a-b")), None);
         assert_eq!(forwardable_range(Some("bytes=-")), None);

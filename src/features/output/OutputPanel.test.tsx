@@ -4,6 +4,7 @@ import { useLayout } from "@/app/layout/layoutStore";
 import { useEngineStatus } from "@/player/bridge";
 import type { Track } from "@/api/provider";
 import type { DeviceInfo, OutputFormat, SourceFormat } from "@/player/engineTypes";
+import { networkApi, useNetwork, type NetworkDevice } from "@/player/network";
 import { usePlayer } from "@/player/store";
 import { DEFAULT_DSP, useSettings } from "@/settings/store";
 import { renderPage } from "@/test/renderPage";
@@ -79,8 +80,10 @@ beforeEach(() => {
     dsp: structuredClone(DEFAULT_DSP),
     output: { deviceId: null, exclusive: false },
     normalization: { mode: "off", target: "normal", preventClipping: true, analyzeUntagged: true },
+    networkSpeakers: false,
   });
   usePlayer.setState({ volume: 1, muted: false, current: null });
+  useNetwork.setState({ devices: [], scanning: false, connecting: null, active: null });
 });
 
 const renderPanel = () => renderPage(<OutputPanel />, { path: "/", url: "/" });
@@ -194,6 +197,83 @@ describe("OutputPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(useLayout.getState().rightPanel).toBeNull();
     expect(screen.getByRole("link", { name: "Open equalizer" })).toHaveAttribute("href", "/equalizer");
+  });
+});
+
+describe("OutputPanel with network speakers", () => {
+  const tv: NetworkDevice = {
+    id: "cast:tv",
+    name: "Living room TV",
+    protocol: "cast",
+    kind: "tv",
+    model: null,
+  };
+  const box: NetworkDevice = {
+    id: "upnp:uuid:1",
+    name: "Kitchen",
+    protocol: "upnp",
+    kind: "speaker",
+    model: null,
+  };
+
+  beforeEach(() => {
+    useSettings.setState({ networkSpeakers: true });
+    vi.spyOn(networkApi, "scan").mockResolvedValue();
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it("lists the speakers on the network next to this computer and looks for more", async () => {
+    useNetwork.setState({ devices: [box, tv] });
+    renderPanel();
+    expect(networkApi.scan).toHaveBeenCalled();
+    expect(screen.getByRole("radiogroup", { name: "This computer" })).toBeInTheDocument();
+    const network = screen.getByRole("radiogroup", { name: "On your network" });
+    const rows = within(network).getAllByRole("radio");
+    expect(rows.map((r) => r.textContent)).toEqual([
+      expect.stringContaining("Kitchen"),
+      expect.stringContaining("Living room TV"),
+    ]);
+    expect(rows[0]).toHaveTextContent("Speaker · UPnP/DLNA");
+    expect(rows[1]).toHaveTextContent("TV · Cast");
+  });
+
+  it("says when it is still looking or found nothing", () => {
+    useNetwork.setState({ scanning: true });
+    const { unmount } = renderPanel();
+    expect(screen.getAllByText("Looking for speakers and TVs …").length).toBeGreaterThan(0);
+    unmount();
+    useNetwork.setState({ scanning: false });
+    renderPanel();
+    expect(screen.getByText(/No speakers found/)).toBeInTheDocument();
+  });
+
+  it("plays on a speaker when it is chosen", async () => {
+    useNetwork.setState({ devices: [tv] });
+    vi.spyOn(networkApi, "connect").mockResolvedValue({
+      device: tv,
+      mimes: [],
+      maxSampleRate: 96_000,
+      volume: null,
+    });
+    renderPanelPlaying();
+    fireEvent.click(screen.getByRole("radio", { name: /Living room TV/ }));
+    expect(networkApi.connect).toHaveBeenCalledWith("cast:tv");
+    await waitFor(() =>
+      expect(screen.getByRole("radio", { name: /Living room TV/ })).toHaveAttribute("aria-checked", "true"),
+    );
+    expect(screen.getByTestId("output-line")).toHaveTextContent("Playing on Living room TV");
+    expect(screen.getByRole("radio", { name: /System default/ })).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByText(/only work on this computer/)).toBeInTheDocument();
+  });
+
+  it("shows nothing of the network when the setting is off", () => {
+    useSettings.setState({ networkSpeakers: false });
+    useNetwork.setState({ devices: [tv] });
+    renderPanel();
+    expect(screen.queryByRole("radiogroup", { name: "On your network" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Living room TV")).not.toBeInTheDocument();
+    expect(networkApi.scan).not.toHaveBeenCalled();
   });
 });
 

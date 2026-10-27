@@ -7,7 +7,9 @@ use std::time::{Duration, Instant};
 
 use musify_cast::NetGate;
 use musify_cast::cast::{CastRenderer, DEFAULT_MEDIA_RECEIVER};
-use musify_cast::castv2::{CastChannel, CastMessage, NS_CONNECTION, NS_HEARTBEAT, NS_MEDIA, NS_RECEIVER};
+use musify_cast::castv2::{
+    CastChannel, CastMessage, NS_CONNECTION, NS_HEARTBEAT, NS_MEDIA, NS_RECEIVER,
+};
 use musify_cast::renderer::{MediaItem, Renderer, RendererError, TransportState};
 use serde_json::{Value, json};
 
@@ -66,7 +68,9 @@ impl Fake {
         let shared = state.clone();
         std::thread::spawn(move || {
             let (stream, _) = listener.accept().unwrap();
-            stream.set_read_timeout(Some(Duration::from_millis(10))).unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_millis(10)))
+                .unwrap();
             serve(CastChannel::new(stream), &shared, pushed);
         });
         Fake { state, push, addr }
@@ -74,12 +78,15 @@ impl Fake {
 
     fn client(&self) -> TcpStream {
         let stream = TcpStream::connect(self.addr).unwrap();
-        stream.set_read_timeout(Some(Duration::from_millis(20))).unwrap();
+        stream
+            .set_read_timeout(Some(Duration::from_millis(20)))
+            .unwrap();
         stream
     }
 
     fn renderer(&self, gate: &Arc<NetGate>) -> CastRenderer<TcpStream> {
-        CastRenderer::over_stream(gate.clone(), self.client()).expect("connect to the fake receiver")
+        CastRenderer::over_stream(gate.clone(), self.client())
+            .expect("connect to the fake receiver")
     }
 
     fn log(&self) -> Vec<Seen> {
@@ -126,7 +133,11 @@ impl Fake {
 }
 
 fn receiver_status(state: &FakeState, request_id: u64) -> Value {
-    let applications = if state.launched { json!([app()]) } else { json!([]) };
+    let applications = if state.launched {
+        json!([app()])
+    } else {
+        json!([])
+    };
     json!({
         "type": "RECEIVER_STATUS",
         "requestId": request_id,
@@ -134,7 +145,11 @@ fn receiver_status(state: &FakeState, request_id: u64) -> Value {
     })
 }
 
-fn serve(mut channel: CastChannel<TcpStream>, shared: &Mutex<FakeState>, pushed: Receiver<CastMessage>) {
+fn serve(
+    mut channel: CastChannel<TcpStream>,
+    shared: &Mutex<FakeState>,
+    pushed: Receiver<CastMessage>,
+) {
     loop {
         while let Ok(msg) = pushed.try_recv() {
             if channel.send(&msg).is_err() {
@@ -159,19 +174,31 @@ fn serve(mut channel: CastChannel<TcpStream>, shared: &Mutex<FakeState>, pushed:
 
         let mut replies: Vec<(&str, &str, Value)> = Vec::new();
         match (msg.namespace.as_str(), kind.as_str()) {
-            (NS_HEARTBEAT, "PING") => replies.push((NS_HEARTBEAT, "receiver-0", json!({ "type": "PONG" }))),
-            (NS_RECEIVER, "GET_STATUS") => {
-                replies.push((NS_RECEIVER, "receiver-0", receiver_status(&state, request_id)))
+            (NS_HEARTBEAT, "PING") => {
+                replies.push((NS_HEARTBEAT, "receiver-0", json!({ "type": "PONG" })))
             }
+            (NS_RECEIVER, "GET_STATUS") => replies.push((
+                NS_RECEIVER,
+                "receiver-0",
+                receiver_status(&state, request_id),
+            )),
             (NS_RECEIVER, "LAUNCH") => {
                 // Like a real device: first a status without the app, then the broadcast with it.
-                replies.push((NS_RECEIVER, "receiver-0", receiver_status(&state, request_id)));
+                replies.push((
+                    NS_RECEIVER,
+                    "receiver-0",
+                    receiver_status(&state, request_id),
+                ));
                 state.launched = true;
                 replies.push((NS_RECEIVER, "receiver-0", receiver_status(&state, 0)));
             }
             (NS_RECEIVER, "SET_VOLUME") => {
                 state.volume = json["volume"]["level"].as_f64().unwrap();
-                replies.push((NS_RECEIVER, "receiver-0", receiver_status(&state, request_id)));
+                replies.push((
+                    NS_RECEIVER,
+                    "receiver-0",
+                    receiver_status(&state, request_id),
+                ));
             }
             (NS_MEDIA, "LOAD") if state.reject_load => {
                 replies.push((
@@ -181,9 +208,12 @@ fn serve(mut channel: CastChannel<TcpStream>, shared: &Mutex<FakeState>, pushed:
                 ));
             }
             (NS_MEDIA, "LOAD") => {
-                let player = if json["autoplay"] == true { "PLAYING" } else { "PAUSED" };
-                state.media_status =
-                    json!([{ "mediaSessionId": MEDIA_SESSION, "playerState": player, "currentTime": 0.0 }]);
+                let player = if json["autoplay"] == true {
+                    "PLAYING"
+                } else {
+                    "PAUSED"
+                };
+                state.media_status = json!([{ "mediaSessionId": MEDIA_SESSION, "playerState": player, "currentTime": 0.0 }]);
                 replies.push((
                     NS_MEDIA,
                     TRANSPORT,
@@ -281,7 +311,11 @@ fn joins_an_app_that_already_runs() {
     let log = fake.wait_for("the transport CONNECT", |log| log.len() >= 3);
     assert_eq!(
         fake.kinds(),
-        vec!["CONNECT>receiver-0", "GET_STATUS>receiver-0", "CONNECT>tr-1"]
+        vec![
+            "CONNECT>receiver-0",
+            "GET_STATUS>receiver-0",
+            "CONNECT>tr-1"
+        ]
     );
     assert!(log.iter().all(|s| s.kind() != "LAUNCH"));
 }
@@ -313,7 +347,11 @@ fn load_sends_the_media_request() {
 
     // A silent load: autoplay off.
     renderer.load(&track(), 0, false).unwrap();
-    let loads: Vec<_> = fake.log().into_iter().filter(|s| s.kind() == "LOAD").collect();
+    let loads: Vec<_> = fake
+        .log()
+        .into_iter()
+        .filter(|s| s.kind() == "LOAD")
+        .collect();
     assert_eq!(loads[1].json["autoplay"], false);
 }
 
@@ -336,7 +374,10 @@ fn transport_controls_use_the_media_session() {
     let fake = Fake::start(false);
     let mut renderer = fake.renderer(&open_gate());
     assert!(matches!(renderer.play(), Err(RendererError::Rejected(m)) if m == "nothing loaded"));
-    assert!(matches!(renderer.set_next(None), Err(RendererError::Unsupported)));
+    assert!(matches!(
+        renderer.set_next(None),
+        Err(RendererError::Unsupported)
+    ));
 
     renderer.load(&track(), 0, true).unwrap();
     renderer.pause().unwrap();
@@ -354,7 +395,11 @@ fn transport_controls_use_the_media_session() {
     assert_eq!(seek.json["currentTime"].as_f64(), Some(61.5));
 
     renderer.stop().unwrap();
-    assert!(fake.log().iter().any(|s| s.kind() == "STOP" && s.namespace == NS_MEDIA));
+    assert!(
+        fake.log()
+            .iter()
+            .any(|s| s.kind() == "STOP" && s.namespace == NS_MEDIA)
+    );
     assert!(matches!(renderer.play(), Err(RendererError::Rejected(m)) if m == "nothing loaded"));
 }
 
@@ -420,7 +465,10 @@ fn status_maps_player_states() {
             json!({ "playerState": "PAUSED", "currentTime": 1.0 }),
             TransportState::Paused,
         ),
-        (json!({ "playerState": "BUFFERING" }), TransportState::Buffering),
+        (
+            json!({ "playerState": "BUFFERING" }),
+            TransportState::Buffering,
+        ),
         (
             json!({ "playerState": "IDLE", "idleReason": "FINISHED" }),
             TransportState::Finished,
@@ -477,7 +525,12 @@ fn a_finished_broadcast_survives_an_empty_status() {
 fn answers_ping_with_pong() {
     let fake = Fake::start(false);
     let mut renderer = fake.renderer(&open_gate());
-    fake.send(NS_HEARTBEAT, "receiver-0", "sender-0", json!({ "type": "PING" }));
+    fake.send(
+        NS_HEARTBEAT,
+        "receiver-0",
+        "sender-0",
+        json!({ "type": "PING" }),
+    );
     // The renderer answers while it ticks (or while it waits for another reply).
     let deadline = Instant::now() + Duration::from_secs(3);
     let pong = loop {
@@ -496,7 +549,12 @@ fn answers_ping_with_pong() {
 fn pings_are_answered_while_waiting_for_a_reply() {
     let fake = Fake::start(false);
     let mut renderer = fake.renderer(&open_gate());
-    fake.send(NS_HEARTBEAT, "receiver-0", "sender-0", json!({ "type": "PING" }));
+    fake.send(
+        NS_HEARTBEAT,
+        "receiver-0",
+        "sender-0",
+        json!({ "type": "PING" }),
+    );
     std::thread::sleep(Duration::from_millis(50));
     renderer.set_volume(0.3).unwrap();
     fake.wait_for("PONG", |log| log.iter().any(|s| s.kind() == "PONG"));
@@ -516,7 +574,10 @@ fn a_status_without_our_app_means_taken_over() {
             "volume": { "level": 0.5 }
         } }),
     );
-    assert!(matches!(tick_until_error(&mut renderer), RendererError::TakenOver));
+    assert!(matches!(
+        tick_until_error(&mut renderer),
+        RendererError::TakenOver
+    ));
     // It stays that way, and requests fail without touching the network.
     assert!(matches!(renderer.tick(), Err(RendererError::TakenOver)));
     assert!(matches!(
@@ -533,8 +594,16 @@ fn a_status_without_our_app_means_taken_over() {
 fn a_close_from_the_transport_means_taken_over() {
     let fake = Fake::start(false);
     let mut renderer = fake.renderer(&open_gate());
-    fake.send(NS_CONNECTION, TRANSPORT, "sender-0", json!({ "type": "CLOSE" }));
-    assert!(matches!(tick_until_error(&mut renderer), RendererError::TakenOver));
+    fake.send(
+        NS_CONNECTION,
+        TRANSPORT,
+        "sender-0",
+        json!({ "type": "CLOSE" }),
+    );
+    assert!(matches!(
+        tick_until_error(&mut renderer),
+        RendererError::TakenOver
+    ));
 }
 
 #[test]
@@ -581,7 +650,10 @@ fn a_closed_gate_makes_tick_fail() {
     renderer.tick().unwrap();
     gate.set_open(false);
     assert!(matches!(renderer.tick(), Err(RendererError::Connection(_))));
-    assert!(matches!(renderer.set_volume(0.5), Err(RendererError::Connection(_))));
+    assert!(matches!(
+        renderer.set_volume(0.5),
+        Err(RendererError::Connection(_))
+    ));
     // close() must not panic with the gate shut either.
     renderer.close();
 }
@@ -594,7 +666,9 @@ fn a_device_that_hangs_up_is_a_connection_error() {
         let _ = listener.accept();
     });
     let stream = TcpStream::connect(addr).unwrap();
-    stream.set_read_timeout(Some(Duration::from_millis(20))).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_millis(20)))
+        .unwrap();
     assert!(matches!(
         CastRenderer::over_stream(open_gate(), stream),
         Err(RendererError::Connection(_))

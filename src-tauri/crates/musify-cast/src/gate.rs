@@ -50,7 +50,11 @@ impl NetGate {
 
     /// Fails with [`closed_error`] while the gate is closed.
     pub fn check(&self) -> io::Result<()> {
-        if self.is_open() { Ok(()) } else { Err(closed_error()) }
+        if self.is_open() {
+            Ok(())
+        } else {
+            Err(closed_error())
+        }
     }
 
     /// An IPv4 UDP socket bound to `bind` (discovery queries).
@@ -81,7 +85,10 @@ impl NetGate {
 
 /// The error every gated call returns while network speakers are off.
 pub fn closed_error() -> io::Error {
-    io::Error::new(io::ErrorKind::PermissionDenied, "network speakers are turned off")
+    io::Error::new(
+        io::ErrorKind::PermissionDenied,
+        "network speakers are turned off",
+    )
 }
 
 #[cfg(test)]

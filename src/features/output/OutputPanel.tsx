@@ -1,14 +1,16 @@
 import { useTranslation } from "react-i18next";
-import { AudioWaveform, Check, RefreshCw, Speaker, X } from "lucide-react";
+import { AudioWaveform, RefreshCw, Speaker, X } from "lucide-react";
 import { IconButton } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
-import { cn } from "@/lib/cn";
 import { useLayout } from "@/app/layout/layoutStore";
-import { useEngineStatus } from "@/player/bridge";
+import { disconnectNetworkDevice, useEngineStatus } from "@/player/bridge";
 import type { DeviceInfo } from "@/player/engineTypes";
+import { networkApi, useNetwork } from "@/player/network";
 import { isLossless, qualityLabel } from "@/player/quality";
 import { usePlayer } from "@/player/store";
 import { useSettings } from "@/settings/store";
+import { DeviceRow } from "./DeviceRow";
+import { NetworkDevices } from "./NetworkDevices";
 import { exclusiveSummary, formatOutputFormat, formatSampleRate } from "./signalPath";
 import { QuickSound } from "./QuickSound";
 import { useOutputDevices } from "./useOutputDevices";
@@ -18,6 +20,7 @@ function AudioStatus() {
   const { t } = useTranslation();
   const track = usePlayer((s) => s.current?.track);
   const output = useEngineStatus((s) => s.outputFormat);
+  const speaker = useNetwork((s) => s.active?.device.name ?? null);
   const label = track ? qualityLabel(track.format) : null;
   if (!track || !label) return null;
   const lossless = isLossless(track.format);
@@ -48,10 +51,16 @@ function AudioStatus() {
         {label}
       </p>
       <p className="text-sm text-subdued">{details}</p>
-      {output && (
-        <p className="mt-1 text-xs break-words text-subdued" data-testid="output-line">
-          {t("output.playsOn", { output: formatOutputFormat(output) })}
+      {speaker !== null ? (
+        <p className="mt-1 text-xs font-bold break-words text-accent" data-testid="output-line">
+          {t("output.network.playingOn", { name: speaker })}
         </p>
+      ) : (
+        output && (
+          <p className="mt-1 text-xs break-words text-subdued" data-testid="output-line">
+            {t("output.playsOn", { output: formatOutputFormat(output) })}
+          </p>
+        )
       )}
       {output?.exclusiveFallback && (
         <p className="mt-1 text-xs text-warning">
@@ -59,46 +68,6 @@ function AudioStatus() {
         </p>
       )}
     </section>
-  );
-}
-
-function DeviceRow({
-  selected,
-  name,
-  detail,
-  isDefault,
-  onSelect,
-}: {
-  selected: boolean;
-  name: string;
-  detail?: string;
-  isDefault?: boolean;
-  onSelect: () => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      onClick={onSelect}
-      className={cn(
-        "flex w-full items-center gap-3 rounded-md p-2 text-left hover:bg-highlight",
-        selected && "bg-highlight",
-      )}
-    >
-      <Speaker size={22} className={selected ? "text-accent" : "text-subdued"} aria-hidden="true" />
-      <span className="min-w-0 flex-1">
-        <span className={cn("block truncate", selected && "font-bold text-accent")}>{name}</span>
-        {detail && <span className="block text-sm break-words text-subdued">{detail}</span>}
-      </span>
-      {isDefault && (
-        <span className="shrink-0 rounded bg-surface px-1.5 py-0.5 text-[11px] text-subdued">
-          {t("output.default")}
-        </span>
-      )}
-      {selected && <Check size={18} className="shrink-0 text-accent" aria-hidden="true" />}
-    </button>
   );
 }
 
@@ -117,19 +86,32 @@ export function OutputPanel() {
   const output = useSettings((s) => s.output);
   const set = useSettings((s) => s.set);
   const { devices, loading, refresh } = useOutputDevices();
+  const networkEnabled = useSettings((s) => s.networkSpeakers);
+  const onSpeaker = useNetwork((s) => s.active !== null);
 
   const defaultDevice = devices.find((d) => d.isDefault);
   const selectedDevice = output.deviceId ? devices.find((d) => d.id === output.deviceId) : defaultDevice;
   const missing = output.deviceId !== null && devices.length > 0 && !selectedDevice;
   const exclusiveUnsupported = !!selectedDevice && !selectedDevice.supportsExclusive;
 
-  const choose = (deviceId: string | null) => set("output", { ...output, deviceId });
+  const choose = (deviceId: string | null) => {
+    if (onSpeaker) void disconnectNetworkDevice();
+    set("output", { ...output, deviceId });
+  };
+  const speakerIcon = (className: string) => <Speaker size={22} className={className} aria-hidden="true" />;
 
   return (
     <>
       <div className="flex h-14 shrink-0 items-center gap-2 px-4">
         <h2 className="min-w-0 flex-1 truncate font-bold">{t("output.panelTitle")}</h2>
-        <IconButton label={t("output.refresh")} onClick={refresh} disabled={loading}>
+        <IconButton
+          label={t("output.refresh")}
+          onClick={() => {
+            refresh();
+            if (networkEnabled) void networkApi.scan().catch(() => {});
+          }}
+          disabled={loading}
+        >
           <RefreshCw size={16} className={loading ? "animate-spin" : undefined} />
         </IconButton>
         <IconButton label={t("window.close")} onClick={closeRightPanel}>
@@ -139,23 +121,33 @@ export function OutputPanel() {
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 [&>*]:shrink-0">
         <AudioStatus />
+        {onSpeaker && <p className="px-2 text-[13px] text-subdued">{t("output.network.soundHint")}</p>}
         <QuickSound />
 
         <section aria-label={t("output.devices")}>
           <h3 className="px-2 pb-1 font-bold">{t("output.devices")}</h3>
-          <div role="radiogroup" aria-label={t("output.devices")} className="flex flex-col">
+          {networkEnabled && (
+            <p className="px-2 pb-1 text-sm font-bold text-subdued">{t("output.network.thisComputer")}</p>
+          )}
+          <div
+            role="radiogroup"
+            aria-label={networkEnabled ? t("output.network.thisComputer") : t("output.devices")}
+            className="flex flex-col"
+          >
             <DeviceRow
-              selected={output.deviceId === null}
+              selected={!onSpeaker && output.deviceId === null}
               name={t("devices.systemDefault")}
               detail={defaultDevice?.name}
+              icon={speakerIcon}
               onSelect={() => choose(null)}
             />
             {devices.map((device) => (
               <DeviceRow
                 key={device.id}
-                selected={output.deviceId === device.id}
+                selected={!onSpeaker && output.deviceId === device.id}
                 name={device.name}
                 detail={deviceDetail(device)}
+                icon={speakerIcon}
                 isDefault={device.isDefault}
                 onSelect={() => choose(device.id)}
               />
@@ -166,6 +158,8 @@ export function OutputPanel() {
             <p className="px-2 pt-2 text-[13px] text-subdued">{t("output.noDevices")}</p>
           )}
         </section>
+
+        {networkEnabled && <NetworkDevices />}
 
         <section className="rounded-lg bg-elevated p-4">
           <div className="flex items-start gap-3">

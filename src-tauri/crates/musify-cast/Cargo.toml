@@ -23,6 +23,8 @@ if-addrs = "0.15"
 quick-xml = "0.42"
 # Secret tokens of the LAN proxy.
 getrandom = "0.3"
+# LAN requests to UPnP renderers (plain HTTP, no redirects); same reqwest as the engine.
+reqwest = { version = "0.13", default-features = false, features = ["blocking"] }
 # Cast v2 runs over TLS; same rustls + ring stack as the engine.
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 

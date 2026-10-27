@@ -6,6 +6,7 @@ mod discord;
 mod downloads;
 mod media;
 mod migrate;
+mod network;
 mod secrets;
 mod stats;
 mod tray;
@@ -71,6 +72,7 @@ pub fn run() {
             app.manage(downloads::DownloadsState::new(app.handle()));
             app.manage(media::MediaState::start(app.handle()));
             app.manage(discord::DiscordState::start());
+            app.manage(network::NetworkState::new());
             app.manage(tray::create(app.handle())?);
             // Started by autostart: stay in the tray until the user opens the window.
             if std::env::args().any(|a| a == "--minimized")
@@ -115,7 +117,13 @@ pub fn run() {
             downloads::downloads_storage_info,
             downloads::downloads_set_dir,
             downloads::downloads_lyrics_read,
-            downloads::downloads_lyrics_write
+            downloads::downloads_lyrics_write,
+            network::network_subscribe,
+            network::network_set_enabled,
+            network::network_scan,
+            network::network_connect,
+            network::network_disconnect,
+            network::network_send
         ])
         .run(tauri::generate_context!())
         .expect("error while running Musify");

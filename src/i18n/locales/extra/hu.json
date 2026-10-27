@@ -642,7 +642,23 @@
     "myPresets": "Saját előbeállítások",
     "off": "Ki",
     "allSettings": "Összes beállítás",
-    "playsOn": "Lejátszás ezen: {{output}}"
+    "playsOn": "Lejátszás ezen: {{output}}",
+    "network": {
+      "title": "A hálózaton",
+      "thisComputer": "Ez a számítógép",
+      "searching": "Hangszórók és TV-k keresése …",
+      "none": "Nem található hangszóró. Be kell lennie kapcsolva, és ugyanabban a hálózatban kell lennie.",
+      "connectFailed": "Nem sikerült csatlakozni: {{name}}.",
+      "lost": "Megszakadt a kapcsolat ezzel: {{name}}. A lejátszás szünetel ezen a számítógépen.",
+      "takenOver": "{{name}} most egy másik alkalmazásból játszik. A lejátszás szünetel ezen a számítógépen.",
+      "playingOn": "Lejátszás ezen: {{name}}",
+      "soundHint": "A hangszínszabályzó és a hangeffektek csak ezen a számítógépen működnek. A hangszóró változatlanul kapja a számot.",
+      "kinds": {
+        "speaker": "Hangszóró",
+        "tv": "TV",
+        "group": "Hangszórócsoport"
+      }
+    }
   },
   "playlist": {
     "kindPublic": "Nyilvános lejátszási lista",
@@ -943,7 +959,9 @@
       "deviceHint": "Az eszköz, amelyen a Musify lejátszik. A rendszer alapértelmezése azt követi, amit a rendszerbeállításokban választasz.",
       "unavailable": "Nem elérhető eszköz",
       "exclusive": "Kizárólagos mód",
-      "exclusiveHint": "Átveszi az eszközt, hogy a rendszerkeverő ne módosíthassa a jelet. A bit-perfect kimenethez kizárólagos mód, kikapcsolt hangszínszabályzó és más hangeffektek, valamint 100%-os hangerő szükséges. Bekapcsolt állapotban más alkalmazások nem szólnak."
+      "exclusiveHint": "Átveszi az eszközt, hogy a rendszerkeverő ne módosíthassa a jelet. A bit-perfect kimenethez kizárólagos mód, kikapcsolt hangszínszabályzó és más hangeffektek, valamint 100%-os hangerő szükséges. Bekapcsolt állapotban más alkalmazások nem szólnak.",
+      "networkSpeakers": "Hangszórók keresése a hálózaton",
+      "networkSpeakersHint": "A hálózaton lévő hangszórókat és TV-ket (UPnP/DLNA és Cast) megjeleníti a hangpanelen, hogy lejátszhass rajtuk. A Windows egyszer hálózati hozzáférést kérhet. Kikapcsolt állapotban a Musify nem küld keresési kéréseket a hálózatba, és nem nyit hozzá portot."
     },
     "display": {
       "title": "Megjelenés",

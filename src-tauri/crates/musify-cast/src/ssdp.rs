@@ -43,12 +43,15 @@ pub fn parse_response(datagram: &[u8]) -> Option<SsdpResponse> {
         return None;
     };
 
-    let (mut location, mut st, mut nt, mut nts, mut usn, mut server) = (None, None, None, None, None, None);
+    let (mut location, mut st, mut nt, mut nts, mut usn, mut server) =
+        (None, None, None, None, None, None);
     for line in lines {
         if line.is_empty() {
             break;
         }
-        let Some((name, value)) = line.split_once(':') else { continue };
+        let Some((name, value)) = line.split_once(':') else {
+            continue;
+        };
         let value = value.trim();
         if value.is_empty() {
             continue;
@@ -65,10 +68,19 @@ pub fn parse_response(datagram: &[u8]) -> Option<SsdpResponse> {
         *slot = Some(value.to_string());
     }
 
-    if is_notify && !nts.as_deref().is_some_and(|v| v.eq_ignore_ascii_case("ssdp:alive")) {
+    if is_notify
+        && !nts
+            .as_deref()
+            .is_some_and(|v| v.eq_ignore_ascii_case("ssdp:alive"))
+    {
         return None;
     }
-    Some(SsdpResponse { location: location?, st: if is_notify { nt } else { st }, usn, server })
+    Some(SsdpResponse {
+        location: location?,
+        st: if is_notify { nt } else { st },
+        usn,
+        server,
+    })
 }
 
 fn is_ok_status_line(line: &str) -> bool {
@@ -108,7 +120,11 @@ fn host_of_http_url(url: &str) -> Option<IpAddr> {
     }
     let (host, port) = if let Some(bracketed) = authority.strip_prefix('[') {
         let (host, after) = bracketed.split_once(']')?;
-        let port = if after.is_empty() { None } else { Some(after.strip_prefix(':')?) };
+        let port = if after.is_empty() {
+            None
+        } else {
+            Some(after.strip_prefix(':')?)
+        };
         (IpAddr::V6(host.parse::<Ipv6Addr>().ok()?), port)
     } else {
         let (host, port) = match authority.rsplit_once(':') {
@@ -148,10 +164,22 @@ mod tests {
             ST: urn:schemas-upnp-org:device:MediaRenderer:1\r\n\
             USN: uuid:abc::urn:schemas-upnp-org:device:MediaRenderer:1\r\n\r\n";
         let response = parse_response(datagram).unwrap();
-        assert_eq!(response.location, "http://192.168.1.20:49152/description.xml");
-        assert_eq!(response.st.as_deref(), Some("urn:schemas-upnp-org:device:MediaRenderer:1"));
-        assert_eq!(response.usn.as_deref(), Some("uuid:abc::urn:schemas-upnp-org:device:MediaRenderer:1"));
-        assert_eq!(response.server.as_deref(), Some("Linux/4.9 UPnP/1.0 Renderer/1.2"));
+        assert_eq!(
+            response.location,
+            "http://192.168.1.20:49152/description.xml"
+        );
+        assert_eq!(
+            response.st.as_deref(),
+            Some("urn:schemas-upnp-org:device:MediaRenderer:1")
+        );
+        assert_eq!(
+            response.usn.as_deref(),
+            Some("uuid:abc::urn:schemas-upnp-org:device:MediaRenderer:1")
+        );
+        assert_eq!(
+            response.server.as_deref(),
+            Some("Linux/4.9 UPnP/1.0 Renderer/1.2")
+        );
     }
 
     #[test]
@@ -167,7 +195,10 @@ mod tests {
     #[test]
     fn tolerates_lf_only_line_endings() {
         let datagram = b"HTTP/1.1 200 OK\nLOCATION: http://10.0.0.5/d.xml\nST: urn:x\n\n";
-        assert_eq!(parse_response(datagram).unwrap().location, "http://10.0.0.5/d.xml");
+        assert_eq!(
+            parse_response(datagram).unwrap().location,
+            "http://10.0.0.5/d.xml"
+        );
     }
 
     #[test]
@@ -176,27 +207,46 @@ mod tests {
             NTS: ssdp:alive\r\nLOCATION: http://192.168.1.9:8080/desc\r\nUSN: uuid:9\r\nSERVER: x\r\n\r\n";
         let response = parse_response(datagram).unwrap();
         assert_eq!(response.location, "http://192.168.1.9:8080/desc");
-        assert_eq!(response.st.as_deref(), Some("urn:schemas-upnp-org:device:MediaRenderer:1"));
+        assert_eq!(
+            response.st.as_deref(),
+            Some("urn:schemas-upnp-org:device:MediaRenderer:1")
+        );
     }
 
     #[test]
     fn ignores_byebye_and_notify_without_nts() {
         let byebye = b"NOTIFY * HTTP/1.1\r\nNT: upnp:rootdevice\r\nNTS: ssdp:byebye\r\nUSN: uuid:9\r\nLOCATION: http://1.2.3.4/d\r\n\r\n";
         assert_eq!(parse_response(byebye), None);
-        let no_nts = b"NOTIFY * HTTP/1.1\r\nNT: upnp:rootdevice\r\nLOCATION: http://1.2.3.4/d\r\n\r\n";
+        let no_nts =
+            b"NOTIFY * HTTP/1.1\r\nNT: upnp:rootdevice\r\nLOCATION: http://1.2.3.4/d\r\n\r\n";
         assert_eq!(parse_response(no_nts), None);
     }
 
     #[test]
     fn ignores_responses_without_location_and_junk() {
-        assert_eq!(parse_response(b"HTTP/1.1 200 OK\r\nST: urn:x\r\n\r\n"), None);
-        assert_eq!(parse_response(b"HTTP/1.1 200 OK\r\nLOCATION:\r\n\r\n"), None);
-        assert_eq!(parse_response(b"HTTP/1.1 404 Not Found\r\nLOCATION: http://1.2.3.4/d\r\n\r\n"), None);
-        assert_eq!(parse_response(b"M-SEARCH * HTTP/1.1\r\nLOCATION: http://1.2.3.4/d\r\n\r\n"), None);
+        assert_eq!(
+            parse_response(b"HTTP/1.1 200 OK\r\nST: urn:x\r\n\r\n"),
+            None
+        );
+        assert_eq!(
+            parse_response(b"HTTP/1.1 200 OK\r\nLOCATION:\r\n\r\n"),
+            None
+        );
+        assert_eq!(
+            parse_response(b"HTTP/1.1 404 Not Found\r\nLOCATION: http://1.2.3.4/d\r\n\r\n"),
+            None
+        );
+        assert_eq!(
+            parse_response(b"M-SEARCH * HTTP/1.1\r\nLOCATION: http://1.2.3.4/d\r\n\r\n"),
+            None
+        );
         assert_eq!(parse_response(b"garbage"), None);
         assert_eq!(parse_response(b""), None);
         assert_eq!(parse_response(&[0xff, 0xfe, 0x00, 0x80]), None);
-        assert_eq!(parse_response(b"HTTP/1.1 200 OK\r\nLOCATION: http://1.2.3.4/\xff\r\n\r\n"), None);
+        assert_eq!(
+            parse_response(b"HTTP/1.1 200 OK\r\nLOCATION: http://1.2.3.4/\xff\r\n\r\n"),
+            None
+        );
     }
 
     fn ip(text: &str) -> IpAddr {
@@ -206,8 +256,14 @@ mod tests {
     #[test]
     fn location_must_point_at_the_sender() {
         let from = ip("192.168.1.20");
-        assert!(location_matches_sender("http://192.168.1.20:49152/description.xml", from));
-        assert!(location_matches_sender("http://192.168.1.20/description.xml", from));
+        assert!(location_matches_sender(
+            "http://192.168.1.20:49152/description.xml",
+            from
+        ));
+        assert!(location_matches_sender(
+            "http://192.168.1.20/description.xml",
+            from
+        ));
         assert!(location_matches_sender("http://192.168.1.20", from));
         assert!(location_matches_sender("HTTP://192.168.1.20:80/x", from));
         assert!(location_matches_sender("http://192.168.1.20?x=1", from));
@@ -216,8 +272,14 @@ mod tests {
     #[test]
     fn location_rejects_other_hosts_and_schemes() {
         let from = ip("192.168.1.20");
-        assert!(!location_matches_sender("http://192.168.1.21:49152/d.xml", from));
-        assert!(!location_matches_sender("http://evil.example.com/d.xml", from));
+        assert!(!location_matches_sender(
+            "http://192.168.1.21:49152/d.xml",
+            from
+        ));
+        assert!(!location_matches_sender(
+            "http://evil.example.com/d.xml",
+            from
+        ));
         assert!(!location_matches_sender("http://localhost/d.xml", from));
         assert!(!location_matches_sender("https://192.168.1.20/d.xml", from));
         assert!(!location_matches_sender("ftp://192.168.1.20/d.xml", from));
@@ -225,39 +287,84 @@ mod tests {
         assert!(!location_matches_sender("", from));
         assert!(!location_matches_sender("http://", from));
         assert!(!location_matches_sender("http://192.168.1.20:/d.xml", from));
-        assert!(!location_matches_sender("http://192.168.1.20:99999/d.xml", from));
-        assert!(!location_matches_sender("http://192.168.1.20:80:80/d.xml", from));
+        assert!(!location_matches_sender(
+            "http://192.168.1.20:99999/d.xml",
+            from
+        ));
+        assert!(!location_matches_sender(
+            "http://192.168.1.20:80:80/d.xml",
+            from
+        ));
         assert!(!location_matches_sender("http://192.168.1.2/d.xml", from));
     }
 
     #[test]
     fn location_rejects_spoofed_authorities() {
         let from = ip("192.168.1.20");
-        assert!(!location_matches_sender("http://192.168.1.20@evil.example.com/d.xml", from));
-        assert!(!location_matches_sender("http://user@192.168.1.20/d.xml", from));
-        assert!(!location_matches_sender("http://user:pw@192.168.1.20:80/d.xml", from));
-        assert!(!location_matches_sender("http://evil.example.com/192.168.1.20", from));
-        assert!(!location_matches_sender("http://evil.example.com#@192.168.1.20/", from));
-        assert!(!location_matches_sender("http://192.168.1.20.evil.example.com/d.xml", from));
-        assert!(!location_matches_sender("http://192.168.1.20\\@evil.example.com/", from));
+        assert!(!location_matches_sender(
+            "http://192.168.1.20@evil.example.com/d.xml",
+            from
+        ));
+        assert!(!location_matches_sender(
+            "http://user@192.168.1.20/d.xml",
+            from
+        ));
+        assert!(!location_matches_sender(
+            "http://user:pw@192.168.1.20:80/d.xml",
+            from
+        ));
+        assert!(!location_matches_sender(
+            "http://evil.example.com/192.168.1.20",
+            from
+        ));
+        assert!(!location_matches_sender(
+            "http://evil.example.com#@192.168.1.20/",
+            from
+        ));
+        assert!(!location_matches_sender(
+            "http://192.168.1.20.evil.example.com/d.xml",
+            from
+        ));
+        assert!(!location_matches_sender(
+            "http://192.168.1.20\\@evil.example.com/",
+            from
+        ));
     }
 
     #[test]
     fn location_handles_ipv6_literals() {
         let from = ip("fe80::1234");
-        assert!(location_matches_sender("http://[fe80::1234]:8080/d.xml", from));
-        assert!(location_matches_sender("http://[FE80:0:0:0:0:0:0:1234]/d.xml", from));
-        assert!(!location_matches_sender("http://[fe80::1235]:8080/d.xml", from));
+        assert!(location_matches_sender(
+            "http://[fe80::1234]:8080/d.xml",
+            from
+        ));
+        assert!(location_matches_sender(
+            "http://[FE80:0:0:0:0:0:0:1234]/d.xml",
+            from
+        ));
+        assert!(!location_matches_sender(
+            "http://[fe80::1235]:8080/d.xml",
+            from
+        ));
         assert!(!location_matches_sender("http://fe80::1234/d.xml", from));
         assert!(!location_matches_sender("http://[fe80::1234/d.xml", from));
         assert!(!location_matches_sender("http://[fe80::1234]x/d.xml", from));
-        assert!(!location_matches_sender("http://[fe80::1234]@evil.example.com/", from));
+        assert!(!location_matches_sender(
+            "http://[fe80::1234]@evil.example.com/",
+            from
+        ));
         assert!(!location_matches_sender("http://[fe80::1234]:/d.xml", from));
-        assert!(!location_matches_sender("http://[fe80::1234]:8080/d.xml", ip("192.168.1.20")));
+        assert!(!location_matches_sender(
+            "http://[fe80::1234]:8080/d.xml",
+            ip("192.168.1.20")
+        ));
     }
 
     #[test]
     fn location_accepts_ipv4_mapped_senders() {
-        assert!(location_matches_sender("http://192.168.1.20/d.xml", ip("::ffff:192.168.1.20")));
+        assert!(location_matches_sender(
+            "http://192.168.1.20/d.xml",
+            ip("::ffff:192.168.1.20")
+        ));
     }
 }

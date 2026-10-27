@@ -14,7 +14,9 @@ use rustls::pki_types::{CertificateDer, ServerName, UnixTime};
 use rustls::{ClientConfig, ClientConnection, DigitallySignedStruct, SignatureScheme};
 use serde_json::{Map, Value, json};
 
-use crate::castv2::{CastChannel, CastError, CastMessage, NS_CONNECTION, NS_HEARTBEAT, NS_MEDIA, NS_RECEIVER};
+use crate::castv2::{
+    CastChannel, CastError, CastMessage, NS_CONNECTION, NS_HEARTBEAT, NS_MEDIA, NS_RECEIVER,
+};
 use crate::gate::NetGate;
 use crate::renderer::{MediaItem, Renderer, RendererError, RendererStatus, TransportState};
 
@@ -167,7 +169,9 @@ impl<S: Read + Write + Send> CastRenderer<S> {
                 }
             }
             if Instant::now() >= deadline {
-                return Err(RendererError::Connection("the media receiver did not start".into()));
+                return Err(RendererError::Connection(
+                    "the media receiver did not start".into(),
+                ));
             }
         }
     }
@@ -185,7 +189,12 @@ impl<S: Read + Write + Send> CastRenderer<S> {
         self.gate.check().map_err(io_error)
     }
 
-    fn send_json(&mut self, namespace: &str, destination: &str, payload: String) -> Result<(), RendererError> {
+    fn send_json(
+        &mut self,
+        namespace: &str,
+        destination: &str,
+        payload: String,
+    ) -> Result<(), RendererError> {
         self.gate.check().map_err(io_error)?;
         let channel = self.channel.as_mut().ok_or_else(closed_error)?;
         channel
@@ -235,7 +244,9 @@ impl<S: Read + Write + Send> CastRenderer<S> {
                         return Err(RendererError::TakenOver);
                     }
                     if msg.source_id == RECEIVER {
-                        return Err(RendererError::Connection("the device closed the connection".into()));
+                        return Err(RendererError::Connection(
+                            "the device closed the connection".into(),
+                        ));
                     }
                 }
                 Ok(None)
@@ -283,7 +294,8 @@ impl<S: Read + Write + Send> CastRenderer<S> {
                 self.duration_ms = entry.duration_ms;
             }
             let state = entry_state(&entry);
-            self.ended = matches!(state, TransportState::Finished | TransportState::Failed).then_some(state);
+            self.ended =
+                matches!(state, TransportState::Finished | TransportState::Failed).then_some(state);
         }
     }
 
@@ -311,12 +323,18 @@ impl<S: Read + Write + Send> CastRenderer<S> {
                 };
             }
             if Instant::now() >= deadline {
-                return Err(RendererError::Connection("the device did not answer".into()));
+                return Err(RendererError::Connection(
+                    "the device did not answer".into(),
+                ));
             }
         }
     }
 
-    fn media_request(&mut self, kind: &str, fields: Map<String, Value>) -> Result<Value, RendererError> {
+    fn media_request(
+        &mut self,
+        kind: &str,
+        fields: Map<String, Value>,
+    ) -> Result<Value, RendererError> {
         let transport = self.transport_id.clone();
         self.request(NS_MEDIA, &transport, kind, fields)
     }
@@ -349,7 +367,9 @@ impl<S: Read + Write + Send> Renderer for CastRenderer<S> {
             ));
         };
         if entry_state(first) == TransportState::Failed {
-            return Err(RendererError::Rejected("the device could not play the item".into()));
+            return Err(RendererError::Rejected(
+                "the device could not play the item".into(),
+            ));
         }
         let Some(session) = first.media_session_id else {
             return Err(RendererError::Rejected(
@@ -382,11 +402,18 @@ impl<S: Read + Write + Send> Renderer for CastRenderer<S> {
     }
 
     fn seek(&mut self, position_ms: u64) -> Result<(), RendererError> {
-        self.control("SEEK", object(json!({ "currentTime": position_ms as f64 / 1000.0 })))
+        self.control(
+            "SEEK",
+            object(json!({ "currentTime": position_ms as f64 / 1000.0 })),
+        )
     }
 
     fn set_volume(&mut self, volume: f64) -> Result<(), RendererError> {
-        let level = if volume.is_nan() { 0.0 } else { volume.clamp(0.0, 1.0) };
+        let level = if volume.is_nan() {
+            0.0
+        } else {
+            volume.clamp(0.0, 1.0)
+        };
         let fields = object(json!({ "volume": { "level": level } }));
         self.request(NS_RECEIVER, RECEIVER, "SET_VOLUME", fields)?;
         self.volume = Some(level);
@@ -474,7 +501,9 @@ fn closed_error() -> RendererError {
 fn cast_error(e: CastError) -> RendererError {
     match e {
         CastError::Io(e) => io_error(e),
-        CastError::Invalid(_) | CastError::TooLarge(_) => RendererError::Connection("protocol error".into()),
+        CastError::Invalid(_) | CastError::TooLarge(_) => {
+            RendererError::Connection("protocol error".into())
+        }
     }
 }
 
@@ -542,7 +571,9 @@ fn message_type(json: &Value) -> &str {
 }
 
 fn request_id(json: &Value) -> Option<u64> {
-    json.get("requestId").and_then(Value::as_u64).filter(|&id| id != 0)
+    json.get("requestId")
+        .and_then(Value::as_u64)
+        .filter(|&id| id != 0)
 }
 
 /// Why the device refused a request, without anything the device may have echoed back (the
@@ -551,14 +582,19 @@ fn reject_reason(json: &Value) -> Option<String> {
     let kind = message_type(json);
     if !matches!(
         kind,
-        "INVALID_REQUEST" | "LOAD_FAILED" | "LOAD_CANCELLED" | "LAUNCH_ERROR" | "INVALID_PLAYER_STATE"
+        "INVALID_REQUEST"
+            | "LOAD_FAILED"
+            | "LOAD_CANCELLED"
+            | "LAUNCH_ERROR"
+            | "INVALID_PLAYER_STATE"
     ) {
         return None;
     }
-    let reason = json
-        .get("reason")
-        .and_then(Value::as_str)
-        .filter(|r| r.len() <= 48 && r.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b' '));
+    let reason = json.get("reason").and_then(Value::as_str).filter(|r| {
+        r.len() <= 48
+            && r.bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b' ')
+    });
     Some(match reason {
         Some(reason) => format!("{kind}: {reason}"),
         None => kind.to_string(),
@@ -589,7 +625,8 @@ fn seconds_to_ms(value: &Value) -> Option<u64> {
 }
 
 fn media_entries(json: &Value) -> Vec<MediaEntry> {
-    let text = |entry: &Value, key: &str| entry.get(key).and_then(Value::as_str).map(str::to_string);
+    let text =
+        |entry: &Value, key: &str| entry.get(key).and_then(Value::as_str).map(str::to_string);
     json.get("status")
         .and_then(Value::as_array)
         .into_iter()
@@ -622,7 +659,9 @@ fn entry_state(entry: &MediaEntry) -> TransportState {
 // --- TLS --------------------------------------------------------------------------------------
 
 fn tls_handshake(mut tcp: TcpStream, ip: IpAddr) -> Result<CastTlsStream, RendererError> {
-    let tls_error = |what: &str, e: &dyn std::fmt::Display| RendererError::Connection(format!("TLS {what}: {e}"));
+    let tls_error = |what: &str, e: &dyn std::fmt::Display| {
+        RendererError::Connection(format!("TLS {what}: {e}"))
+    };
 
     let provider = Arc::new(rustls::crypto::ring::default_provider());
     let config = ClientConfig::builder_with_provider(provider.clone())
@@ -650,7 +689,8 @@ fn tls_handshake(mut tcp: TcpStream, ip: IpAddr) -> Result<CastTlsStream, Render
         })?;
     }
     tcp.set_read_timeout(Some(POLL_TIMEOUT)).map_err(io_error)?;
-    tcp.set_write_timeout(Some(WRITE_TIMEOUT)).map_err(io_error)?;
+    tcp.set_write_timeout(Some(WRITE_TIMEOUT))
+        .map_err(io_error)?;
     // Small request/reply messages: don't wait for Nagle.
     let _ = tcp.set_nodelay(true);
     Ok(rustls::StreamOwned::new(conn, tcp))
@@ -681,7 +721,12 @@ impl ServerCertVerifier for AcceptAnyCert {
         cert: &CertificateDer<'_>,
         dss: &DigitallySignedStruct,
     ) -> Result<HandshakeSignatureValid, rustls::Error> {
-        rustls::crypto::verify_tls12_signature(message, cert, dss, &self.provider.signature_verification_algorithms)
+        rustls::crypto::verify_tls12_signature(
+            message,
+            cert,
+            dss,
+            &self.provider.signature_verification_algorithms,
+        )
     }
 
     fn verify_tls13_signature(
@@ -690,11 +735,18 @@ impl ServerCertVerifier for AcceptAnyCert {
         cert: &CertificateDer<'_>,
         dss: &DigitallySignedStruct,
     ) -> Result<HandshakeSignatureValid, rustls::Error> {
-        rustls::crypto::verify_tls13_signature(message, cert, dss, &self.provider.signature_verification_algorithms)
+        rustls::crypto::verify_tls13_signature(
+            message,
+            cert,
+            dss,
+            &self.provider.signature_verification_algorithms,
+        )
     }
 
     fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-        self.provider.signature_verification_algorithms.supported_schemes()
+        self.provider
+            .signature_verification_algorithms
+            .supported_schemes()
     }
 }
 
@@ -724,7 +776,10 @@ mod tests {
         assert_eq!(json["autoplay"], true);
         assert_eq!(json["currentTime"].as_f64(), Some(12.25));
         let media = &json["media"];
-        assert_eq!(media["contentId"], "http://192.168.1.2:4000/t/SECRET/1.flac");
+        assert_eq!(
+            media["contentId"],
+            "http://192.168.1.2:4000/t/SECRET/1.flac"
+        );
         assert_eq!(media["contentType"], "audio/flac");
         assert_eq!(media["streamType"], "BUFFERED");
         assert_eq!(media["duration"].as_f64(), Some(215.5));
@@ -755,7 +810,9 @@ mod tests {
         let metadata = media["metadata"].as_object().unwrap();
         assert_eq!(metadata.len(), 2);
         assert!(
-            !metadata.contains_key("artist") && !metadata.contains_key("albumName") && !metadata.contains_key("images")
+            !metadata.contains_key("artist")
+                && !metadata.contains_key("albumName")
+                && !metadata.contains_key("images")
         );
     }
 
@@ -827,8 +884,7 @@ mod tests {
 
     #[test]
     fn rejections_never_echo_the_payload() {
-        let failed =
-            json!({ "type": "LOAD_FAILED", "requestId": 4, "detailedErrorCode": 905, "url": "http://x/SECRET" });
+        let failed = json!({ "type": "LOAD_FAILED", "requestId": 4, "detailedErrorCode": 905, "url": "http://x/SECRET" });
         assert_eq!(reject_reason(&failed).as_deref(), Some("LOAD_FAILED"));
         let invalid = json!({ "type": "INVALID_REQUEST", "reason": "INVALID_COMMAND" });
         assert_eq!(
