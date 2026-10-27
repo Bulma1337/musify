@@ -25,7 +25,7 @@ const QUALITIES: readonly QualityPreset[] = ["original", "high", "normal", "low"
 const NORMALIZATION_MODES: readonly NormalizationMode[] = ["off", "track", "album", "auto"];
 const TARGETS: readonly LoudnessTarget[] = ["loud", "normal", "quiet"];
 
-/** Swatches of all accent presets: solid colors, then gradients. */
+/** Swatches of all accent presets: gradients (Glut, the default, first), then solid colors. */
 function AccentPicker({ value, onChange }: { value: AccentColor; onChange: (id: AccentColor) => void }) {
   const { t } = useTranslation();
   const group = (kind: AccentPreset["kind"], title: string) => (
@@ -59,8 +59,8 @@ function AccentPicker({ value, onChange }: { value: AccentColor; onChange: (id: 
   );
   return (
     <div className="flex flex-col gap-4">
-      {group("solid", t("settings.display.accentSolids"))}
       {group("gradient", t("settings.display.accentGradients"))}
+      {group("solid", t("settings.display.accentSolids"))}
     </div>
   );
 }

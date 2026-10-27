@@ -107,13 +107,15 @@ const storage: StateStorage = {
  *   crossfade seemed not to work when listening to an album.
  * - v3: the accent no longer follows the cover ("dynamic" becomes the default accent), and unknown
  *   accent ids fall back to it as well.
+ * - v4: Glut ("ember") is the new brand color and default. The old purple default and the presets
+ *   dropped from the new set are unknown ids now, so they switch to it.
  */
 export function migrateSettings(persisted: unknown, version: number): SettingsState {
   const state = (persisted ?? {}) as Partial<SettingsState>;
   if (version < 2 && state.crossfade) {
     state.crossfade = { ...state.crossfade, skipSameAlbum: false };
   }
-  if (version < 3 && state.accent !== undefined) {
+  if (version < 4 && state.accent !== undefined) {
     state.accent = accentPreset(state.accent).id;
   }
   if (state.homeSections) state.homeSections = normalizeHomeSections(state.homeSections);
@@ -151,7 +153,7 @@ export const useSettings = create<SettingsState>()(
     }),
     {
       name: "musify.settings",
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => storage),
       migrate: migrateSettings,
       partialize: ({ set: _set, updateDsp: _update, ...data }) => data,

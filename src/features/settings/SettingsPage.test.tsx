@@ -45,7 +45,7 @@ beforeEach(() => {
     crossfade: { durationMs: 0, skipSameAlbum: true },
     dsp: structuredClone(DEFAULT_DSP),
     output: { deviceId: null, exclusive: false },
-    accent: "purple",
+    accent: "ember",
   });
   useLayout.setState({ zoom: 1 });
 });
@@ -169,8 +169,8 @@ describe("SettingsPage", () => {
     renderSettings();
     for (const [group, name, accent] of [
       ["Colors", "Blue", "blue"],
-      ["Gradients", "Sunset", "sunset"],
-      ["Colors", "Purple", "purple"],
+      ["Gradients", "Ocean", "ocean"],
+      ["Gradients", "Ember", "ember"],
     ] as const) {
       fireEvent.click(radio(group, name));
       expect(useSettings.getState().accent).toBe(accent);
