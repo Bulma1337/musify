@@ -2938,6 +2938,7 @@ dependencies = [
  "tauri-plugin-updater",
  "tauri-plugin-window-state",
  "tempfile",
+ "windows 0.62.2",
 ]
 
 [[package]]
