@@ -1,17 +1,20 @@
 Musify License
-Version 1.0, October 2026
+Version 2.0, October 2026
 
 Copyright (c) 2026 Bulma1337
 https://github.com/Bulma1337/musify
 
-Musify is free to use, privately and commercially. It is not open source: you
-may not distribute modified versions of it, and you may not sell it.
+Musify is free. You may use it privately and commercially, change it as you
+like, and share it, changed or not, as long as you share it free of charge.
+You may never sell it, neither the original nor a changed version.
 
 "The Software" means Musify: the source code in this repository, the programs,
-installers and updates built from it, and the Musify name and logo. "The
-Licensor" is Bulma1337 (https://github.com/Bulma1337), the owner of the Musify
-project. Third-party components included in the Software are not covered by
-this license; see section 4.
+installers and updates built from it, and the Musify name and logo. A
+"modified version" is the Software with changes, or a work based on it or on
+parts of its source code. "The Licensor" is Bulma1337
+(https://github.com/Bulma1337), the owner of the Musify project. Third-party
+components included in the Software are not covered by this license; see
+section 4.
 
 
 1. What you may do
@@ -20,39 +23,39 @@ this license; see section 4.
       devices and for any purpose, private or commercial, including within a
       company or other organization.
 
-   b) Build. You may read the source code and build the Software from the
-      unmodified source code.
+   b) Change. You may read, build and change the source code as you like, for
+      yourself or for others.
 
-   c) Share. You may pass on unmodified copies of the Software to others, free
-      of charge, as long as this license comes with them and no copyright,
-      license or brand notice is removed or changed. Pointing people to the
-      official releases (https://github.com/Bulma1337/musify/releases) is
-      preferred.
+   c) Share. You may pass on the Software and modified versions of it, for
+      example by publishing them on GitHub, as long as:
 
-   d) Contribute. You may fork the official repository and change the source
-      code in your fork for the sole purpose of proposing those changes for
-      inclusion in the official Software, for example as a pull request.
+      - you do so free of charge (see section 2 a),
+      - this license comes with them and applies to them, so that everyone
+        who receives them has the same rights and the same limits,
+      - no copyright, license or third-party notice is removed, and
+      - a modified version clearly says that it is modified and is not the
+        official Musify, and links to https://github.com/Bulma1337/musify.
+
+   d) Contribute. Changes proposed to the official repository, for example as
+      a pull request, are welcome; see section 3.
 
 
 2. What you may not do
 
    Unless the Licensor has given you permission in writing:
 
-   a) No modified versions. You may not distribute, publish or otherwise make
-      available a modified version of the Software, a work based on it, or any
-      part of its source code as part of another product. A fork that exists
-      only for the purpose described in section 1 d) is not a distribution
-      under this clause.
+   a) No selling. You may not sell, resell, rent, lease or sublicense the
+      Software or a modified version of it, charge for copies of it or for
+      access to it, or include it in a product, bundle or service that is
+      sold. This applies to the original and to every modified version. You
+      may charge for your own work (for example, setting up a computer) as long
+      as the Software itself is provided free of charge and under this license.
 
-   b) No selling. You may not sell, resell, rent, lease or sublicense the
-      Software, charge for copies of it or for access to it, or include it in a
-      product, bundle or service that is sold. You may charge for your own
-      work (for example, setting up a computer) as long as the Software itself
-      is provided free of charge and under this license.
-
-   c) No misrepresentation. You may not present the Software, or a part of it,
-      as your own work, or use the Musify name or logo for anything other than
-      referring to the official Software.
+   b) No misrepresentation. You may not present the Software, a modified
+      version or a part of it as your own original work, or present a
+      modified version as the official Musify. The Musify name and logo may
+      only be used to refer to the official Software or to say that a modified
+      version is based on it.
 
 
 3. Contributions
@@ -99,6 +102,6 @@ this license; see section 4.
 
 7. Anything else
 
-   For anything this license does not allow, such as distributing a modified
-   version or including the Software in a paid product, ask the Licensor by
-   opening an issue at https://github.com/Bulma1337/musify/issues.
+   For anything this license does not allow, such as including the Software in
+   a paid product, ask the Licensor by opening an issue at
+   https://github.com/Bulma1337/musify/issues.
