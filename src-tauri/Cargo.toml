@@ -3,7 +3,7 @@ members = ["crates/musify-audio", "crates/musify-cast"]
 
 [package]
 name = "musify"
-version = "1.1.0"
+version = "1.2.0"
 description = "Musify – a fast, lightweight desktop music player for Navidrome, Subsonic and Jellyfin"
 authors = ["Musify contributors"]
 repository = "https://github.com/Bulma1337/musify"
