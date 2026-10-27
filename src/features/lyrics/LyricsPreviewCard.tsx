@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, useRef } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { Lyrics } from "@/api/provider";
-import { useCoverColorOrNull } from "@/components/media/useCoverColor";
+import { useTrackColorOrNull } from "@/components/media/useCoverColor";
 import { cn } from "@/lib/cn";
 import { rgbCss, type Rgb } from "@/lib/color";
 import { usePlayer } from "@/player/store";
@@ -72,7 +72,7 @@ export function LyricsPreviewCard() {
   const { t } = useTranslation();
   const track = usePlayer((s) => s.current?.track);
   const { lyrics } = useLyrics(track);
-  const rgb = useCoverColorOrNull(track?.cover);
+  const rgb = useTrackColorOrNull(track);
   // The full lyrics view is open: no need to show the same text twice.
   const fullViewOpen = useLyricsRoute().open;
   if (!track || !lyrics || fullViewOpen) return null;

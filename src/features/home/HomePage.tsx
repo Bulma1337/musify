@@ -5,6 +5,7 @@ import type { Album, AlbumListType, Playlist } from "@/api/provider";
 import { describeError } from "@/api/errors";
 import { useAlbumList, usePlaylists } from "@/api/queries";
 import { useProvider } from "@/api/session";
+import { AlbumSubtitle } from "@/components/media/AlbumSubtitle";
 import { MediaCard } from "@/components/media/MediaCard";
 import { Shelf } from "@/components/media/Shelf";
 import { Spinner } from "@/components/ui/Spinner";
@@ -18,17 +19,13 @@ import { useSettings } from "@/settings/store";
 
 const QUICK_LIMIT = 8;
 
-function albumSubtitle(album: Album): string {
-  return [album.year, album.artistLine].filter(Boolean).join(" • ");
-}
-
 function AlbumCard({ album }: { album: Album }) {
   const provider = useProvider();
   const playing = useIsContextPlaying("album", album.id);
   return (
     <MediaCard
       title={album.name}
-      subtitle={albumSubtitle(album)}
+      subtitle={<AlbumSubtitle album={album} />}
       cover={album.cover}
       to={`/album/${album.id}`}
       playing={playing}

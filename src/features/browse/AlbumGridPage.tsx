@@ -6,6 +6,7 @@ import type { Album, AlbumListType } from "@/api/provider";
 import { describeError } from "@/api/errors";
 import { useProvider } from "@/api/session";
 import { useScrollContainer } from "@/app/layout/scrollContainer";
+import { AlbumSubtitle } from "@/components/media/AlbumSubtitle";
 import { MediaCard } from "@/components/media/MediaCard";
 import { CardGrid } from "@/components/media/Shelf";
 import { Spinner } from "@/components/ui/Spinner";
@@ -36,7 +37,7 @@ function AlbumCard({ album }: { album: Album }) {
   return (
     <MediaCard
       title={album.name}
-      subtitle={[album.year, album.artistLine].filter(Boolean).join(" • ")}
+      subtitle={<AlbumSubtitle album={album} />}
       cover={album.cover}
       to={`/album/${album.id}`}
       playing={playing}

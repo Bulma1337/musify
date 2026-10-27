@@ -34,6 +34,7 @@
   --animate-fade-in: fade-in 180ms ease-out;
   --animate-pop-in: pop-in 160ms ease-out;
   --animate-marquee: marquee var(--marquee-duration, 10s) ease-in-out infinite;
+  --animate-marquee-edge: marquee-edge var(--marquee-duration, 10s) linear infinite;
 
   @keyframes heart-pop {
     0% {
@@ -77,6 +78,20 @@
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+  /* Left fade of a moving marquee: none while the text rests at its start, soft while it is moved. */
+  @keyframes marquee-edge {
+    0%,
+    17% {
+      --marquee-fade: 0px;
+    }
+    23%,
+    94% {
+      --marquee-fade: 20px;
+    }
+    100% {
+      --marquee-fade: 0px;
     }
   }
   @keyframes marquee {
@@ -198,4 +213,11 @@
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
   }
+}
+
+/* Animated by `marquee-edge` (a registered property, so the keyframes can interpolate it). */
+@property --marquee-fade {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
 }

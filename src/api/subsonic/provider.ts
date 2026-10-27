@@ -56,14 +56,15 @@ const ALBUM_LIST_TYPES: Record<AlbumListType, string> = {
 const POST_ID_THRESHOLD = 200;
 
 /**
- * Whether the user has music by a similar artist the server suggests. Navidrome looks the suggestions
- * up by name among everyone credited in the library, also people only credited as composer, lyricist
- * or producer; their pages would be empty. Without roles (older servers), the album count decides.
+ * Whether a similar artist the server suggests has an album of their own in the library. Navidrome
+ * looks the suggestions up by name among everyone credited anywhere: also guests on someone else's
+ * track ("feat. …") and people credited only as composer, lyricist or producer. Their pages would show
+ * no albums, and the user does not think of them as artists they have. Older servers without roles:
+ * the album count decides.
  */
-export function hasOwnMusic(artist: WireArtist): boolean {
-  if (artist.roles)
-    return artist.roles.some((r) => r === "artist" || r === "albumartist" || r === "maincredit");
-  return artist.albumCount !== 0;
+export function hasOwnAlbums(artist: WireArtist): boolean {
+  if (artist.albumCount === 0) return false;
+  return artist.roles ? artist.roles.includes("albumartist") : true;
 }
 
 export class SubsonicProvider implements MusicProvider {
@@ -130,7 +131,7 @@ export class SubsonicProvider implements MusicProvider {
     const res = await this.client.call("getArtistInfo2", { id });
     const info = res.artistInfo2;
     if (!info) return null;
-    const similar = (info.similarArtist ?? []).filter(hasOwnMusic).map((a) => mapArtist(this.sid, a));
+    const similar = (info.similarArtist ?? []).filter(hasOwnAlbums).map((a) => mapArtist(this.sid, a));
     const result: ArtistInfo = { similarArtists: similar };
     if (info.biography?.trim()) result.biography = info.biography;
     if (info.largeImageUrl) result.imageUrl = info.largeImageUrl;

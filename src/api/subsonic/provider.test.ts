@@ -551,12 +551,13 @@ describe("misc endpoints", () => {
       biography: "bio",
       similarArtists: [{ id: "2" }],
     });
-    // Only artists the user has music by: not people credited only as composer, lyricist, …
+    // Only artists with an album of their own: no guests on other artists' tracks, no songwriters.
     mock.respond(() =>
       subsonicOk({
         artistInfo2: {
           similarArtist: [
-            { id: "3", name: "Performer", roles: ["artist", "composer"] },
+            { id: "3", name: "Guest on a track", roles: ["artist", "maincredit"], albumCount: 0 },
+            { id: "8", name: "Guest, count from older rules", roles: ["artist", "composer"], albumCount: 1 },
             { id: "4", name: "Songwriter only", roles: ["composer", "lyricist"] },
             { id: "5", name: "Album artist", roles: ["albumartist"], albumCount: 2 },
             { id: "6", name: "Old server, no albums", albumCount: 0 },
@@ -566,7 +567,7 @@ describe("misc endpoints", () => {
       }),
     );
     const info = await provider.getArtistInfo("1");
-    expect(info?.similarArtists.map((a) => a.id)).toEqual(["3", "5", "7"]);
+    expect(info?.similarArtists.map((a) => a.id)).toEqual(["5", "7"]);
   });
 
   it("searches with limits and offsets", async () => {

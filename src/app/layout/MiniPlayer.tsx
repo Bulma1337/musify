@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Maximize2, Minus, Pin, PinOff } from "lucide-react";
 import { Cover } from "@/components/media/Cover";
-import { useCoverColor } from "@/components/media/useCoverColor";
+import { useTrackColor } from "@/components/media/useCoverColor";
 import { IconButton } from "@/components/ui/Button";
 import { LyricsLines } from "@/features/lyrics/LyricsPage";
 import { cn } from "@/lib/cn";
@@ -53,7 +53,7 @@ function WindowButtons({ className }: { className?: string }) {
 export function MiniPlayer() {
   const { t } = useTranslation();
   const track = usePlayer((s) => s.current?.track);
-  const rgb = useCoverColor(track?.cover);
+  const rgb = useTrackColor(track);
   const [ref, size] = useElementSize<HTMLDivElement>();
   const [coverRef, cover] = useElementSize<HTMLDivElement>();
   const wide = size.width >= LYRICS_MIN_WIDTH && size.width > size.height * 1.3;
