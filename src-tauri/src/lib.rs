@@ -9,6 +9,7 @@ mod migrate;
 mod network;
 mod secrets;
 mod stats;
+mod thumbbar;
 mod tray;
 
 /// Basic build information shown in Settings → About.
@@ -74,6 +75,7 @@ pub fn run() {
             app.manage(discord::DiscordState::start());
             app.manage(network::NetworkState::new());
             app.manage(tray::create(app.handle())?);
+            thumbbar::init(app.handle());
             // Started by autostart: stay in the tray until the user opens the window.
             if std::env::args().any(|a| a == "--minimized")
                 && let Some(window) = app.get_webview_window("main")
@@ -97,6 +99,8 @@ pub fn run() {
             media::media_playback,
             media::media_clear,
             tray::tray_update,
+            thumbbar::thumbbar_update,
+            thumbbar::thumbbar_clear,
             discord::discord_presence,
             stats::history_record,
             stats::stats_summary,
