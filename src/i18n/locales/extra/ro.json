@@ -226,6 +226,8 @@
     "shuffle": "Redare aleatorie",
     "save": "Salvează albumul",
     "unsave": "Elimină albumul din bibliotecă",
+    "addToLibrary": "Adaugă în bibliotecă",
+    "removeFromLibrary": "Elimină din bibliotecă",
     "saved": "Album salvat",
     "unsaved": "Album eliminat",
     "more": "Mai multe opțiuni",

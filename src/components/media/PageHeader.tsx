@@ -38,9 +38,15 @@ export interface PageHeaderProps {
   coverAction?: { label: string; icon: ReactNode; onClick: () => void };
 }
 
+/** Height of the sticky bar (h-16). */
+const BAR = 64;
+/** Scroll distance over which the bar's background fades in before the header is gone. */
+const FADE = 160;
+
 /**
- * Colored page header with big cover and title, the action row below it, and a compact sticky bar
- * (color + play button + title) that appears once the header scrolls out of view.
+ * Colored page header with big cover and title, the action row below it, and a compact sticky bar.
+ * The bar's background fades in while the header scrolls away; its play button and title appear only
+ * once the action row's play button has disappeared under the bar, so there is never a second one.
  */
 export function PageHeader(props: PageHeaderProps) {
   const { kind, title, cover, coverFallback, art, round, meta, description, playing, onPlay, actions } =
@@ -49,34 +55,57 @@ export function PageHeader(props: PageHeaderProps) {
   const derived = useCoverColor(props.color ? undefined : cover);
   const color = props.color ?? derived;
   const scrollElement = useScrollContainer();
-  const sentinel = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
+  const header = useRef<HTMLElement>(null);
+  const actionRow = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(false);
+  const barColor = rgbCss({ r: color.r * 0.6, g: color.g * 0.6, b: color.b * 0.6 });
 
   useEffect(() => {
-    const element = sentinel.current;
-    if (!element || !scrollElement) return;
-    const observer = new IntersectionObserver(([entry]) => setCompact(!entry?.isIntersecting), {
-      root: scrollElement,
-      rootMargin: "-64px 0px 0px 0px",
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
+    if (!scrollElement) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const top = scrollElement.getBoundingClientRect().top + BAR;
+      const headerBottom = header.current?.getBoundingClientRect().bottom ?? Infinity;
+      // The action row starts with the big play button.
+      const buttonBottom = actionRow.current?.firstElementChild?.getBoundingClientRect().bottom ?? Infinity;
+      // Written straight to the element: no re-render per scroll frame.
+      const fade = Math.min(1, Math.max(0, 1 - (headerBottom - top) / FADE));
+      bar.current?.style.setProperty("--bar-fade", String(fade));
+      setCompact(buttonBottom <= top);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    scrollElement.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      scrollElement.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, [scrollElement]);
 
   return (
     <>
-      <div
-        className={cn(
-          "sticky top-0 z-20 -mb-16 flex h-16 items-center gap-3 px-6 transition-opacity duration-200",
-          compact ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-        style={{ backgroundColor: rgbCss({ r: color.r * 0.6, g: color.g * 0.6, b: color.b * 0.6 }) }}
-      >
-        <PlayButton playing={playing} onClick={onPlay} size={44} />
-        <span className="truncate text-2xl font-bold">{title}</span>
+      <div ref={bar} className={cn("sticky top-0 z-20 -mb-16 h-16", !compact && "pointer-events-none")}>
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: barColor, opacity: "var(--bar-fade, 0)" }}
+        />
+        <div
+          className={cn(
+            "relative flex h-full items-center gap-3 px-6 transition-[opacity,translate] duration-200 ease-out",
+            compact ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
+          )}
+        >
+          <PlayButton playing={playing} onClick={onPlay} size={44} />
+          <span className="truncate text-2xl font-bold">{title}</span>
+        </div>
       </div>
 
       <header
+        ref={header}
         className="@container flex items-end gap-6 px-6 pt-20 pb-6"
         style={{ background: `linear-gradient(${rgbCss(color)}, ${rgbCss(color, 0.55)})` }}
       >
@@ -130,10 +159,8 @@ export function PageHeader(props: PageHeaderProps) {
           {meta && <div className="flex flex-wrap items-center gap-x-1 text-sm">{meta}</div>}
         </div>
       </header>
-      <div ref={sentinel} />
-
       <div style={{ background: `linear-gradient(${rgbCss(color, 0.35)}, transparent 232px)` }}>
-        <div className="flex items-center gap-6 px-6 py-6">
+        <div ref={actionRow} className="flex items-center gap-6 px-6 py-6">
           <PlayButton playing={playing} onClick={onPlay} />
           {actions}
         </div>

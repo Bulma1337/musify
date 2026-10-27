@@ -101,6 +101,8 @@ export interface WireArtist {
   albumCount?: number;
   starred?: string;
   album?: WireAlbum[];
+  /** OpenSubsonic: how the artist is credited ("artist", "albumartist", "composer", …). */
+  roles?: string[];
 }
 
 export interface WirePlaylist {

@@ -221,6 +221,8 @@
     "shuffle": "Spill i tilfeldig rekkefølge",
     "save": "Lagre album",
     "unsave": "Fjern album fra biblioteket",
+    "addToLibrary": "Legg til i biblioteket",
+    "removeFromLibrary": "Fjern fra biblioteket",
     "saved": "Album lagret",
     "unsaved": "Album fjernet",
     "more": "Flere valg",

@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { DropdownMenu } from "radix-ui";
-import { Ellipsis, ListEnd, ListStart, Mic2, Shuffle } from "lucide-react";
+import { CircleCheck, CirclePlus, Ellipsis, ListEnd, ListStart, Mic2 } from "lucide-react";
 import { describeError } from "@/api/errors";
 import { ProviderError, type AlbumDetail } from "@/api/provider";
 import { useAlbum, useArtist, useIsStarred, useSetStarred } from "@/api/queries";
@@ -12,8 +12,9 @@ import { QualityBadge } from "@/components/media/QualityBadge";
 import { MediaCard } from "@/components/media/MediaCard";
 import { PageHeader } from "@/components/media/PageHeader";
 import { Shelf } from "@/components/media/Shelf";
+import { ShuffleToggle } from "@/components/media/ShuffleToggle";
 import { TrackList } from "@/components/media/TrackList";
-import { menuContent, menuItem } from "@/components/media/TrackMenu";
+import { menuContent, menuItem, menuSeparator } from "@/components/media/TrackMenu";
 import { IconButton } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { toast, toastError } from "@/components/ui/toast";
@@ -85,11 +86,6 @@ function AlbumView({ album }: { album: AlbumDetail }) {
     playOrToggle(context, () => album.tracks);
   }
 
-  function shuffle() {
-    usePlayer.getState().setShuffle("shuffle");
-    usePlayer.getState().playTracks(album.tracks, 0, context);
-  }
-
   function toggleSaved() {
     const starred = !saved;
     setStarred.mutate(
@@ -127,9 +123,7 @@ function AlbumView({ album }: { album: AlbumDetail }) {
 
   const actions = (
     <div className="flex items-center gap-4">
-      <IconButton label={t("album.shuffle")} size={40} onClick={shuffle}>
-        <Shuffle size={24} />
-      </IconButton>
+      <ShuffleToggle context={context} tracks={() => album.tracks} label={t("album.shuffle")} />
       <IconButton
         label={saved ? t("album.unsave") : t("album.save")}
         size={40}
@@ -148,6 +142,11 @@ function AlbumView({ album }: { album: AlbumDetail }) {
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content align="start" sideOffset={6} className={menuContent}>
+            <DropdownMenu.Item className={menuItem} disabled={offline} onSelect={toggleSaved}>
+              {saved ? <CircleCheck size={18} className="text-accent" /> : <CirclePlus size={18} />}
+              {saved ? t("album.removeFromLibrary") : t("album.addToLibrary")}
+            </DropdownMenu.Item>
+            <DropdownMenu.Separator className={menuSeparator} />
             <DropdownMenu.Item
               className={menuItem}
               onSelect={() => {
