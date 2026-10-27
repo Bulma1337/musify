@@ -19,6 +19,7 @@ import { DownloadsController } from "@/features/downloads/DownloadsController";
 import { OfflineBanner } from "@/features/downloads/OfflineBanner";
 import { inTauri } from "@/lib/platform";
 import { startEngineBridge } from "@/player/bridge";
+import { useThumbBar } from "@/player/thumbBar";
 import { useAppearance } from "@/settings/appearance";
 import { startEngineSettingsSync } from "@/settings/engineSync";
 import { LIBRARY_COLLAPSED_WIDTH, useLayout } from "./layoutStore";
@@ -106,6 +107,12 @@ function MainView() {
   );
 }
 
+/** Buttons in the taskbar preview; a component of its own so player changes don't re-render the shell. */
+function ThumbBar() {
+  useThumbBar();
+  return null;
+}
+
 /** Logged-in layout: title bar, library, main view, right panel, player bar. */
 export function AppShell() {
   const narrow = useMediaQuery(NARROW_WINDOW_QUERY);
@@ -144,6 +151,8 @@ export function AppShell() {
       <div className="h-full">
         <MiniPlayer />
         <Toaster />
+        {/* Same key in both layouts: stays mounted when switching. */}
+        <ThumbBar key="thumbbar" />
       </div>
     );
   }
@@ -178,6 +187,7 @@ export function AppShell() {
       {view === "fullscreen" && <FullscreenPlayer />}
       <Toaster />
       <DownloadsController />
+      <ThumbBar key="thumbbar" />
     </div>
   );
 }
