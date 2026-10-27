@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MicVocal, Minimize2 } from "lucide-react";
 import { Cover } from "@/components/media/Cover";
-import { useCoverColor } from "@/components/media/useCoverColor";
+import { useTrackColor } from "@/components/media/useCoverColor";
 import { IconButton } from "@/components/ui/Button";
 import { LyricsLines } from "@/features/lyrics/LyricsPage";
 import { cn } from "@/lib/cn";
@@ -24,7 +24,7 @@ export function FullscreenPlayer() {
   const isPlaying = usePlayer((s) => s.isPlaying);
   const contextName = usePlayer((s) => s.context?.name);
   const backToShell = usePlayerView((s) => s.backToShell);
-  const rgb = useCoverColor(track?.cover);
+  const rgb = useTrackColor(track);
   const [lyrics, setLyrics] = useState(false);
   const [idle, setIdle] = useState(false);
   const timer = useRef<number | undefined>(undefined);

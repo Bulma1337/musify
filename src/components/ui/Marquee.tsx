@@ -3,8 +3,8 @@ import { cn } from "@/lib/cn";
 
 /** Pixels per second while the text moves. */
 const SPEED = 30;
-/** Gap at the end so the last letter does not stop right at the edge. */
-const END_GAP = 16;
+/** Width of the soft right edge, and the gap at the end so the last letter stops clear of it. */
+const END_GAP = 24;
 
 /**
  * One line of text that slowly moves to its end and back when it does not fit (no ellipsis).
@@ -43,11 +43,15 @@ export function Marquee({ children, className }: { children: ReactNode; classNam
       ref={outerRef}
       className={cn(
         "overflow-hidden whitespace-nowrap",
-        moving && "[mask-image:linear-gradient(90deg,black_calc(100%-24px),transparent)]",
+        // Soft edges while moving: the right one always, the left one only while the start of the text
+        // is moved out (animated in step with the text), so no letter is ever cut off hard.
+        moving &&
+          "animate-marquee-edge [mask-image:linear-gradient(90deg,transparent,black_var(--marquee-fade),black_calc(100%-24px),transparent)]",
         className,
       )}
+      style={style}
     >
-      <span ref={innerRef} className={cn("inline-block", moving && "animate-marquee")} style={style}>
+      <span ref={innerRef} className={cn("inline-block", moving && "animate-marquee")}>
         {children}
       </span>
     </div>

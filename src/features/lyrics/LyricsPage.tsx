@@ -11,7 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Minus, MicVocal, Plus, RotateCcw, X } from "lucide-react";
 import type { LyricLine, Lyrics, Track } from "@/api/provider";
-import { useCoverColor } from "@/components/media/useCoverColor";
+import { useTrackColor } from "@/components/media/useCoverColor";
 import { IconButton } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import type { Rgb } from "@/lib/color";
@@ -289,7 +289,7 @@ export function LyricsLines({ track }: { track: Track }) {
 function LyricsContent({ track }: { track: Track }) {
   const { t } = useTranslation();
   const { lyrics, source } = useLyrics(track);
-  const rgb = useCoverColor(track.cover);
+  const rgb = useTrackColor(track);
   const { close } = useLyricsRoute();
 
   useEffect(() => {

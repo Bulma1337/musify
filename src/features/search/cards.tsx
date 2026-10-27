@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { Album, Artist } from "@/api/provider";
 import { useProvider } from "@/api/session";
+import { AlbumSubtitle } from "@/components/media/AlbumSubtitle";
 import { MediaCard } from "@/components/media/MediaCard";
 import { loaders, playOrToggle, useIsContextPlaying } from "@/player/actions";
 
@@ -10,7 +11,7 @@ export function AlbumResultCard({ album }: { album: Album }) {
   return (
     <MediaCard
       title={album.name}
-      subtitle={[album.year, album.artistLine].filter(Boolean).join(" • ")}
+      subtitle={<AlbumSubtitle album={album} />}
       cover={album.cover}
       to={`/album/${album.id}`}
       fallback="album"

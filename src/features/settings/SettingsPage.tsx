@@ -416,19 +416,22 @@ function DisplaySection() {
 export function SettingsPage() {
   const { t } = useTranslation();
   return (
-    <div className="max-w-3xl px-6 pb-10">
-      <h1 className="pt-6 pb-4 text-3xl font-bold tracking-tight">{t("settings.title")}</h1>
-      <div className="flex flex-col gap-5">
-        <AudioQualitySection />
-        <PlaybackSection />
-        <OutputSection />
-        <div className="rounded-lg bg-elevated px-6">
-          <StorageSettings />
+    // Wide windows get two columns of sections instead of one narrow column and empty space.
+    <div className="@container px-6 pb-10">
+      <div className="mx-auto max-w-3xl @5xl:max-w-[88rem]">
+        <h1 className="pt-6 pb-4 text-3xl font-bold tracking-tight">{t("settings.title")}</h1>
+        <div className="gap-5 @5xl:columns-2 [&>*]:mb-5 [&>*]:break-inside-avoid">
+          <AudioQualitySection />
+          <PlaybackSection />
+          <OutputSection />
+          <div className="rounded-lg bg-elevated px-6">
+            <StorageSettings />
+          </div>
+          <HomeSettings />
+          <DisplaySection />
+          <SystemSection />
+          <AboutSection />
         </div>
-        <HomeSettings />
-        <DisplaySection />
-        <SystemSection />
-        <AboutSection />
       </div>
     </div>
   );
