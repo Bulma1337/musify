@@ -221,6 +221,8 @@
     "shuffle": "Afspil tilfældigt",
     "save": "Gem album",
     "unsave": "Fjern album fra biblioteket",
+    "addToLibrary": "Føj til biblioteket",
+    "removeFromLibrary": "Fjern fra biblioteket",
     "saved": "Album gemt",
     "unsaved": "Album fjernet",
     "more": "Flere valgmuligheder",

@@ -221,6 +221,8 @@
     "shuffle": "Karışık çal",
     "save": "Albümü kaydet",
     "unsave": "Albümü kitaplıktan kaldır",
+    "addToLibrary": "Kitaplığa ekle",
+    "removeFromLibrary": "Kitaplıktan kaldır",
     "saved": "Albüm kaydedildi",
     "unsaved": "Albüm kaldırıldı",
     "more": "Diğer seçenekler",

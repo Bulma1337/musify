@@ -221,6 +221,8 @@
     "shuffle": "Véletlen sorrendű lejátszás",
     "save": "Album mentése",
     "unsave": "Album eltávolítása a könyvtárból",
+    "addToLibrary": "Hozzáadás a könyvtárhoz",
+    "removeFromLibrary": "Eltávolítás a könyvtárból",
     "saved": "Album mentve",
     "unsaved": "Album eltávolítva",
     "more": "További lehetőségek",

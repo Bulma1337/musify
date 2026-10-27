@@ -216,6 +216,8 @@
     "shuffle": "Putar acak",
     "save": "Simpan album",
     "unsave": "Hapus album dari pustaka",
+    "addToLibrary": "Tambahkan ke pustaka",
+    "removeFromLibrary": "Hapus dari pustaka",
     "saved": "Album disimpan",
     "unsaved": "Album dihapus",
     "more": "Opsi lainnya",

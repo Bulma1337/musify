@@ -14,7 +14,6 @@ import {
   Lock,
   Pencil,
   Search,
-  Shuffle,
   Trash2,
 } from "lucide-react";
 import type { PlaylistDetail } from "@/api/provider";
@@ -23,6 +22,7 @@ import { usePlaylist } from "@/api/queries";
 import { useProvider } from "@/api/session";
 import { describeError } from "@/api/errors";
 import { PageHeader } from "@/components/media/PageHeader";
+import { ShuffleToggle } from "@/components/media/ShuffleToggle";
 import { TrackList } from "@/components/media/TrackList";
 import { menuContent, menuItem, menuSeparator } from "@/components/media/TrackMenu";
 import { Button, IconButton } from "@/components/ui/Button";
@@ -121,14 +121,6 @@ function PlaylistView({ playlist }: { playlist: PlaylistDetail }) {
     }
   }
 
-  function shuffle() {
-    const player = usePlayer.getState();
-    const tracks = playlist.tracks;
-    if (tracks.length === 0) return;
-    player.playTracks(tracks, Math.floor(Math.random() * tracks.length), context);
-    player.setShuffle("shuffle");
-  }
-
   async function changeImage(file: File) {
     try {
       const dataUrl = await imageFileToCover(file);
@@ -191,9 +183,7 @@ function PlaylistView({ playlist }: { playlist: PlaylistDetail }) {
           onPlay={() => playOrToggle(context, loaders.playlist(provider, playlist.id))}
           actions={
             <>
-              <IconButton label={t("playlist.shuffle")} size={40} onClick={shuffle}>
-                <Shuffle size={24} />
-              </IconButton>
+              <ShuffleToggle context={context} tracks={() => playlist.tracks} label={t("playlist.shuffle")} />
               <DownloadButton spec={playlistSpec(playlist)} />
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild>

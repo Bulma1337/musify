@@ -2,12 +2,24 @@ import { memo, useRef, useState, type DragEvent } from "react";
 import { NavLink } from "react-router";
 import { useTranslation } from "react-i18next";
 import { ContextMenu } from "radix-ui";
-import { ChevronRight, FolderInput, FolderMinus, FolderPlus, Pin, PinOff, Volume2 } from "lucide-react";
+import {
+  ChevronRight,
+  FolderInput,
+  FolderMinus,
+  FolderPlus,
+  Pause,
+  Pin,
+  PinOff,
+  Play,
+  Volume2,
+} from "lucide-react";
+import { useSession } from "@/api/session";
 import { Cover } from "@/components/media/Cover";
 import { menuContent, menuItem, menuSeparator } from "@/components/media/TrackMenu";
 import { cn } from "@/lib/cn";
 import { currentTrackDrag, isTrackDrag, readTrackDrop, type DraggedTracks } from "@/lib/dnd";
-import { usePlayer } from "@/player/store";
+import { loaders, playOrToggle } from "@/player/actions";
+import { usePlayer, type PlayContext } from "@/player/store";
 import { LibraryDownloadMark } from "./LibraryDownloadMark";
 import { startEntryDrag } from "./libraryDnd";
 import type { LibraryEntry } from "./libraryModel";
@@ -68,6 +80,26 @@ function FolderChoices({
   );
 }
 
+/** Plays a library entry, or pauses/resumes it when it is the one already loaded. */
+function playEntry(entry: LibraryEntry) {
+  const provider = useSession.getState().provider;
+  if (!provider || (entry.kind !== "liked" && !entry.id)) return;
+  const id = entry.id ?? "";
+  const context: PlayContext =
+    entry.kind === "liked"
+      ? { type: "liked", name: entry.title }
+      : { type: entry.kind, id, name: entry.title };
+  const load =
+    entry.kind === "liked"
+      ? loaders.liked(provider)
+      : entry.kind === "playlist"
+        ? loaders.playlist(provider, id)
+        : entry.kind === "album"
+          ? loaders.album(provider, id)
+          : loaders.artist(provider, id, entry.title);
+  playOrToggle(context, load);
+}
+
 function LibraryItemImpl({
   entry,
   serverId,
@@ -121,7 +153,7 @@ function LibraryItemImpl({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       className={cn(
-        "rounded-md",
+        "group/row relative rounded-md",
         depth === 1 && !collapsed && "ml-5",
         over && "bg-highlight outline-2 -outline-offset-2 outline-accent",
       )}
@@ -167,6 +199,27 @@ function LibraryItemImpl({
           </>
         )}
       </NavLink>
+      {!collapsed && (
+        // Over the cover, outside the link: a click plays instead of opening the page (like the
+        // play button on cards). Still drags the playlist, like the rest of the row.
+        <button
+          type="button"
+          aria-label={playing ? t("player.pause") : t("player.play")}
+          draggable={entry.kind === "playlist" ? true : undefined}
+          onDragStart={entry.kind === "playlist" ? (event) => startEntryDrag(event, entry.key) : undefined}
+          onClick={() => playEntry(entry)}
+          className={cn(
+            "absolute top-1/2 left-2 grid size-12 -translate-y-1/2 place-items-center bg-black/50 text-white opacity-0 transition-opacity duration-150 group-hover/row:opacity-100 focus-visible:opacity-100",
+            entry.kind === "artist" ? "rounded-full" : "rounded-[4px]",
+          )}
+        >
+          {playing ? (
+            <Pause size={20} fill="currentColor" strokeWidth={0} />
+          ) : (
+            <Play size={20} fill="currentColor" strokeWidth={0} className="translate-x-[6%]" />
+          )}
+        </button>
+      )}
     </div>
   );
 

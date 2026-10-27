@@ -72,6 +72,7 @@ impl Pipeline {
         };
         let output = factory.open(settings.output, request, out_rx, output_events)?;
         let format = output.format().clone();
+        let control = output.control();
         // The stream decides the final rate (exclusive negotiates; it may also have fallen back
         // to shared mode).
         let rate = format.sample_rate;
@@ -94,6 +95,7 @@ impl Pipeline {
             mixer_rx,
             mixer_events,
             OUTPUT_TARGET_FILL_MS,
+            control,
         );
         let crossfade_frames = u64::from(settings.crossfade_frames_ms) * u64::from(rate) / 1000;
         let _ = mixer_tx.send(MixerMsg::Crossfade {

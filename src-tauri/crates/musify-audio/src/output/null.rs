@@ -167,4 +167,8 @@ impl OutputStream for NullOutput {
     fn flush(&mut self) {
         self.control.request_flush();
     }
+
+    fn control(&self) -> Option<Arc<Control>> {
+        Some(self.control.clone())
+    }
 }

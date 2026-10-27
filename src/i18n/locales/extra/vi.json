@@ -216,6 +216,8 @@
     "shuffle": "Phát ngẫu nhiên",
     "save": "Lưu album",
     "unsave": "Xóa album khỏi thư viện",
+    "addToLibrary": "Thêm vào thư viện",
+    "removeFromLibrary": "Xóa khỏi thư viện",
     "saved": "Đã lưu album",
     "unsaved": "Đã xóa album",
     "more": "Thêm tùy chọn",

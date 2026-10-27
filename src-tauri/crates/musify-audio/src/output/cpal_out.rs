@@ -244,6 +244,10 @@ impl OutputStream for CpalOutput {
     fn flush(&mut self) {
         self.control.request_flush();
     }
+
+    fn control(&self) -> Option<Arc<Control>> {
+        Some(self.control.clone())
+    }
 }
 
 #[cfg(test)]

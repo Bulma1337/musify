@@ -101,7 +101,13 @@ async function extract(url: string): Promise<Rgb | null> {
 export function dominantColor(url: string): Promise<Rgb | null> {
   let promise = cache.get(url);
   if (!promise) {
-    promise = extract(url).catch(() => null);
+    promise = extract(url)
+      .catch(() => null)
+      .then((rgb) => {
+        // A failure (slow server, network hiccup) is not remembered: the next call tries again.
+        if (!rgb) cache.delete(url);
+        return rgb;
+      });
     cache.set(url, promise);
   }
   return promise;

@@ -8,20 +8,34 @@ import { downloadCollection, removeCollectionDownload, type CollectionSpec } fro
 import { percent } from "./format";
 import { useCollectionStatus, useDownloadsAvailable } from "./store";
 
-/** Accent-filled circle with a down arrow: "everything is on this computer". */
+/**
+ * Accent-filled circle with a down arrow: "everything is on this computer". As large as the outlined
+ * `CircleArrowDown` it replaces (circle plus half its stroke = 22 of 24 units), with the same arrow, so
+ * nothing shrinks when a download completes; filled like the play buttons (gradient accents too).
+ */
 export function DownloadedGlyph({ size = 28 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden className="text-accent">
-      <circle cx="12" cy="12" r="10" fill="currentColor" />
-      <path
-        d="M12 7v8m0 0-3.5-3.5M12 15l3.5-3.5"
+    <span
+      aria-hidden
+      className="relative grid shrink-0 place-items-center"
+      style={{ width: size, height: size }}
+    >
+      <span className="absolute inset-[4.1667%] rounded-full bg-accent accent-fill" />
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
         fill="none"
-        stroke="var(--color-on-accent)"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-    </svg>
+        className="relative text-on-accent"
+      >
+        <path d="M12 8v8" />
+        <path d="m8 12 4 4 4-4" />
+      </svg>
+    </span>
   );
 }
 

@@ -226,6 +226,8 @@
     "shuffle": "Reprodução aleatória",
     "save": "Guardar álbum",
     "unsave": "Remover álbum da biblioteca",
+    "addToLibrary": "Adicionar à biblioteca",
+    "removeFromLibrary": "Remover da biblioteca",
     "saved": "Álbum guardado",
     "unsaved": "Álbum removido",
     "more": "Mais opções",

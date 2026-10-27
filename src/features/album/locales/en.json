@@ -10,6 +10,8 @@
     "shuffle": "Shuffle play",
     "save": "Save album",
     "unsave": "Remove album from library",
+    "addToLibrary": "Add to library",
+    "removeFromLibrary": "Remove from library",
     "saved": "Album saved",
     "unsaved": "Album removed",
     "more": "More options",
