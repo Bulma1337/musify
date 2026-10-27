@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/musify-audio"]
+members = ["crates/musify-audio", "crates/musify-cast"]
 
 [package]
 name = "musify"
@@ -32,6 +32,7 @@ serde_json = "1"
 log = "0.4"
 keyring = "4"
 musify-audio = { path = "crates/musify-audio" }
+musify-cast = { path = "crates/musify-cast" }
 crossbeam-channel = "0.5"
 rusqlite = { version = "0.40", features = ["bundled"] }
 sha2 = "0.11"

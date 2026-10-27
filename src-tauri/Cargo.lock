@@ -2350,6 +2350,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "if-addrs"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c0a05c691e1fae256cf7013d99dad472dc52d5543322761f83ec8d47eab40d2b"
+dependencies = [
+ "libc",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "image"
 version = "0.25.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2918,6 +2928,7 @@ dependencies = [
  "keyring",
  "log",
  "musify-audio",
+ "musify-cast",
  "rusqlite",
  "serde",
  "serde_json",
@@ -2964,6 +2975,25 @@ dependencies = [
  "thiserror 2.0.21",
  "wasapi",
  "windows 0.62.2",
+]
+
+[[package]]
+name = "musify-cast"
+version = "0.1.0"
+dependencies = [
+ "crossbeam-channel",
+ "getrandom 0.3.4",
+ "if-addrs",
+ "log",
+ "musify-audio",
+ "parking_lot",
+ "quick-xml",
+ "rustls",
+ "serde",
+ "serde_json",
+ "socket2",
+ "tempfile",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
