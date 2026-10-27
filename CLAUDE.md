@@ -2,7 +2,7 @@
 
 Desktop music player with a familiar three-panel streaming layout for Subsonic/OpenSubsonic (Navidrome first) and Jellyfin.
 Tauri 2 shell, React 19 + TypeScript frontend, native Rust audio engine. Source-available under the Musify License
-(`LICENSE`): free private and commercial use, no modified versions, no selling. Dependencies must stay permissive
+(`LICENSE`, 2.0): free private and commercial use; changing and sharing it (also changed versions) only free of charge; no selling. Dependencies must stay permissive
 (MIT/Apache/BSD/ISC/Zlib, MPL-2.0 unmodified, OFL fonts); no GPL/LGPL.
 
 ## Priorities

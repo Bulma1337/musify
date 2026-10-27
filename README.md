@@ -4,6 +4,8 @@
 
 <p align="center">A fast desktop music player for your own <b>Navidrome</b>, <b>Subsonic/OpenSubsonic</b> and <b>Jellyfin</b> server.</p>
 
+<p align="center"><img src="docs/screenshots/album.png" alt="Musify playing an album, with lyrics in the side panel"></p>
+
 ## What it does
 
 - **Sound first**: native audio engine with 64-bit processing, hi-res up to 32 bit / 384 kHz, gapless playback, crossfade, volume normalization, true-peak limiter and an exclusive mode that plays every track at its own sample rate.
@@ -11,8 +13,17 @@
 - **Lyrics** that scroll with the music, from your server, `.lrc` files or LRCLIB.
 - **Downloads** for offline listening, playlists with drag and drop, queue, Shuffle+, continue where you stopped (also from another device).
 - **Statistics**, a listening calendar, automatic playlists and a yearly Recap.
-- **Your look**: 30 accent colors and gradients, miniplayer, full-screen player, 27 languages.
+- **Your look**: 24 accent colors and gradients, miniplayer, full-screen player, 27 languages.
 - **Desktop**: media keys, tray, start with Windows, Discord status.
+
+## Screenshots
+
+|                                              |                                           |
+| :------------------------------------------: | :---------------------------------------: |
+|      ![Home](docs/screenshots/home.png)      |  ![Lyrics](docs/screenshots/lyrics.png)   |
+|        Home with automatic playlists         |     Lyrics that scroll with the music     |
+| ![Equalizer](docs/screenshots/equalizer.png) | ![Statistics](docs/screenshots/stats.png) |
+|          Equalizer with live curve           |         Your listening statistics         |
 
 ## Install
 
@@ -37,4 +48,4 @@ Before a pull request: `npm run typecheck`, `npm run lint`, `npm test`, and in `
 
 ## License
 
-Free to use, privately and commercially, under the [Musify License](LICENSE). It is source-available, not open source: you may share unmodified copies for free, but not distribute modified versions or sell it. Pull requests are welcome (see section 3 of the license). Third-party components keep their own licenses.
+Musify is free under the [Musify License](LICENSE): use it privately and commercially, change it as you like, and share the original or your changed version (for example on GitHub), but only free of charge and under the same license. Nobody may sell it, neither the original nor a changed version. A changed version has to say that it is not the official Musify. Pull requests are welcome (see section 3 of the license). Third-party components keep their own licenses.
