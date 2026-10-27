@@ -29,6 +29,8 @@
 //! - Shared mode uses the backend's default buffer size; `buffer_ms` sizes the exclusive-mode
 //!   device period.
 
+use std::sync::Arc;
+
 use crossbeam_channel::Sender;
 
 use crate::api::{DeviceInfo, DeviceSampleFormat, OutputConfig, OutputFormat};
@@ -89,6 +91,11 @@ pub trait OutputStream: Send {
     fn xruns(&self) -> u64;
     /// Drops all audio queued in the ring (used when seeking while paused). Lock-free.
     fn flush(&mut self);
+    /// The callback's control block, for cutting queued audio at a manual switch
+    /// ([`ramp::Control::request_cut`]). `None`: the stream cannot cut.
+    fn control(&self) -> Option<Arc<ramp::Control>> {
+        None
+    }
     /// Frames that are still to be heard once the ring has been read empty (device buffers).
     /// The engine waits this long before closing a stream at a track boundary.
     fn latency_frames(&self) -> u32 {

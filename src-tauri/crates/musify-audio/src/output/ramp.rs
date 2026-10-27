@@ -15,6 +15,9 @@ pub struct Control {
     xruns: AtomicU64,
     /// Set by `request_flush`; the callback discards everything queued in the ring once.
     flush: AtomicBool,
+    /// Set by `request_cut`: ring position (samples since the stream opened) where the audio after
+    /// a manual switch starts. The callback fades out and drops what is queued before it.
+    cut_at: AtomicU64,
 }
 
 impl Control {
@@ -46,6 +49,19 @@ impl Control {
     /// Returns and clears a pending flush request (callback side).
     pub fn take_flush(&self) -> bool {
         self.flush.swap(false, Ordering::SeqCst)
+    }
+
+    /// Asks the callback not to play the audio queued before ring sample `at` (counted since the
+    /// stream opened): it fades out over one ramp length and the rest is dropped. Used for manual
+    /// track switches, so the old track does not go on for the ring's ~50 ms. The writer calls it
+    /// after pushing sample `at - 1` and before pushing sample `at`.
+    pub fn request_cut(&self, at: u64) {
+        self.cut_at.store(at, Ordering::Release);
+    }
+
+    /// Ring position of the latest cut (0 = none).
+    pub fn cut_at(&self) -> u64 {
+        self.cut_at.load(Ordering::Acquire)
     }
 }
 

@@ -52,6 +52,10 @@ pub struct Renderer {
     channels: usize,
     ramp: Ramp,
     control: Arc<Control>,
+    /// Ring samples read or dropped since the stream opened (locates cuts).
+    read: u64,
+    /// Fade-out of the audio before a cut (unity when no cut is running).
+    cut_ramp: Ramp,
     /// Data has been received since the stream started / resumed (an empty ring before the first
     /// data is "not started yet", not an underrun).
     primed: bool,
@@ -66,6 +70,8 @@ impl Renderer {
             channels: channels as usize,
             ramp: Ramp::for_rate(sample_rate),
             control,
+            read: 0,
+            cut_ramp: Ramp::for_rate(sample_rate),
             primed: false,
             starved: false,
         }
@@ -82,6 +88,57 @@ impl Renderer {
     /// Fills all of `out` (interleaved, `channels` per frame). See [`FillMode::Device`].
     pub fn render(&mut self, ring: &mut Consumer<f64>, out: &mut [f64]) {
         self.render_with(ring, out, FillMode::Device);
+    }
+
+    /// Executes a pending cut (see [`Control::request_cut`]): the queued audio before it fades out
+    /// over one ramp length, written to the start of `out`, and the rest of it is dropped. Nothing
+    /// is faded while paused. Returns the frames written; all of `out` if the fade goes on in the
+    /// next callback.
+    fn cut(&mut self, ring: &mut Consumer<f64>, out: &mut [f64], total: usize) -> usize {
+        let cut_at = self.control.cut_at();
+        let mut pending = (cut_at.saturating_sub(self.read) as usize / ENGINE_CHANNELS)
+            .min(ring.slots() / ENGINE_CHANNELS);
+        if pending == 0 {
+            self.read = self.read.max(cut_at);
+            return 0;
+        }
+        let ch = self.channels;
+        let mut frame = 0;
+        if !self.ramp.is_silent() {
+            self.cut_ramp.set_target(false);
+            let n = (self.cut_ramp.frames_until_silent() as usize)
+                .min(pending)
+                .min(total);
+            if let Ok(chunk) = ring.read_chunk(n * ENGINE_CHANNELS) {
+                let (a, b) = chunk.as_slices();
+                let mut samples = a.iter().chain(b.iter()).copied();
+                while let (Some(l), Some(r)) = (samples.next(), samples.next()) {
+                    let mut g = self.cut_ramp.step();
+                    if !self.ramp.is_unity() {
+                        g *= self.ramp.step();
+                    }
+                    map_stereo_frame(l * g, r * g, &mut out[frame * ch..(frame + 1) * ch]);
+                    frame += 1;
+                }
+                chunk.commit_all();
+                self.read += (frame * ENGINE_CHANNELS) as u64;
+                pending -= frame;
+            }
+            if pending > 0 && !self.cut_ramp.is_silent() {
+                // This callback is full; the fade continues in the next one.
+                return frame;
+            }
+        }
+        if pending > 0
+            && let Ok(chunk) = ring.read_chunk(pending * ENGINE_CHANNELS)
+        {
+            chunk.commit_all();
+        }
+        self.read = self.read.max(cut_at);
+        self.cut_ramp = Ramp::new(self.cut_ramp.len_frames());
+        // The ring is empty now until the writer catches up: that is not an underrun.
+        self.primed = false;
+        frame
     }
 
     /// Fills `out` and returns the number of frames produced (always all of them in
@@ -101,7 +158,9 @@ impl Renderer {
             {
                 chunk.commit_all();
             }
+            self.read += queued as u64;
         }
+        let start = self.cut(ring, out, total);
         // Read the ring fill level before the pause flag: a writer that sets `paused` and then pushes
         // data is then guaranteed to be seen as paused together with that data.
         let available = ring.slots() / ENGINE_CHANNELS;
@@ -112,19 +171,19 @@ impl Renderer {
             self.starved = false;
             return match mode {
                 FillMode::Device => {
-                    out[..total * ch].fill(0.0);
+                    out[start * ch..total * ch].fill(0.0);
                     total
                 }
-                FillMode::Available => 0,
+                FillMode::Available => start,
             };
         }
 
         // Frames that may consume ring data: all of them while playing, only up to the end of the
         // fade while pausing.
-        let consume = total.min(self.ramp.frames_until_silent() as usize);
+        let consume = (total - start).min(self.ramp.frames_until_silent() as usize);
         let take = consume.min(available);
 
-        let mut frame = 0;
+        let mut frame = start;
         if take > 0 {
             let chunk = match ring.read_chunk(take * ENGINE_CHANNELS) {
                 Ok(chunk) => chunk,
@@ -143,6 +202,7 @@ impl Renderer {
                 frame += 1;
             }
             chunk.commit_all();
+            self.read += (take * ENGINE_CHANNELS) as u64;
             self.primed = true;
             self.starved = false;
         }

@@ -1,4 +1,7 @@
-import { pickHeaderColor } from "./color";
+import { dominantColor, pickHeaderColor } from "./color";
+
+const http = vi.hoisted(() => ({ httpRequest: vi.fn() }));
+vi.mock("@/api/http", () => http);
 
 function solid(r: number, g: number, b: number, count = 64): Uint8ClampedArray {
   const data = new Uint8ClampedArray(count * 4);
@@ -21,5 +24,16 @@ describe("pickHeaderColor", () => {
 
   it("returns null for fully transparent images", () => {
     expect(pickHeaderColor(new Uint8ClampedArray(16))).toBeNull();
+  });
+});
+
+describe("dominantColor", () => {
+  it("tries a failed image again instead of remembering the failure", async () => {
+    http.httpRequest.mockRejectedValueOnce(new Error("timeout"));
+    expect(await dominantColor("https://srv/cover/1")).toBeNull();
+    // Second call: a new request (which fails differently here: jsdom cannot decode images).
+    http.httpRequest.mockResolvedValueOnce(new Response(null, { status: 404 }));
+    expect(await dominantColor("https://srv/cover/1")).toBeNull();
+    expect(http.httpRequest).toHaveBeenCalledTimes(2);
   });
 });
