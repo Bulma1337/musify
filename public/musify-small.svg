@@ -6,10 +6,12 @@
       <stop offset="1" stop-color="#ff3d7f"/>
     </linearGradient>
     <mask id="cut">
-      <circle cx="512" cy="512" r="492" fill="#fff"/>
-      <path d="M 232 748 C 232 420 282 330 372 330 C 462 330 512 420 512 572 C 512 420 562 330 652 330 C 742 330 792 420 792 748" transform="translate(512 512) scale(0.62) translate(-512 -539)" fill="none" stroke="#000" stroke-width="136" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M 137.4 360.7 A 404 404 0 0 1 360.7 137.4" fill="none" stroke="#000" stroke-width="52" stroke-linecap="round"/>
-      <path d="M 886.6 663.3 A 404 404 0 0 1 663.3 886.6" fill="none" stroke="#000" stroke-width="52" stroke-linecap="round"/>
+      <circle cx="512" cy="512" r="484" fill="#fff"/>
+      <path d="M 232 748 C 232 420 282 330 372 330 C 462 330 512 420 512 572 C 512 420 562 330 652 330 C 742 330 792 420 792 748" transform="translate(512 512) scale(0.56) translate(-512 -539)" fill="none" stroke="#000" stroke-width="136" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 124.0 385.9 A 408 408 0 0 1 385.9 124.0" fill="none" stroke="#000" stroke-width="50" stroke-linecap="round"/>
+      <path d="M 900.0 638.1 A 408 408 0 0 1 638.1 900.0" fill="none" stroke="#000" stroke-width="50" stroke-linecap="round"/>
+      <path d="M 227.7 360.8 A 322 322 0 0 1 360.8 227.7" fill="none" stroke="#000" stroke-width="44" stroke-linecap="round"/>
+      <path d="M 796.3 663.2 A 322 322 0 0 1 663.2 796.3" fill="none" stroke="#000" stroke-width="44" stroke-linecap="round"/>
     </mask>
   </defs>
   <rect width="1024" height="1024" fill="url(#glut)" mask="url(#cut)"/>

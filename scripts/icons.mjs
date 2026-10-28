@@ -1,8 +1,8 @@
 // Regenerates the app icons in src-tauri/icons/ and the logos in public/ from the logo SVGs in
-// src-tauri/icons/. Small sizes come from simplified versions of the mark so they stay sharp in the
-// tray, the taskbar and the title bar:
-//   musify-logo-tiny.svg   16–24 px (only the m)
-//   musify-logo-small.svg  30–50 px (one groove on each side)
+// src-tauri/icons/. All sizes show the same mark (the m and four grooves); small sizes come from
+// versions with heavier strokes so the grooves stay visible in the tray, the taskbar and the title bar:
+//   musify-logo-tiny.svg   16–24 px
+//   musify-logo-small.svg  30–50 px (also the title bar and favicon)
 //   musify-logo.svg        64 px and up
 //
 // Usage: node scripts/icons.mjs   (intermediate files go to .dev/icons/)
@@ -20,7 +20,7 @@ const SOURCES = {
 };
 /** Entries of icon.ico by source. Windows picks the closest size for each DPI. */
 const ICO_SIZES = { tiny: [16, 20, 24], small: [32, 40, 48], full: [64, 256] };
-/** Bundle files that are rendered from the simplified marks instead of the full one. */
+/** Bundle files that are rendered from the heavier small mark instead of the full one. */
 const SMALL_FILES = ["32x32.png", "Square30x30Logo.png", "Square44x44Logo.png", "StoreLogo.png"];
 
 function tauriIcon(source, out, png) {
@@ -51,7 +51,7 @@ function buildIco(images) {
 rmSync(work, { recursive: true, force: true });
 mkdirSync(work, { recursive: true });
 
-// All default bundle icons from the full mark, the small ones again from the simplified mark.
+// All default bundle icons from the full mark, the small ones again from the heavier small mark.
 tauriIcon("full", join(work, "full"));
 tauriIcon("small", join(work, "small"));
 for (const file of [
