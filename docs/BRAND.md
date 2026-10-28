@@ -38,8 +38,9 @@ and release notes.
 - Neutrals have a slight cool tint (not the pure greys of other players). The home button never turns into a filled white house; the progress bar is always filled with the accent.
 - Typeface: Figtree (bundled, OFL). Icons: Lucide (ISC).
 - Logo: a record in Glut with a lowercase "m" drawn as one soft wave and two pairs of groove lines cut out of it
-  (`src-tauri/icons/musify-logo.svg`). Small sizes use simplified versions: `musify-logo-small.svg` (one groove on each
-  side, 30–50 px, title bar and favicon) and `musify-logo-tiny.svg` (only the m, 16–24 px). `node scripts/icons.mjs`
+  (`src-tauri/icons/musify-logo.svg`). Every size shows this same mark with all four grooves; small sizes use
+  versions with heavier strokes so the grooves stay visible: `musify-logo-small.svg` (30–50 px, title bar and favicon)
+  and `musify-logo-tiny.svg` (16–24 px). `node scripts/icons.mjs`
   regenerates every app icon, the `.ico` and the logos in `public/` from these three files. The mark works in one
   color too (white or black, with the m and grooves cut out). No play triangle, notes, headphones or equalizer bars.
 - The "Favoriten" placeholder cover uses the accent gradient.
