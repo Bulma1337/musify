@@ -123,13 +123,21 @@ function playOrder(items: QueueItem[], first: number, mode: ShuffleMode): number
   );
 }
 
-/** Where the queue goes after the current item, ignoring repeat-one (user "next"). */
-function following(s: PlayerState): { item: QueueItem; manual: boolean; orderIndex: number } | null {
+/**
+ * Where the queue goes after the current item, ignoring repeat-one (that repeats the item, see
+ * `peekNext`). At the end the context starts over with repeat-all; a skip by the user (`userSkip`)
+ * also starts over with repeat-one, since repeat is on either way.
+ */
+function following(
+  s: PlayerState,
+  userSkip = false,
+): { item: QueueItem; manual: boolean; orderIndex: number } | null {
   const manual = s.manualQueue[0];
   if (manual) return { item: manual, manual: true, orderIndex: s.orderIndex };
   let orderIndex = s.orderIndex + 1;
   if (orderIndex >= s.order.length) {
-    if (s.repeat !== "all" || s.order.length === 0) return null;
+    const loops = s.repeat === "all" || (userSkip && s.repeat === "one");
+    if (!loops || s.order.length === 0) return null;
     orderIndex = 0;
   }
   const item = s.contextItems[s.order[orderIndex] ?? -1];
@@ -218,7 +226,7 @@ export const usePlayer = create<PlayerState>()(
 
       next() {
         const s = get();
-        const step = following(s);
+        const step = following(s, true);
         if (!step) {
           set({ isPlaying: false, positionMs: 0, seekNonce: s.seekNonce + 1 });
           return;
@@ -237,11 +245,14 @@ export const usePlayer = create<PlayerState>()(
       previous() {
         const s = get();
         // Restart the current track unless we are within its first 3 seconds (common player behaviour).
-        if (s.positionMs > 3000 || s.orderIndex === 0 || s.current?.manual) {
+        // At the first track, repeat (all or one) goes on with the last one; without repeat it restarts.
+        const atStart = s.orderIndex === 0;
+        const wraps = atStart && s.repeat !== "off" && s.order.length > 1;
+        if (s.positionMs > 3000 || s.current?.manual || (atStart && !wraps)) {
           set({ positionMs: 0, seekNonce: s.seekNonce + 1 });
           return;
         }
-        const orderIndex = s.orderIndex - 1;
+        const orderIndex = atStart ? s.order.length - 1 : s.orderIndex - 1;
         const item = s.contextItems[s.order[orderIndex] ?? 0] ?? null;
         set({
           orderIndex,
